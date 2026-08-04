@@ -34,7 +34,7 @@ git remote -v
 Never work directly on `main`.
 
 ```bash
-git checkout -b feature/my-new-feature
+git checkout -b feat/feature-to-add
 ```
 
 For bug fixes:
