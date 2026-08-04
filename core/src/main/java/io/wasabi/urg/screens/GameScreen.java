@@ -9,13 +9,13 @@ import io.wasabi.urg.elements.game.Wheel;
 
 public class GameScreen implements Screen {
 
-    final Roulette game;
+    private final Roulette game;
 
     // Renderers
     public ShapeRenderer shapeRenderer;
 
     // Elements
-    Wheel wheel;
+    private Wheel wheel;
 
     public GameScreen(final Roulette game) {
         this.game = game;
