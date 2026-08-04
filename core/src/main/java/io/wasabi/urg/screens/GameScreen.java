@@ -65,5 +65,6 @@ public class GameScreen implements Screen {
     @Override
     public void dispose() {
         shapeRenderer.dispose();
+        wheel.dispose();
     }
 }
