@@ -11,30 +11,7 @@ This project was generated with a template including simple application launcher
 
 ## Getting Started
 
-### 1. Clone your Fork
-
-```bash
-git clone https://github.com/<your-username>/<repository>.git
-cd <repository>
-```
-
-### 2. Build the project:
-
-```bash
-./gradlew build
-```
-
-### 3. Run tests:
-
-```bash
-./gradlew test
-```
-
-### 4. Run the application:
-
-```bash
-./gradlew run
-```
+To get started with contributing to the project, follow the [Onboarding Guide](https://github.com/Yorifuji-T/untitled-roulette-game/wiki/Onboarding-Guide) on the untitled roulette game wiki.
 
 ## Gradle
 
