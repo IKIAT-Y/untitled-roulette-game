@@ -22,15 +22,18 @@ public class GameScreen implements Screen {
         this.shapeRenderer = new ShapeRenderer();
 
         this.wheel = new Wheel(this);
-        wheel.setPosition(120, 240);
+        wheel.setPosition(-120f, 0);
     }
 
     @Override
     public void render(float delta) {
         // TODO: game screen rendering
         // includes the roulette wheel & the ui
-
         ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
+
+        game.viewport.apply();
+        shapeRenderer.setProjectionMatrix(game.viewport.getCamera().combined);
+
         wheel.render();
     }
 

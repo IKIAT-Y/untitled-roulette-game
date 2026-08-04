@@ -9,7 +9,7 @@ public class Wheel {
     private float posX;
     private float posY;
 
-    private GameScreen screen;
+    private final GameScreen screen;
 
     public Wheel(GameScreen screen) {
         this.screen = screen;
@@ -23,7 +23,7 @@ public class Wheel {
     public void render() {
         // placeholder render function
         int nums = 37;
-        float r1 = 40f;
+        float r1 = 30f;
         float r2 = 55f;
 
         float ang = 360f/nums;
