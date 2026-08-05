@@ -15,7 +15,7 @@ public class GameScreen implements Screen {
     public ShapeRenderer shapeRenderer;
 
     // Elements
-    private Wheel wheel;
+    private final Wheel wheel;
 
     public GameScreen(final Roulette game) {
         this.game = game;
