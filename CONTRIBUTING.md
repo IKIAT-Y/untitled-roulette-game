@@ -20,7 +20,7 @@ cd <repository>
 ### 3. Add the upstream repository
 
 ```bash
-git remote add upstream https://github.com/<organization>/<repository>.git
+git remote add upstream https://github.com/Yorifuji-T/untitled-roulette-game.git
 ```
 
 Verify:
@@ -29,18 +29,37 @@ Verify:
 git remote -v
 ```
 
+You should see:
+
+```bash
+origin  https://github.com/<your-username>/<repository>.git (fetch)
+origin  https://github.com/<your-username>/<repository>.git (push)
+upstream        https://github.com/Yorifuji-T/untitled-roulette-game.git (fetch)
+upstream        https://github.com/Yorifuji-T/untitled-roulette-game.git (push)
+```
+
 ### 4. Create a feature branch
 
 Never work directly on `main`.
 
 ```bash
-git checkout -b feat/feature-to-add
+git checkout -b feat/username/feature-to-add
+```
+
+e.g.
+
+````bash
+git checkout -b feat/yrska/bouncy-charm-upgrade
 ```
 
 For bug fixes:
 
 ```bash
-git checkout -b fix/issue-description
+git checkout -b fix/user/issue-description
+```
+
+```bash
+git checkout -b fix/OveralZ/ball-delta-time
 ```
 
 ### 5. Make your changes
@@ -117,3 +136,4 @@ When opening an issue, include:
 - Java version
 - Operating system
 - Relevant logs
+````
