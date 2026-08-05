@@ -103,7 +103,10 @@ git push origin feature/my-new-feature
 
 ### 9. Open a Pull Request
 
-Open a PR from your fork into the upstream `main` branch.
+Open a Pull Request from your fork into the upstream `dev` branch.
+
+Please ensure the target branch is set to `dev`. Pull Requests opened against the upstream `main` branch will not be accepted.
+
 
 Please include:
 
