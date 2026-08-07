@@ -29,14 +29,37 @@ public class Ball {
     private float outerTrackRadius;
     private float innerWheelRadius;
 
+    // Used for fixed spinning in SPINNING AND DROPPING states
+    private float currentAngleRad = 0f;
+    private float currentRadius = 0f;
+
+    // How fast the ball moves radially inward during DROPPING
+    private float radialDropSpeed = 120f;
+
     // Used during Spin state
     private State state = State.STOPPED;
     private float tangentialSpeed = 0f;
-    private float decelerationFactor = 0.999f;
+
+    private float decelerationFactor = 0.6f;
+    private float dropDecelerationFactor = 0.4f; // equivalent to old pow(0.999, 5) per-frame @60fps
+
+    // Speed to enter DROPPING state
     private float dropSpeedThreshold = 300f;
+
+    // Speed to enter SETTLE state
     private float settleSpeedThreshold = 5f;
     private float settleTimeRequired = 0.5f;
     private float settleTimer = 0f;
+
+    // Used to cap the frame time between frames so a huge lag spike doesn't kill the physics
+    private static final float MAX_DELTA = 1f / 20f;
+
+    // Framed timeStep for physics steps
+    private static final float FIXED_TIMESTEP = 1f / 60f;
+    private static final int MAX_STEPS_PER_FRAME = 8; // avoid spiral of death on big lag spikes
+
+    // Keeps track of real time that has passed that hasn't been simulated yet
+    private float physicsAccumulator = 0f;
 
     public Ball(World world, float ballRadius, Vector2 wheelCenter) {
         this.world = world;
@@ -67,7 +90,9 @@ public class Ball {
      * Launches the ball into a spin on the outer track.
      *
      * @param startAngleRad     starting angle around wheelCenter, radians
-     * @param initialSpeed      initial spin speed, radians/sec
+     * @param initialSpeed      initial tangential (linear) speed, units/sec — note this is
+     *                          NOT radians/sec, it's divided by radius internally to get
+     *                          angular velocity
      * @param outerTrackRadius  radius of the outer track the ball starts on
      * @param innerWheelRadius  radius of the inner wheel surface it will drop onto
      */
@@ -77,6 +102,9 @@ public class Ball {
         this.innerWheelRadius = innerWheelRadius;
         this.tangentialSpeed = initialSpeed;
         this.settleTimer = 0f;
+        this.currentAngleRad = startAngleRad;
+        this.currentRadius = outerTrackRadius;
+        this.physicsAccumulator = 0f;
 
         Vector2 startPos = new Vector2(
             wheelCenter.x + outerTrackRadius * (float) Math.cos(startAngleRad),
@@ -93,50 +121,71 @@ public class Ball {
      * Updates the ball using different behaviour depending on the state it is in
      */
     public void update(float delta) {
+        // Clamp so a lag spike doesn't destroy the simulation
+        float dt = Math.min(delta, MAX_DELTA);
+
         System.out.println(state.toString());
+
         switch (state) {
             case SPINNING:
-                updateSpinning(delta);
+                updateSpinning(dt);
+                world.step(dt, 6, 2);
                 break;
             case DROPPING:
-                updateDropping(delta);
+                updateDropping(dt);
+                world.step(dt, 6, 2);
                 break;
             case BOUNCING:
-                updateBouncing(delta);
-                break;
             case SETTLING:
-                updateSettling(delta);
+                stepPhysicsFixed(dt);
                 break;
             case STOPPED:
                 return;
         }
-
-        // It says timeStep should not vary, but this works?
-        world.step(delta, 6, 2);
     }
 
     /**
-     * Calculates a directional vector from the center of the wheel table to the ball.
-     * Does so by getting the balls relative position by subtracting its absolute position by the
-     * wheel center and the normalizing it.
+     * Advances BOUNCING/SETTLING physics in fixed-size chunks, accumulating leftover real
+     * time between calls.
      */
-    private Vector2 radialDirFromCenter() {
-        return new Vector2(ball.getPosition()).sub(wheelCenter).nor();
+    private void stepPhysicsFixed(float dt) {
+        physicsAccumulator += dt;
+
+        int steps = 0;
+        while (physicsAccumulator >= FIXED_TIMESTEP && steps < MAX_STEPS_PER_FRAME) {
+            if (state == State.BOUNCING) {
+                updateBouncing();
+            } else if (state == State.SETTLING) {
+                updateSettling();
+            } else {
+                break;
+            }
+            world.step(FIXED_TIMESTEP, 6, 2);
+            physicsAccumulator -= FIXED_TIMESTEP;
+            steps++;
+        }
+    }
+
+    /**
+     * Used to set position of the ball from the wheel center using angle in radian and distance
+     */
+    private void setPositionFromPolar(float angleRad, float radialDist) {
+        Vector2 pos = new Vector2(
+            wheelCenter.x + radialDist * (float) Math.cos(angleRad),
+            wheelCenter.y + radialDist * (float) Math.sin(angleRad)
+        );
+        ball.setTransform(pos, 0f);
     }
 
     private void updateSpinning(float delta) {
-        Vector2 radialDir = radialDirFromCenter();
-        Vector2 tangentDir = new Vector2(-radialDir.y, radialDir.x);
+        // Angular velocity from the current tangential speed and radius.
+        float angularVelocity = tangentialSpeed / currentRadius;
+        currentAngleRad += angularVelocity * delta;
 
-        // Hold the ball on the circular track via centripetal force
-        float radius = outerTrackRadius;
-        float centripetalMag = ball.getMass() * tangentialSpeed * tangentialSpeed / radius;
-        ball.applyForceToCenter(radialDir.scl(-centripetalMag), true);
+        setPositionFromPolar(currentAngleRad, currentRadius);
 
-        // Decay speed
-        tangentialSpeed *= decelerationFactor;
-
-        ball.setLinearVelocity(tangentDir.scl(tangentialSpeed));
+        // Used power of delta because value is being multiplied
+        tangentialSpeed *= (float) Math.pow(decelerationFactor, delta);
 
         // Switch state once it drops below a certain speed
         if (tangentialSpeed <= dropSpeedThreshold) {
@@ -145,39 +194,37 @@ public class Ball {
     }
 
     private void updateDropping(float delta) {
-        Vector2 toCenter = new Vector2(wheelCenter).sub(ball.getPosition());
-        float distFromCenter = toCenter.len();
-        Vector2 radialInward = toCenter.cpy().nor();
-        Vector2 tangentDir = new Vector2(radialInward.y, -radialInward.x);
+        // Same as SPINNING state but radius decrease over time
+        float angularVelocity = tangentialSpeed / currentRadius;
+        currentAngleRad += angularVelocity * delta;
+        currentRadius -= radialDropSpeed * delta;
 
-        // Used to apply one more centripetal force so it doesn't go flying away
-        float centripetalMag = ball.getMass() * tangentialSpeed * tangentialSpeed / distFromCenter;
+        setPositionFromPolar(currentAngleRad, currentRadius);
 
-        // Extra inward pull force
-        float extraInwardPull = ball.getMass() * 2000f;
+        // Different deceleration factor to SPINNING state
+        tangentialSpeed *= (float) Math.pow(dropDecelerationFactor, delta);
 
-        ball.applyForceToCenter(radialInward.scl(centripetalMag + extraInwardPull), true);
+        if (currentRadius <= innerWheelRadius - (2 * radius)) {
+            // Here we calculate the velocity the ball would have
+            // at this position and give it the ball before switching
+            // to using Box2D for bouncing physics
+            Vector2 tangentDir = new Vector2(
+                -(float) Math.sin(currentAngleRad),
+                (float) Math.cos(currentAngleRad)
+            );
+            Vector2 radialOutDir = new Vector2(
+                (float) Math.cos(currentAngleRad),
+                (float) Math.sin(currentAngleRad)
+            );
+            Vector2 exitVelocity = tangentDir.scl(tangentialSpeed)
+                .add(radialOutDir.scl(-radialDropSpeed));
+            ball.setLinearVelocity(exitVelocity);
 
-        tangentialSpeed *= (float) Math.pow(decelerationFactor, delta); // Fast decay
-
-        // Actual ball velocity
-        Vector2 currentVel = ball.getLinearVelocity();
-
-        // Velocity if the ball were to move in a straight line towards the center
-        Vector2 desiredTangentVel = tangentDir.scl(tangentialSpeed);
-
-        // Linear interpolation of currentVel (90%) and desiredTangentVel (10%)
-        ball.setLinearVelocity(
-            currentVel.x * 0.9f + desiredTangentVel.x * 0.1f,
-            currentVel.y * 0.9f + desiredTangentVel.y * 0.1f
-        );
-
-        if (distFromCenter <= innerWheelRadius - (2 * radius)) {
             state = State.BOUNCING;
         }
     }
 
-    private void updateBouncing(float delta) {
+    private void updateBouncing() {
         Vector2 toCenter = new Vector2(wheelCenter).sub(ball.getPosition());
         Vector2 radialInward = toCenter.cpy().nor();
 
@@ -187,7 +234,7 @@ public class Ball {
 
         // Damp the linear velocity of the ball
         float bounceDampingPerSecond = 0.25f;
-        float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, delta);
+        float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP);
         Vector2 vel = ball.getLinearVelocity();
         ball.setLinearVelocity(
             vel.x * (1f - dampingThisFrame),
@@ -202,10 +249,10 @@ public class Ball {
         }
     }
 
-    private void updateSettling(float delta) {
+    private void updateSettling() {
         // While settling apply large damping to put it to a complete stop
         float bounceDampingPerSecond = 0.9f;
-        float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, delta);
+        float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP);
         Vector2 vel = ball.getLinearVelocity();
         ball.setLinearVelocity(
             vel.x * (1f - dampingThisFrame),
@@ -213,7 +260,7 @@ public class Ball {
         );
 
         // After a fixed amount of time assume fully settled
-        settleTimer += delta;
+        settleTimer += Ball.FIXED_TIMESTEP;
         if (settleTimer >= settleTimeRequired) {
             finalizeStop();
         }

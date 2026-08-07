@@ -49,8 +49,8 @@ public class WheelBoundary {
 
         // Outer wall starts as a sensor so the ball can pass through it
         // inward during DROPPING.
-        outerFixture = addRing(outerRadius, 0.3f, 0.3f, true);
-        innerFixture = addRing(innerRadius, 0.3f, 0.3f, false);
+        outerFixture = addRing(outerRadius, 0.3f, 0.5f, true);
+        innerFixture = addRing(innerRadius, 0.3f, 0.5f, false);
     }
 
     private Fixture addRing(float radius, float friction, float restitution, boolean startAsSensor) {

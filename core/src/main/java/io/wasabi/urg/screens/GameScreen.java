@@ -47,7 +47,7 @@ public class GameScreen implements Screen {
         this.boundary = new WheelBoundary(world, wheelCenter, 100f, 150f);
 
         float startAngleRad = 0f;
-        float initialSpeed = 1000f;
+        float initialSpeed = 2000f;
         float outerTrackRadius = 200f;
         float innerWheelRadius = 150f;
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
