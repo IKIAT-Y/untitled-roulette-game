@@ -23,8 +23,8 @@ public class Wheel {
     public void render() {
         // placeholder render function
         int nums = 37;
-        float r1 = 30f;
-        float r2 = 55f;
+        float r1 = 100f;
+        float r2 = 150f;
 
         float ang = 360f/nums;
         float angc = 0.0f;

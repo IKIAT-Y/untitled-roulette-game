@@ -1,11 +1,18 @@
 package io.wasabi.urg.screens;
 
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.wasabi.urg.Roulette;
+import io.wasabi.urg.elements.game.Ball;
+import io.wasabi.urg.elements.game.Frets;
 import io.wasabi.urg.elements.game.Wheel;
+import io.wasabi.urg.elements.game.WheelBoundary;
 
 public class GameScreen implements Screen {
 
@@ -14,15 +21,37 @@ public class GameScreen implements Screen {
     // Renderers
     public ShapeRenderer shapeRenderer;
 
+    // Physics
+    private World world;
+
     // Elements
+    private Ball ball;
     private Wheel wheel;
+    private Frets frets;
+    private WheelBoundary boundary;
 
     public GameScreen(final Roulette game) {
         this.game = game;
         this.shapeRenderer = new ShapeRenderer();
 
+        this.world = new World(new Vector2(0f, 0f), true);
+
         this.wheel = new Wheel(this);
         wheel.setPosition(-120f, 0);
+
+        Vector2 wheelCenter = new Vector2(-120f, 0);
+        this.ball = new Ball(world, 6f, wheelCenter);
+
+        // Wheel boundaries and frets for bouncing
+        this.frets = new Frets(world, wheelCenter, 100f, 115f, 37, 1f);
+        this.boundary = new WheelBoundary(world, wheelCenter, 100f, 150f);
+
+        float startAngleRad = 0f;
+        float initialSpeed = 1000f;
+        float outerTrackRadius = 200f;
+        float innerWheelRadius = 150f;
+        ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
+
     }
 
     @Override
@@ -30,11 +59,19 @@ public class GameScreen implements Screen {
         // TODO: game screen rendering
         // includes the roulette wheel & the ui
         ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
+        shapeRenderer.setColor(1f, 1f, 1f, 1f);
 
         game.viewport.apply();
         shapeRenderer.setProjectionMatrix(game.viewport.getCamera().combined);
 
+        ball.update(delta);
+        ball.render(shapeRenderer);
+
         wheel.render();
+
+        boundary.update(ball.getState());
+        boundary.render(shapeRenderer);
+        frets.render(shapeRenderer);
     }
 
     @Override
@@ -65,6 +102,10 @@ public class GameScreen implements Screen {
     @Override
     public void dispose() {
         shapeRenderer.dispose();
+        ball.dispose();
         wheel.dispose();
+        boundary.dispose();
+        frets.dispose();
+        world.dispose();
     }
 }
