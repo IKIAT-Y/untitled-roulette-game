@@ -8,12 +8,14 @@ import com.badlogic.gdx.utils.Array;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.state.RunState;
 
 /** Owns the shared game resources and coordinates all active game objects. */
 public final class GameManager {
     private static final GameManager INSTANCE = new GameManager();
 
     private final Array<GameObject> gameObjects = new Array<>();
+    private final RunState runState = new RunState();
 
     private Roulette game;
     private Screen screen;
@@ -51,6 +53,10 @@ public final class GameManager {
     public World getWorld() {
         requireInitialized();
         return world;
+    }
+
+    public RunState getRunState() {
+        return runState;
     }
 
     public void addGameObject(GameObject gameObject) {
