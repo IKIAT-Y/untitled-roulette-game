@@ -1,6 +1,7 @@
 package io.wasabi.urg.screens;
 
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
@@ -17,7 +18,8 @@ public class GameScreen implements Screen {
     private final Roulette game;
 
     // Renderers
-    public ShapeRenderer shapeRenderer;
+    private ShapeRenderer shapeRenderer;
+    private PolygonSpriteBatch polyBatch;
 
     // Physics
     private World world;
@@ -31,10 +33,11 @@ public class GameScreen implements Screen {
     public GameScreen(final Roulette game) {
         this.game = game;
         this.shapeRenderer = new ShapeRenderer();
+        this.polyBatch = new PolygonSpriteBatch();
 
         this.world = new World(new Vector2(0f, 0f), true);
 
-        this.wheel = new Wheel(this);
+        this.wheel = new Wheel();
         wheel.setPosition(-120f, 0);
 
         Vector2 wheelCenter = new Vector2(-120f, 0);
@@ -61,11 +64,12 @@ public class GameScreen implements Screen {
 
         game.viewport.apply();
         shapeRenderer.setProjectionMatrix(game.viewport.getCamera().combined);
+        polyBatch.setProjectionMatrix(game.viewport.getCamera().combined);
 
         ball.update(delta);
         ball.render(shapeRenderer);
 
-        wheel.render();
+        wheel.render(shapeRenderer, polyBatch);
 
         boundary.update(ball.getState());
         boundary.render(shapeRenderer);
