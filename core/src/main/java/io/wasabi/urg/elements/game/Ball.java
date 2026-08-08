@@ -1,5 +1,301 @@
 package io.wasabi.urg.elements.game;
 
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+import com.badlogic.gdx.physics.box2d.CircleShape;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.World;
+
 public class Ball {
 
+    public enum State {
+        SPINNING,   // on outer track, no inward movement
+        DROPPING,   // still spinning moving inwards
+        BOUNCING,   // free physics against frets on inner wheel
+        SETTLING,   // almost stopped
+        STOPPED     // fully stopped in pocket
+    }
+
+    private final World world;
+    private final Body ball;
+    private final float radius;
+
+    // Used to track when to switch states
+    private final Vector2 wheelCenter;
+    private float outerTrackRadius;
+    private float innerWheelRadius;
+
+    // Used for fixed spinning in SPINNING AND DROPPING states
+    private float currentAngleRad = 0f;
+    private float currentRadius = 0f;
+
+    // How fast the ball moves radially inward during DROPPING
+    private float radialDropSpeed = 120f;
+
+    // Used during Spin state
+    private State state = State.STOPPED;
+    private float tangentialSpeed = 0f;
+
+    private float decelerationFactor = 0.6f;
+    private float dropDecelerationFactor = 0.4f; // equivalent to old pow(0.999, 5) per-frame @60fps
+
+    // Speed to enter DROPPING state
+    private float dropSpeedThreshold = 300f;
+
+    // Speed to enter SETTLE state
+    private float settleSpeedThreshold = 5f;
+    private float settleTimeRequired = 0.5f;
+    private float settleTimer = 0f;
+
+    // Used to cap the frame time between frames so a huge lag spike doesn't kill the physics
+    private static final float MAX_DELTA = 1f / 20f;
+
+    // Framed timeStep for physics steps
+    private static final float FIXED_TIMESTEP = 1f / 60f;
+    private static final int MAX_STEPS_PER_FRAME = 8; // avoid spiral of death on big lag spikes
+
+    // Keeps track of real time that has passed that hasn't been simulated yet
+    private float physicsAccumulator = 0f;
+
+    public Ball(World world, float ballRadius, Vector2 wheelCenter) {
+        this.world = world;
+        this.radius = ballRadius;
+        this.wheelCenter = wheelCenter;
+
+        BodyDef ballDef = new BodyDef();
+        ballDef.type = BodyType.DynamicBody;
+        ballDef.linearDamping = 0.05f;
+        ballDef.angularDamping = 0.1f;
+        ballDef.bullet = true;
+        this.ball = world.createBody(ballDef);
+
+        CircleShape shape = new CircleShape();
+        shape.setRadius(ballRadius);
+
+        FixtureDef fd = new FixtureDef();
+        fd.shape = shape;
+        fd.density = 0.1f;
+        fd.friction = 0.6f;
+        fd.restitution = 0.8f;
+        ball.createFixture(fd);
+
+        shape.dispose();
+    }
+
+    /**
+     * Launches the ball into a spin on the outer track.
+     *
+     * @param startAngleRad     starting angle around wheelCenter, radians
+     * @param initialSpeed      initial tangential (linear) speed, units/sec — note this is
+     *                          NOT radians/sec, it's divided by radius internally to get
+     *                          angular velocity
+     * @param outerTrackRadius  radius of the outer track the ball starts on
+     * @param innerWheelRadius  radius of the inner wheel surface it will drop onto
+     */
+    public void launch(float startAngleRad, float initialSpeed,
+                       float outerTrackRadius, float innerWheelRadius) {
+        this.outerTrackRadius = outerTrackRadius;
+        this.innerWheelRadius = innerWheelRadius;
+        this.tangentialSpeed = initialSpeed;
+        this.settleTimer = 0f;
+        this.currentAngleRad = startAngleRad;
+        this.currentRadius = outerTrackRadius;
+        this.physicsAccumulator = 0f;
+
+        Vector2 startPos = new Vector2(
+            wheelCenter.x + outerTrackRadius * (float) Math.cos(startAngleRad),
+            wheelCenter.y + outerTrackRadius * (float) Math.sin(startAngleRad)
+        );
+        ball.setTransform(startPos, 0f);
+        ball.setLinearVelocity(0f, 0f);
+        ball.setAngularVelocity(0f);
+
+        state = State.SPINNING;
+    }
+
+    /**
+     * Updates the ball using different behaviour depending on the state it is in
+     */
+    public void update(float delta) {
+        // Clamp so a lag spike doesn't destroy the simulation
+        float dt = Math.min(delta, MAX_DELTA);
+
+        System.out.println(state.toString());
+
+        switch (state) {
+            case SPINNING:
+                updateSpinning(dt);
+                world.step(dt, 6, 2);
+                break;
+            case DROPPING:
+                updateDropping(dt);
+                world.step(dt, 6, 2);
+                break;
+            case BOUNCING:
+            case SETTLING:
+                stepPhysicsFixed(dt);
+                break;
+            case STOPPED:
+                return;
+        }
+    }
+
+    /**
+     * Advances BOUNCING/SETTLING physics in fixed-size chunks, accumulating leftover real
+     * time between calls.
+     */
+    private void stepPhysicsFixed(float dt) {
+        physicsAccumulator += dt;
+
+        int steps = 0;
+        while (physicsAccumulator >= FIXED_TIMESTEP && steps < MAX_STEPS_PER_FRAME) {
+            if (state == State.BOUNCING) {
+                updateBouncing();
+            } else if (state == State.SETTLING) {
+                updateSettling();
+            } else {
+                break;
+            }
+            world.step(FIXED_TIMESTEP, 6, 2);
+            physicsAccumulator -= FIXED_TIMESTEP;
+            steps++;
+        }
+    }
+
+    /**
+     * Used to set position of the ball from the wheel center using angle in radian and distance
+     */
+    private void setPositionFromPolar(float angleRad, float radialDist) {
+        Vector2 pos = new Vector2(
+            wheelCenter.x + radialDist * (float) Math.cos(angleRad),
+            wheelCenter.y + radialDist * (float) Math.sin(angleRad)
+        );
+        ball.setTransform(pos, 0f);
+    }
+
+    private void updateSpinning(float delta) {
+        // Angular velocity from the current tangential speed and radius.
+        float angularVelocity = tangentialSpeed / currentRadius;
+        currentAngleRad += angularVelocity * delta;
+
+        setPositionFromPolar(currentAngleRad, currentRadius);
+
+        // Used power of delta because value is being multiplied
+        tangentialSpeed *= (float) Math.pow(decelerationFactor, delta);
+
+        // Switch state once it drops below a certain speed
+        if (tangentialSpeed <= dropSpeedThreshold) {
+            state = State.DROPPING;
+        }
+    }
+
+    private void updateDropping(float delta) {
+        // Same as SPINNING state but radius decrease over time
+        float angularVelocity = tangentialSpeed / currentRadius;
+        currentAngleRad += angularVelocity * delta;
+        currentRadius -= radialDropSpeed * delta;
+
+        setPositionFromPolar(currentAngleRad, currentRadius);
+
+        // Different deceleration factor to SPINNING state
+        tangentialSpeed *= (float) Math.pow(dropDecelerationFactor, delta);
+
+        if (currentRadius <= innerWheelRadius - (2 * radius)) {
+            // Here we calculate the velocity the ball would have
+            // at this position and give it the ball before switching
+            // to using Box2D for bouncing physics
+            Vector2 tangentDir = new Vector2(
+                -(float) Math.sin(currentAngleRad),
+                (float) Math.cos(currentAngleRad)
+            );
+            Vector2 radialOutDir = new Vector2(
+                (float) Math.cos(currentAngleRad),
+                (float) Math.sin(currentAngleRad)
+            );
+            Vector2 exitVelocity = tangentDir.scl(tangentialSpeed)
+                .add(radialOutDir.scl(-radialDropSpeed));
+            ball.setLinearVelocity(exitVelocity);
+
+            state = State.BOUNCING;
+        }
+    }
+
+    private void updateBouncing() {
+        Vector2 toCenter = new Vector2(wheelCenter).sub(ball.getPosition());
+        Vector2 radialInward = toCenter.cpy().nor();
+
+        // Apply inwards force to simulate gravity from slope
+        float bowlPullMag = ball.getMass() * 1000f;
+        ball.applyForceToCenter(radialInward.scl(bowlPullMag), true);
+
+        // Damp the linear velocity of the ball
+        float bounceDampingPerSecond = 0.25f;
+        float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP);
+        Vector2 vel = ball.getLinearVelocity();
+        ball.setLinearVelocity(
+            vel.x * (1f - dampingThisFrame),
+            vel.y * (1f - dampingThisFrame)
+        );
+
+        // When reaching a low enough speed switch to settle state
+        float speed = ball.getLinearVelocity().len();
+        if (speed <= settleSpeedThreshold) {
+            settleTimer = 0f;
+            state = State.SETTLING;
+        }
+    }
+
+    private void updateSettling() {
+        // While settling apply large damping to put it to a complete stop
+        float bounceDampingPerSecond = 0.9f;
+        float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP);
+        Vector2 vel = ball.getLinearVelocity();
+        ball.setLinearVelocity(
+            vel.x * (1f - dampingThisFrame),
+            vel.y * (1f - dampingThisFrame)
+        );
+
+        // After a fixed amount of time assume fully settled
+        settleTimer += Ball.FIXED_TIMESTEP;
+        if (settleTimer >= settleTimeRequired) {
+            finalizeStop();
+        }
+    }
+
+    private void finalizeStop() {
+        ball.setLinearVelocity(0f, 0f);
+        ball.setAngularVelocity(0f);
+        ball.setType(BodyType.StaticBody);
+        state = State.STOPPED;
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public World getWorld() {
+        return world;
+    }
+
+    public Body getBody() {
+        return ball;
+    }
+
+    public void render(ShapeRenderer shapeRenderer) {
+        shapeRenderer.begin(ShapeType.Filled);
+        shapeRenderer.circle(
+            ball.getPosition().x,
+            ball.getPosition().y,
+            radius
+        );
+        shapeRenderer.end();
+    }
+
+    public void dispose() {
+        world.destroyBody(ball);
+    }
 }
