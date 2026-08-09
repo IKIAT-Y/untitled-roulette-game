@@ -10,7 +10,9 @@ import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 
-public class Ball {
+import io.wasabi.urg.elements.GameObject;
+
+public class Ball extends GameObject {
 
     public enum State {
         SPINNING,   // on outer track, no inward movement
@@ -120,6 +122,7 @@ public class Ball {
     /**
      * Updates the ball using different behaviour depending on the state it is in
      */
+    @Override
     public void update(float delta) {
         // Clamp so a lag spike doesn't destroy the simulation
         float dt = Math.min(delta, MAX_DELTA);
@@ -285,6 +288,7 @@ public class Ball {
         return ball;
     }
 
+    @Override
     public void render(ShapeRenderer shapeRenderer) {
         shapeRenderer.begin(ShapeType.Filled);
         shapeRenderer.circle(
@@ -295,6 +299,7 @@ public class Ball {
         shapeRenderer.end();
     }
 
+    @Override
     public void dispose() {
         world.destroyBody(ball);
     }

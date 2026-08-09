@@ -6,6 +6,7 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.screens.GameScreen;
+import io.wasabi.urg.managers.GameManager;
 
 public class Roulette extends Game {
 
@@ -17,6 +18,7 @@ public class Roulette extends Game {
         camera = new OrthographicCamera();
         viewport = new ExtendViewport(640, 480, camera); // change this depending on actual game size at launch (?)
 
+        GameManager.getInstance().initialize(this);
         this.setScreen(new GameScreen(this));
     }
 
@@ -32,6 +34,8 @@ public class Roulette extends Game {
 
     @Override
     public void dispose() {
-
+        if (getScreen() != null) {
+            getScreen().dispose();
+        }
     }
 }

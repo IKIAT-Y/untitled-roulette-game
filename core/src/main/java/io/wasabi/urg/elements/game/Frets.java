@@ -13,6 +13,8 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 
+import io.wasabi.urg.elements.GameObject;
+
 // AI Generated TEMP class for testing
 
 /**
@@ -20,7 +22,7 @@ import com.badlogic.gdx.physics.box2d.World;
  * (stopping the ball escaping the pocket ring) is handled separately
  * by WheelBoundary.
  */
-public class Frets {
+public class Frets extends GameObject {
 
     private final World world;
     private final Vector2 center;
@@ -79,6 +81,7 @@ public class Frets {
         }
     }
 
+    @Override
     public void render(ShapeRenderer shapeRenderer) {
         shapeRenderer.begin(ShapeType.Line);
         shapeRenderer.setColor(Color.RED);
@@ -110,6 +113,7 @@ public class Frets {
         return body;
     }
 
+    @Override
     public void dispose() {
         world.destroyBody(body);
     }

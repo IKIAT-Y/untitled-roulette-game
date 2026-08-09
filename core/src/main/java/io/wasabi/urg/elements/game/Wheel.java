@@ -1,26 +1,22 @@
 package io.wasabi.urg.elements.game;
 
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
 
-import io.wasabi.urg.screens.GameScreen;
+import io.wasabi.urg.elements.GameObject;
 
-public class Wheel {
+public class Wheel extends GameObject {
     private float posX;
     private float posY;
-
-    private final GameScreen screen;
-
-    public Wheel(GameScreen screen) {
-        this.screen = screen;
-    }
 
     public void setPosition(float x, float y) {
         this.posX = x;
         this.posY = y;
     }
 
-    public void render() {
+    @Override
+    public void render(ShapeRenderer shapeRenderer) {
         // placeholder render function
         int nums = 37;
         float r1 = 100f;
@@ -42,12 +38,13 @@ public class Wheel {
 
             float[] vertices = new float[] {xa1, ya1, xa2, ya2, xb2, yb2, xb1, yb1};
 
-            screen.shapeRenderer.begin(ShapeType.Line);
-            screen.shapeRenderer.polygon(vertices);
-            screen.shapeRenderer.end();
+            shapeRenderer.begin(ShapeType.Line);
+            shapeRenderer.polygon(vertices);
+            shapeRenderer.end();
         }
     }
 
+    @Override
     public void dispose() {
 
     }
