@@ -28,6 +28,7 @@ public class GameScreen implements Screen {
     private Ball ball;
     private Wheel wheel;
     private Frets frets;
+
     private WheelBoundary boundary;
 
     public GameScreen(final Roulette game) {
@@ -37,15 +38,13 @@ public class GameScreen implements Screen {
 
         this.world = new World(new Vector2(0f, 0f), true);
 
-        this.wheel = new Wheel();
-        wheel.setPosition(-120f, 0);
-
         Vector2 wheelCenter = new Vector2(-120f, 0);
+        this.wheel = new Wheel(world, wheelCenter);
         this.ball = new Ball(world, 6f, wheelCenter);
 
         // Wheel boundaries and frets for bouncing
-        this.frets = new Frets(world, wheelCenter, 100f, 115f, 37, 1f);
-        this.boundary = new WheelBoundary(world, wheelCenter, 100f, 150f);
+        //this.frets = new Frets(world, wheelCenter, 100f, 115f, 37, 1f);
+        //this.boundary = new WheelBoundary(world, wheelCenter, 100f, 150f);
 
         float startAngleRad = 0f;
         float initialSpeed = 2000f;
@@ -66,14 +65,14 @@ public class GameScreen implements Screen {
         shapeRenderer.setProjectionMatrix(game.viewport.getCamera().combined);
         polyBatch.setProjectionMatrix(game.viewport.getCamera().combined);
 
+        wheel.render(shapeRenderer, polyBatch);
+
         ball.update(delta);
         ball.render(shapeRenderer);
 
-        wheel.render(shapeRenderer, polyBatch);
-
-        boundary.update(ball.getState());
-        boundary.render(shapeRenderer);
-        frets.render(shapeRenderer);
+        // boundary.update(ball.getState());
+        // boundary.render(shapeRenderer);
+        //frets.render(shapeRenderer);
     }
 
     @Override
@@ -106,8 +105,9 @@ public class GameScreen implements Screen {
         shapeRenderer.dispose();
         ball.dispose();
         wheel.dispose();
-        boundary.dispose();
-        frets.dispose();
         world.dispose();
+
+        //boundary.dispose();
+        //frets.dispose();
     }
 }

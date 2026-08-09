@@ -9,45 +9,69 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+import com.badlogic.gdx.physics.box2d.ChainShape;
+import com.badlogic.gdx.physics.box2d.Fixture;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.World;
 
 public class Wheel {
+    private final World world;
+
     private Vector2 position = new Vector2();
     private float rotation; // in Degrees
     private float radius;
     private float tileSize;
 
+    private Body body;
+    private Fixture innerFixture;
+
     // placeholder, i think this should be actually stored inside the Player's class
     public List<Tile> tiles = new ArrayList<>();
 
-    public Wheel() {
+    public Wheel(World world, Vector2 position) {
+        this.world = world;
+        this.position = position;
+
         // Testing
-        radius = 80;
+        radius = 80f;
         tileSize = 25;
 
         for (int i = 0; i < 37; i++) {
-            Tile tile = new Tile(i, position, radius, tileSize);
-            tile.setSize(0.5f + MathUtils.random.nextFloat());
+            Tile tile = new Tile(world, i, position, radius, tileSize);
+            //tile.setSize(0.5f + MathUtils.random.nextFloat());
             tiles.add(tile);
         }
-    }
 
-    public void setPosition(float x, float y) {
-        this.position.x = x;
-        this.position.y = y;
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyType.StaticBody;
+        bodyDef.position.set(position);
+        body = this.world.createBody(bodyDef);
+
+        innerFixture = addRing(radius, 0.3f, 0.5f, false);
+
+        update();
     }
 
     public void setPosition(Vector2 vec) {
         this.position.x = vec.x;
         this.position.y = vec.y;
+
+        body.setTransform(position, 0);
+        update();
     }
 
     public void setRotation(float rot) {
         this.rotation = rot;
+        update();
     }
 
     public void setSize(float radius, float tileSize) {
         this.radius = radius;
         this.tileSize = tileSize;
+        update();
     }
 
     private float getBaseTileAngle() {
@@ -62,29 +86,56 @@ public class Wheel {
         return ang;
     }
 
+    private Fixture addRing(float radius, float friction, float restitution, boolean startAsSensor) {
+        int segments = 64;
+        Vector2[] points = new Vector2[segments];
+        for (int i = 0; i < segments; i++) {
+            float angle = i * (2f * MathUtils.PI / segments);
+            points[i] = new Vector2(radius * MathUtils.cos(angle), radius * MathUtils.sin(angle));
+        }
+
+        ChainShape chain = new ChainShape();
+        chain.createLoop(points);
+
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.shape = chain;
+        fixtureDef.friction = friction;
+        fixtureDef.restitution = restitution;
+        fixtureDef.isSensor = startAsSensor;
+
+        Fixture fixture = body.createFixture(fixtureDef);
+        chain.dispose();
+        return fixture;
+    }
+
+    private void update() {
+        float ang = getBaseTileAngle();
+        float angc = rotation;
+
+        for (Tile tile : tiles) {
+            tile.setDegrees(ang);
+            tile.setRotation(angc);
+            angc += ang * MathUtils.degreesToRadians * tile.getSize();
+        }
+    }
+
     public void render(ShapeRenderer shapeRenderer, PolygonSpriteBatch polyBatch) {
         // placeholder render function
         float r1 = radius;
         float r2 = radius + tileSize;
 
-        float ang = getBaseTileAngle();
-        float angc = rotation;
+        for (Tile tile : tiles) {
+            tile.render(shapeRenderer, polyBatch);
+        }
 
         shapeRenderer.begin(ShapeType.Line);
         Gdx.gl.glLineWidth(2);
         shapeRenderer.circle(position.x, position.y, r1);
         shapeRenderer.circle(position.x, position.y, r2);
         shapeRenderer.end();
-
-        for (Tile tile : tiles) {
-            tile.setDegrees(ang);
-            tile.setRotation(angc);
-            float inc = tile.render(shapeRenderer, polyBatch);
-            angc += inc;
-        }
     }
 
     public void dispose() {
-
+        world.destroyBody(body);
     }
 }
