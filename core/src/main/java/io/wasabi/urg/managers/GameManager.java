@@ -84,6 +84,9 @@ public final class GameManager {
         game.viewport.apply();
         shapeRenderer.setProjectionMatrix(game.viewport.getCamera().combined);
 
+        // Temporary measure to prevent setColor in objects from affecting others
+        shapeRenderer.setColor(1f, 1f, 1f, 1f);
+
         for (GameObject gameObject : gameObjects) {
             gameObject.update(delta);
         }
