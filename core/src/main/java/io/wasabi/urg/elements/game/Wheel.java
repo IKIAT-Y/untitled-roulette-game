@@ -5,8 +5,12 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.MathUtils;
 
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.managers.RendererManager;
 
 public class Wheel extends GameObject {
+    private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
+    private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
+
     private float posX;
     private float posY;
 
@@ -16,7 +20,9 @@ public class Wheel extends GameObject {
     }
 
     @Override
-    public void render(ShapeRenderer shapeRenderer) {
+    public void render() {
+        ShapeRenderer shapeRenderer = SHAPE_RENDERER;
+
         // placeholder render function
         int nums = 37;
         float r1 = 100f;

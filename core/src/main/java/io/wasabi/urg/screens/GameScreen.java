@@ -58,13 +58,13 @@ public class GameScreen implements Screen {
         shapeRenderer.setColor(1f, 1f, 1f, 1f);
 
         ball.update(delta);
-        ball.render(shapeRenderer);
+        ball.render();
 
-        wheel.render(shapeRenderer);
+        wheel.render();
 
         boundary.update(delta);
-        boundary.render(shapeRenderer);
-        frets.render(shapeRenderer);
+        boundary.render();
+        frets.render();
     }
 
     @Override
