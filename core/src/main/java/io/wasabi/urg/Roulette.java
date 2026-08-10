@@ -2,10 +2,10 @@ package io.wasabi.urg;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.screens.GameScreen;
 import io.wasabi.urg.state.RunState;
 
@@ -14,7 +14,7 @@ public class Roulette extends Game {
     private final RunState runState = new RunState();
 
     // Renderers
-    private ShapeRenderer shapeRenderer;
+    private RendererManager rendererManager;
 
     private Viewport viewport;
     private OrthographicCamera camera;
@@ -24,7 +24,8 @@ public class Roulette extends Game {
         camera = new OrthographicCamera();
         viewport = new ExtendViewport(640, 480, camera); // change this depending on actual game size at launch (?)
 
-        shapeRenderer = new ShapeRenderer();
+        rendererManager = RendererManager.getInstance();
+        rendererManager.initialize(this);
 
         this.setScreen(new GameScreen(this));
     }
@@ -36,8 +37,7 @@ public class Roulette extends Game {
 
     @Override
     public void render() {
-        viewport.apply();
-        shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
+        rendererManager.applyViewport(viewport);
 
         super.render();
     }
@@ -50,5 +50,4 @@ public class Roulette extends Game {
     }
 
     public RunState getRunState() { return runState; }
-    public ShapeRenderer getShapeRenderer() { return shapeRenderer; }
 }

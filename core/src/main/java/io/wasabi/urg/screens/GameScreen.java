@@ -11,6 +11,7 @@ import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.Frets;
 import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.elements.game.WheelBoundary;
+import io.wasabi.urg.managers.RendererManager;
 
 public class GameScreen implements Screen {
     private final Roulette game;
@@ -28,7 +29,7 @@ public class GameScreen implements Screen {
 
     public GameScreen(final Roulette game) {
         this.game = game;
-        this.shapeRenderer = game.getShapeRenderer();
+        this.shapeRenderer = RendererManager.getInstance().getShapeRenderer();
 
         this.world = new World(new Vector2(0f, 0f), true);
 
