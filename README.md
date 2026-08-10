@@ -9,6 +9,10 @@ This project was generated with a template including simple application launcher
 - `core`: Main module with the application logic shared by all platforms.
 - `lwjgl3`: Primary desktop platform using LWJGL3; was called 'desktop' in older docs.
 
+## Getting Started
+
+To get started with contributing to the project, follow the [Onboarding Guide](https://github.com/Yorifuji-T/untitled-roulette-game/wiki/Onboarding-Guide) on the untitled roulette game wiki.
+
 ## Gradle
 
 This project uses [Gradle](https://gradle.org/) to manage dependencies.
@@ -31,3 +35,11 @@ Useful Gradle tasks and flags:
 
 Note that most tasks that are not specific to a single project can be run with `name:` prefix, where the `name` should be replaced with the ID of a specific project.
 For example, `core:clean` removes `build` folder only from the `core` project.
+
+## Contributing
+
+We welcome contributions!
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting changes.
+
+Contributions should be made through **GitHub forks**. Pull requests submitted directly from personal branches may be rejected.
