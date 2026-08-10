@@ -12,6 +12,9 @@ import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 
+import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.managers.RendererManager;
+
 // AI Generated TEMP class for testing
 
 /**
@@ -20,7 +23,10 @@ import com.badlogic.gdx.physics.box2d.World;
  * sensor (so the ball can drop in from outside) and is activated to solid
  * once the ball has actually entered, so fret bounces can't escape back out.
  */
-public class WheelBoundary {
+public class WheelBoundary extends GameObject {
+
+    private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
+    private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
 
     private final World world;
     private final Vector2 center;
@@ -31,12 +37,14 @@ public class WheelBoundary {
     private Fixture outerFixture;
     private Fixture innerFixture;
     private boolean outerActivated = false;
+    private final Ball ball;
 
-    public WheelBoundary(World world, Vector2 center, float innerRadius, float outerRadius) {
+    public WheelBoundary(World world, Vector2 center, float innerRadius, float outerRadius, Ball ball) {
         this.world = world;
         this.center = center;
         this.innerRadius = innerRadius;
         this.outerRadius = outerRadius;
+        this.ball = ball;
 
         build();
     }
@@ -79,14 +87,17 @@ public class WheelBoundary {
      * Call once per frame, before stepping the ball. Activates the outer
      * wall (sensor -> solid) the first time the ball enters BOUNCING.
      */
-    public void update(Ball.State ballState) {
-        if (!outerActivated && ballState == Ball.State.BOUNCING) {
+    @Override
+    public void update(float delta) {
+        if (!outerActivated && ball.getState() == Ball.State.BOUNCING) {
             outerFixture.setSensor(false);
             outerActivated = true;
         }
     }
 
-    public void render(ShapeRenderer shapeRenderer) {
+    @Override
+    public void render() {
+        ShapeRenderer shapeRenderer = SHAPE_RENDERER;
         Vector2 bodyPos = body.getPosition();
         float bodyAngle = body.getAngle();
 
@@ -128,6 +139,7 @@ public class WheelBoundary {
         return body;
     }
 
+    @Override
     public void dispose() {
         world.destroyBody(body);
     }

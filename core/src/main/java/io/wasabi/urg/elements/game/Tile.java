@@ -11,7 +11,14 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
 
+import io.wasabi.urg.managers.RendererManager;
+
 public class Tile {
+
+    private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
+    private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
+    private static final PolygonSpriteBatch POLY_BATCH = RENDERER_MANAGER.getPolygonSpriteBatch();
+
     private World world;
 
     private int number;
@@ -108,12 +115,12 @@ public class Tile {
         region = new PolygonRegion(new TextureRegion(tex), vertices, tris);
     }
 
-    public void render(ShapeRenderer shapeRenderer, PolygonSpriteBatch polyBatch) {
+    public void render() {
         float radians = degrees * MathUtils.degreesToRadians * size;
 
-        polyBatch.begin();
-        polyBatch.draw(region, 0, 0);
-        polyBatch.end();
+        POLY_BATCH.begin();
+        POLY_BATCH.draw(region, 0, 0);
+        POLY_BATCH.end();
     }
 
     public float getSize() { return size; }

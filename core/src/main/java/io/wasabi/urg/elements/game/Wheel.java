@@ -17,8 +17,13 @@ import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 
+import io.wasabi.urg.managers.RendererManager;
+
 public class Wheel {
     private final World world;
+
+    private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
+    private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
 
     private Vector2 position = new Vector2();
     private float rotation; // in Degrees
@@ -119,20 +124,20 @@ public class Wheel {
         }
     }
 
-    public void render(ShapeRenderer shapeRenderer, PolygonSpriteBatch polyBatch) {
+    public void render() {
         // placeholder render function
         float r1 = radius;
         float r2 = radius + tileSize;
 
         for (Tile tile : tiles) {
-            tile.render(shapeRenderer, polyBatch);
+            tile.render();
         }
 
-        shapeRenderer.begin(ShapeType.Line);
+        SHAPE_RENDERER.begin(ShapeType.Line);
         Gdx.gl.glLineWidth(2);
-        shapeRenderer.circle(position.x, position.y, r1);
-        shapeRenderer.circle(position.x, position.y, r2);
-        shapeRenderer.end();
+        SHAPE_RENDERER.circle(position.x, position.y, r1);
+        SHAPE_RENDERER.circle(position.x, position.y, r2);
+        SHAPE_RENDERER.end();
     }
 
     public void dispose() {

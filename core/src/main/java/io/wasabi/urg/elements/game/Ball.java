@@ -10,7 +10,10 @@ import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 
-public class Ball {
+import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.managers.RendererManager;
+
+public class Ball extends GameObject {
 
     public enum State {
         SPINNING,   // on outer track, no inward movement
@@ -19,6 +22,9 @@ public class Ball {
         SETTLING,   // almost stopped
         STOPPED     // fully stopped in pocket
     }
+
+    private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
+    private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
 
     private final World world;
     private final Body ball;
@@ -120,6 +126,7 @@ public class Ball {
     /**
      * Updates the ball using different behaviour depending on the state it is in
      */
+    @Override
     public void update(float delta) {
         // Clamp so a lag spike doesn't destroy the simulation
         float dt = Math.min(delta, MAX_DELTA);
@@ -285,16 +292,18 @@ public class Ball {
         return ball;
     }
 
-    public void render(ShapeRenderer shapeRenderer) {
-        shapeRenderer.begin(ShapeType.Filled);
-        shapeRenderer.circle(
+    @Override
+    public void render() {
+        SHAPE_RENDERER.begin(ShapeType.Filled);
+        SHAPE_RENDERER.circle(
             ball.getPosition().x,
             ball.getPosition().y,
             radius
         );
-        shapeRenderer.end();
+        SHAPE_RENDERER.end();
     }
 
+    @Override
     public void dispose() {
         world.destroyBody(ball);
     }

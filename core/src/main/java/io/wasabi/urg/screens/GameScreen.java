@@ -9,12 +9,10 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.game.Ball;
-import io.wasabi.urg.elements.game.Frets;
 import io.wasabi.urg.elements.game.Wheel;
-import io.wasabi.urg.elements.game.WheelBoundary;
+import io.wasabi.urg.managers.RendererManager;
 
 public class GameScreen implements Screen {
-
     private final Roulette game;
 
     // Renderers
@@ -27,14 +25,10 @@ public class GameScreen implements Screen {
     // Elements
     private Ball ball;
     private Wheel wheel;
-    private Frets frets;
-
-    private WheelBoundary boundary;
 
     public GameScreen(final Roulette game) {
         this.game = game;
-        this.shapeRenderer = new ShapeRenderer();
-        this.polyBatch = new PolygonSpriteBatch();
+        this.shapeRenderer = RendererManager.getInstance().getShapeRenderer();
 
         this.world = new World(new Vector2(0f, 0f), true);
 
@@ -51,7 +45,6 @@ public class GameScreen implements Screen {
         float outerTrackRadius = 200f;
         float innerWheelRadius = 150f;
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
-
     }
 
     @Override
@@ -61,18 +54,10 @@ public class GameScreen implements Screen {
         ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
         shapeRenderer.setColor(1f, 1f, 1f, 1f);
 
-        game.viewport.apply();
-        shapeRenderer.setProjectionMatrix(game.viewport.getCamera().combined);
-        polyBatch.setProjectionMatrix(game.viewport.getCamera().combined);
-
-        wheel.render(shapeRenderer, polyBatch);
+        wheel.render();
 
         ball.update(delta);
-        ball.render(shapeRenderer);
-
-        // boundary.update(ball.getState());
-        // boundary.render(shapeRenderer);
-        //frets.render(shapeRenderer);
+        ball.render();
     }
 
     @Override
@@ -106,8 +91,5 @@ public class GameScreen implements Screen {
         ball.dispose();
         wheel.dispose();
         world.dispose();
-
-        //boundary.dispose();
-        //frets.dispose();
     }
 }
