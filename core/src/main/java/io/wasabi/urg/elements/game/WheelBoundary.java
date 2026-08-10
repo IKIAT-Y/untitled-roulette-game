@@ -13,6 +13,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.managers.RendererManager;
 
 // AI Generated TEMP class for testing
 
@@ -23,6 +24,9 @@ import io.wasabi.urg.elements.GameObject;
  * once the ball has actually entered, so fret bounces can't escape back out.
  */
 public class WheelBoundary extends GameObject {
+
+    private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
+    private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
 
     private final World world;
     private final Vector2 center;
@@ -92,7 +96,8 @@ public class WheelBoundary extends GameObject {
     }
 
     @Override
-    public void render(ShapeRenderer shapeRenderer) {
+    public void render() {
+        ShapeRenderer shapeRenderer = SHAPE_RENDERER;
         Vector2 bodyPos = body.getPosition();
         float bodyAngle = body.getAngle();
 

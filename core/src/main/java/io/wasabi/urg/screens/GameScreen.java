@@ -1,7 +1,9 @@
 package io.wasabi.urg.screens;
 
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.wasabi.urg.Roulette;
@@ -9,40 +11,43 @@ import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.Frets;
 import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.elements.game.WheelBoundary;
-import io.wasabi.urg.managers.GameManager;
+import io.wasabi.urg.managers.RendererManager;
 
 public class GameScreen implements Screen {
-
     private final Roulette game;
 
-    private final GameManager gameManager;
+    private ShapeRenderer shapeRenderer;
+
+    // Physics
+    private World world;
+
+    // Elements
+    private Ball ball;
+    private Wheel wheel;
+    private Frets frets;
+    private WheelBoundary boundary;
 
     public GameScreen(final Roulette game) {
         this.game = game;
-        this.gameManager = GameManager.getInstance();
-        gameManager.setScreen(this);
+        this.shapeRenderer = RendererManager.getInstance().getShapeRenderer();
 
-        Wheel wheel = new Wheel();
+        this.world = new World(new Vector2(0f, 0f), true);
+
+        this.wheel = new Wheel();
         wheel.setPosition(-120f, 0);
 
         Vector2 wheelCenter = new Vector2(-120f, 0);
-        Ball ball = new Ball(gameManager.getWorld(), 6f, wheelCenter);
+        this.ball = new Ball(world, 6f, wheelCenter);
 
         // Wheel boundaries and frets for bouncing
-        Frets frets = new Frets(gameManager.getWorld(), wheelCenter, 100f, 115f, 37, 1f);
-        WheelBoundary boundary = new WheelBoundary(gameManager.getWorld(), wheelCenter, 100f, 150f, ball);
-
-        gameManager.addGameObject(ball);
-        gameManager.addGameObject(wheel);
-        gameManager.addGameObject(boundary);
-        gameManager.addGameObject(frets);
+        this.frets = new Frets(world, wheelCenter, 100f, 115f, 37, 1f);
+        this.boundary = new WheelBoundary(world, wheelCenter, 100f, 150f, ball);
 
         float startAngleRad = 0f;
         float initialSpeed = 2000f;
         float outerTrackRadius = 200f;
         float innerWheelRadius = 150f;
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
-
     }
 
     @Override
@@ -50,7 +55,16 @@ public class GameScreen implements Screen {
         // TODO: game screen rendering
         // includes the roulette wheel & the ui
         ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
-        gameManager.render(delta);
+        shapeRenderer.setColor(1f, 1f, 1f, 1f);
+
+        ball.update(delta);
+        ball.render();
+
+        wheel.render();
+
+        boundary.update(delta);
+        boundary.render();
+        frets.render();
     }
 
     @Override
@@ -80,6 +94,11 @@ public class GameScreen implements Screen {
 
     @Override
     public void dispose() {
-        gameManager.dispose();
+        shapeRenderer.dispose();
+        ball.dispose();
+        wheel.dispose();
+        boundary.dispose();
+        frets.dispose();
+        world.dispose();
     }
 }

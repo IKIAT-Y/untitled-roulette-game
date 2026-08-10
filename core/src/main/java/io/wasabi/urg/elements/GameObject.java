@@ -1,7 +1,5 @@
 package io.wasabi.urg.elements;
 
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-
 /** A game element that can be updated, rendered, and disposed by the GameManager. */
 public abstract class GameObject {
 
@@ -10,7 +8,7 @@ public abstract class GameObject {
     }
 
     /** Draws this object with the renderer shared by the GameManager. */
-    public abstract void render(ShapeRenderer shapeRenderer);
+    public abstract void render();
 
     /** Releases resources owned by this object. */
     public void dispose() {

@@ -1,8 +1,8 @@
 package io.wasabi.urg.elements.game;
 
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
@@ -11,6 +11,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.managers.RendererManager;
 
 public class Ball extends GameObject {
 
@@ -21,6 +22,9 @@ public class Ball extends GameObject {
         SETTLING,   // almost stopped
         STOPPED     // fully stopped in pocket
     }
+
+    private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
+    private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
 
     private final World world;
     private final Body ball;
@@ -289,14 +293,14 @@ public class Ball extends GameObject {
     }
 
     @Override
-    public void render(ShapeRenderer shapeRenderer) {
-        shapeRenderer.begin(ShapeType.Filled);
-        shapeRenderer.circle(
+    public void render() {
+        SHAPE_RENDERER.begin(ShapeType.Filled);
+        SHAPE_RENDERER.circle(
             ball.getPosition().x,
             ball.getPosition().y,
             radius
         );
-        shapeRenderer.end();
+        SHAPE_RENDERER.end();
     }
 
     @Override
