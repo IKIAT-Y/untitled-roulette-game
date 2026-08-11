@@ -87,7 +87,7 @@ public final class RunState {
         return new Array<>(ownedCharms);
     }
 
-    // This part is for the end of round graph. 
+    // This part is for the end of round graph.
     public void recordRoundBalance() {
         chipHistory.add(chips);
     }
