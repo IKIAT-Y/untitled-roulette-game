@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.PolygonRegion;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -21,7 +20,6 @@ import io.wasabi.urg.managers.RendererManager;
 public class Tile {
 
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
-    private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
     private static final PolygonSpriteBatch POLY_BATCH = RENDERER_MANAGER.getPolygonSpriteBatch();
 
     private World world;
@@ -37,14 +35,12 @@ public class Tile {
     private float numHeight;
 
     private Texture tex;
+    private Texture fretTex;
     private PolygonRegion region;
+    private PolygonRegion fretRegion;
 
     private Body body; // for frets
     private Fixture fret;
-
-    private class VertexInfo {
-        public float x1, y1, x2, y2;
-    }
 
     public Tile(World world, int number, Vector2 position, float radius, float height) {
         this.world = world;
@@ -65,6 +61,11 @@ public class Tile {
         pix.fill();
 
         tex = new Texture(pix);
+
+        Pixmap fretPix = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        fretPix.setColor(0xFFFFFFFF);
+        fretPix.fill();
+        fretTex = new Texture(fretPix);
 
         build();
         update();
@@ -91,20 +92,6 @@ public class Tile {
 
         fret = body.createFixture(fretFixture);
         fretShape.dispose();
-    }
-
-    private VertexInfo getVerticesAtRotation(float rot) {
-        float x = position.x;
-        float y = position.y;
-        float r1 = radius;
-        float r2 = radius + height + numHeight;
-
-        VertexInfo result = new VertexInfo();
-        result.x1 = x + r1 * MathUtils.cos(rot);
-        result.y1 = y + r1 * MathUtils.sin(rot);
-        result.x2 = x + r2 * MathUtils.cos(rot);
-        result.y2 = y + r2 * MathUtils.sin(rot);
-        return result;
     }
 
     private void update() {
@@ -149,29 +136,32 @@ public class Tile {
             rot += radInc;
         }
         region = new PolygonRegion(new TextureRegion(tex), vertices, tris);
-    }
-
-    public void render() {
-        POLY_BATCH.begin();
-        POLY_BATCH.draw(region, 0, 0);
-        POLY_BATCH.end();
 
         PolygonShape shape = (PolygonShape) fret.getShape();
         int vertexCount = shape.getVertexCount();
 
         Vector2 tmp = new Vector2();
-        float[] worldVerts = new float[vertexCount * 2];
+        float[] fretVerts = new float[vertexCount * 2];
 
         for (int i = 0; i < vertexCount; i++) {
             shape.getVertex(i, tmp);
             tmp.rotateRad(body.getAngle()).add(body.getPosition());
-            worldVerts[i * 2] = tmp.x;
-            worldVerts[i * 2 + 1] = tmp.y;
+            fretVerts[i * 2] = tmp.x;
+            fretVerts[i * 2 + 1] = tmp.y;
         }
+        short[] fretIndices = {
+            0, 1, 2,
+            0, 2, 3,
+        };
 
-        SHAPE_RENDERER.begin(ShapeRenderer.ShapeType.Line);
-        SHAPE_RENDERER.polygon(worldVerts);
-        SHAPE_RENDERER.end();
+        fretRegion = new PolygonRegion(new TextureRegion(fretTex), fretVerts, fretIndices);
+    }
+
+    public void render() {
+        POLY_BATCH.begin();
+        POLY_BATCH.draw(region, 0, 0);
+        POLY_BATCH.draw(fretRegion, 0, 0);
+        POLY_BATCH.end();
     }
 
     public float getSize() { return size; }
