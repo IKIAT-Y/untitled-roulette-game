@@ -9,6 +9,11 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+import com.badlogic.gdx.physics.box2d.Fixture;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 
 import io.wasabi.urg.managers.RendererManager;
@@ -35,6 +40,7 @@ public class Tile {
     private PolygonRegion region;
 
     private Body body; // for frets
+    private Fixture fret;
 
     private class VertexInfo {
         public float x1, y1, x2, y2;
@@ -60,7 +66,31 @@ public class Tile {
 
         tex = new Texture(pix);
 
+        build();
         update();
+    }
+
+    private void build() {
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyType.StaticBody;
+        body = this.world.createBody(bodyDef);
+        body.setTransform(position, 0);
+
+        PolygonShape fretShape = new PolygonShape();
+        fretShape.setAsBox(
+            height,
+            1,
+            new Vector2(0, 0),
+            0
+        );
+
+        FixtureDef fretFixture = new FixtureDef();
+        fretFixture.shape = fretShape;
+        fretFixture.friction = 0.6f;
+        fretFixture.restitution = 0.5f;
+
+        fret = body.createFixture(fretFixture);
+        fretShape.dispose();
     }
 
     private VertexInfo getVerticesAtRotation(float rot) {
@@ -92,6 +122,12 @@ public class Tile {
         float[] vertices = new float[segments * 4];
         short[] tris = new short[segments * 11];
 
+        Vector2 fretPos = new Vector2(
+                x + (r1 + height) * MathUtils.cos(rot),
+                y + (r1 + height) * MathUtils.sin(rot)
+        );
+        body.setTransform(fretPos, rot);
+
         for (int i = 0; i < segments; i++) {
             int v = i * 4;
             int ind = i * 2;
@@ -116,11 +152,26 @@ public class Tile {
     }
 
     public void render() {
-        float radians = degrees * MathUtils.degreesToRadians * size;
-
         POLY_BATCH.begin();
         POLY_BATCH.draw(region, 0, 0);
         POLY_BATCH.end();
+
+        PolygonShape shape = (PolygonShape) fret.getShape();
+        int vertexCount = shape.getVertexCount();
+
+        Vector2 tmp = new Vector2();
+        float[] worldVerts = new float[vertexCount * 2];
+
+        for (int i = 0; i < vertexCount; i++) {
+            shape.getVertex(i, tmp);
+            tmp.rotateRad(body.getAngle()).add(body.getPosition());
+            worldVerts[i * 2] = tmp.x;
+            worldVerts[i * 2 + 1] = tmp.y;
+        }
+
+        SHAPE_RENDERER.begin(ShapeRenderer.ShapeType.Line);
+        SHAPE_RENDERER.polygon(worldVerts);
+        SHAPE_RENDERER.end();
     }
 
     public float getSize() { return size; }

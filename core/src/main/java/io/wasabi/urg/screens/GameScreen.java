@@ -1,7 +1,6 @@
 package io.wasabi.urg.screens;
 
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
@@ -16,11 +15,10 @@ public class GameScreen implements Screen {
     private final Roulette game;
 
     // Renderers
-    private ShapeRenderer shapeRenderer;
-    private PolygonSpriteBatch polyBatch;
+    private final ShapeRenderer shapeRenderer;
 
     // Physics
-    private World world;
+    private final World world;
 
     // Elements
     private Ball ball;
