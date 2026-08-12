@@ -180,6 +180,7 @@ public class Tile extends GameObject{
         fretRegion = new PolygonRegion(new TextureRegion(fretTex), fretVerts, fretIndices);
     }
 
+    @Override
     public void render() {
         POLY_BATCH.begin();
         POLY_BATCH.draw(region, 0, 0);
@@ -193,6 +194,8 @@ public class Tile extends GameObject{
     }
 
     public float getSize() { return size; }
+    public PolygonRegion getRegion() { return region; }
+    public int getNumber() { return number; }
 
     public void setPosition(Vector2 position) {
         this.position = position;

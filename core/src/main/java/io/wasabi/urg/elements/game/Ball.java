@@ -1,7 +1,13 @@
 package io.wasabi.urg.elements.game;
 
+import java.util.List;
+
+import com.badlogic.gdx.graphics.g2d.PolygonRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
@@ -10,8 +16,10 @@ import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 
+import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.state.RunState;
 
 public class Ball extends GameObject {
 
@@ -22,6 +30,9 @@ public class Ball extends GameObject {
         SETTLING,   // almost stopped
         STOPPED     // fully stopped in pocket
     }
+
+    private static final Roulette GAME = Roulette.getInstance();
+    private static final RunState RUN_STATE = GAME.getRunState();
 
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
     private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
@@ -278,6 +289,43 @@ public class Ball extends GameObject {
         ball.setAngularVelocity(0f);
         ball.setType(BodyType.StaticBody);
         state = State.STOPPED;
+
+        Tile tile = getLandedTile();
+        if (tile != null) {
+            System.out.println(tile.getNumber());
+        }
+
+    }
+
+    private Tile getLandedTile() {
+        List<Tile> tiles = RUN_STATE.getTiles();
+
+        int segments = 16;
+        float[] circVerts = new float[segments * 2];
+        float ang = 360f / segments;
+        float x = ball.getPosition().x;
+        float y = ball.getPosition().y;
+
+        for (int i = 0; i < segments; i++) {
+            int v = i * 2;
+            float rad = i * ang * MathUtils.degreesToRadians;
+            circVerts[v] = x + radius * MathUtils.cos(rad);
+            circVerts[v + 1] = y + radius * MathUtils.sin(rad);
+        }
+
+        Polygon circPoly = new Polygon(circVerts);
+
+        for (Tile t : tiles) {
+            PolygonRegion region = t.getRegion();
+            float[] verts = region.getVertices();
+            Polygon poly = new Polygon(verts);
+
+            if (Intersector.overlapConvexPolygons(poly, circPoly)) {
+                return t;
+            }
+        }
+
+        return null;
     }
 
     public State getState() {
