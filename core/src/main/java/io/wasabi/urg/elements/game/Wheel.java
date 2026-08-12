@@ -1,6 +1,5 @@
 package io.wasabi.urg.elements.game;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.badlogic.gdx.Gdx;
@@ -16,13 +15,18 @@ import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 
+import io.wasabi.urg.Roulette;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.state.RunState;
 
 public class Wheel {
-    private final World world;
+    private static final Roulette GAME = Roulette.getInstance();
+    private static final RunState RUN_STATE = GAME.getRunState();
 
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
     private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
+
+    private final World world;
 
     private Vector2 position = new Vector2();
     private float rotation; // in Degrees
@@ -30,11 +34,11 @@ public class Wheel {
     private float tileSize;
     private float speed = 3.0f;
 
-    private Body body;
-    private Fixture innerFixture;
+    private final Body body;
+    private final Fixture innerFixture;
 
     // placeholder, i think this should be actually stored inside the Player's class
-    public List<Tile> tiles = new ArrayList<>();
+    public List<Tile> tiles = RUN_STATE.getTiles();
 
     public Wheel(World world, Vector2 position) {
         this.world = world;

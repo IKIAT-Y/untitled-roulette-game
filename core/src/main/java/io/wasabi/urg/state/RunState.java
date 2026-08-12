@@ -1,18 +1,21 @@
 package io.wasabi.urg.state;
 
-import com.badlogic.gdx.utils.Array;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.badlogic.gdx.utils.IntArray;
 
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.elements.game.Tile;
 
 /** Stores the player's progress and inventory for the current run. */
 public final class RunState {
     private int chips;
     private int score;
 
-    private final Array<GameObject> tiles = new Array<>();
-    private final Array<GameObject> ownedCards = new Array<>();
-    private final Array<GameObject> ownedCharms = new Array<>();
+    private final List<Tile> tiles = new ArrayList<>();
+    private final List<GameObject> ownedCards = new ArrayList<>();
+    private final List<GameObject> ownedCharms = new ArrayList<>();
     private final IntArray chipHistory = new IntArray();
 
     public int getChips() {
@@ -43,16 +46,19 @@ public final class RunState {
         score += amount;
     }
 
-    public void addTile(GameObject tile) {
+    public void addTile(Tile tile) {
         addUnique(tiles, tile);
     }
 
-    public boolean removeTile(GameObject tile) {
-        return tiles.removeValue(tile, true);
+    public boolean removeTile(Tile tile) {
+        if (tiles.contains(tile)) {
+            return tiles.remove(tile);
+        }
+        return false;
     }
 
-    public Array<GameObject> getTiles() {
-        return new Array<>(tiles);
+    public List<Tile> getTiles() {
+        return tiles;
     }
 
     public void addCard(GameObject card) {
@@ -60,15 +66,18 @@ public final class RunState {
     }
 
     public boolean removeCard(GameObject card) {
-        return ownedCards.removeValue(card, true);
+        if (ownsCard(card)) {
+            return ownedCards.remove(card);
+        }
+        return false;
     }
 
     public boolean ownsCard(GameObject card) {
-        return ownedCards.contains(card, true);
+        return ownedCards.contains(card);
     }
 
-    public Array<GameObject> getOwnedCards() {
-        return new Array<>(ownedCards);
+    public List<GameObject> getOwnedCards() {
+        return ownedCards;
     }
 
     public void addCharm(GameObject charm) {
@@ -76,15 +85,18 @@ public final class RunState {
     }
 
     public boolean removeCharm(GameObject charm) {
-        return ownedCharms.removeValue(charm, true);
+        if (ownsCharm(charm)) {
+            return ownedCharms.remove(charm);
+        }
+        return false;
     }
 
     public boolean ownsCharm(GameObject charm) {
-        return ownedCharms.contains(charm, true);
+        return ownedCharms.contains(charm);
     }
 
-    public Array<GameObject> getOwnedCharms() {
-        return new Array<>(ownedCharms);
+    public List<GameObject> getOwnedCharms() {
+        return ownedCharms;
     }
 
     // This part is for the end of round graph.
@@ -108,11 +120,11 @@ public final class RunState {
         chipHistory.add(startingChips);
     }
 
-    private void addUnique(Array<GameObject> collection, GameObject gameObject) {
+    private <T> void addUnique(List<T> collection, T gameObject) {
         if (gameObject == null) {
             throw new IllegalArgumentException("gameObject cannot be null");
         }
-        if (!collection.contains(gameObject, true)) {
+        if (!collection.contains(gameObject)) {
             collection.add(gameObject);
         }
     }
