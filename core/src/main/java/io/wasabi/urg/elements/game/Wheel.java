@@ -49,17 +49,19 @@ public class Wheel {
         tileSize = 25;
 
         for (int i = 0; i < 37; i++) {
-            Tile tile = new Tile(world, i, position, radius, tileSize);
+            Tile tile = new Tile(this, world, i, position, radius, tileSize);
             //tile.setSize(0.5f + MathUtils.random.nextFloat());
             tiles.add(tile);
         }
 
         BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyType.StaticBody;
+        bodyDef.type = BodyType.KinematicBody;
         bodyDef.position.set(position);
         body = this.world.createBody(bodyDef);
 
         innerFixture = addRing(radius, 0.3f, 0.5f, false);
+
+        body.setAngularVelocity(0.8f);
 
         update();
     }
@@ -133,8 +135,7 @@ public class Wheel {
         float r1 = radius;
         float r2 = radius + tileSize;
 
-        setRotation(rotation - speed);
-        speed *= 0.98;
+        setRotation(body.getAngle());
 
         for (Tile tile : tiles) {
             tile.render();
@@ -150,4 +151,6 @@ public class Wheel {
     public void dispose() {
         world.destroyBody(body);
     }
+
+    public Body getBody() { return body; }
 }
