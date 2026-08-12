@@ -28,6 +28,7 @@ public class Wheel {
     private float rotation; // in Degrees
     private float radius;
     private float tileSize;
+    private float speed = 3.0f;
 
     private Body body;
     private Fixture innerFixture;
@@ -127,6 +128,9 @@ public class Wheel {
         // placeholder render function
         float r1 = radius;
         float r2 = radius + tileSize;
+
+        setRotation(rotation - speed);
+        speed *= 0.98;
 
         for (Tile tile : tiles) {
             tile.render();

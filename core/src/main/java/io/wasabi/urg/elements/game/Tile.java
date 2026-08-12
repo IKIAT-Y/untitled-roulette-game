@@ -2,10 +2,14 @@ package io.wasabi.urg.elements.game;
 
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.PolygonRegion;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Affine2;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
@@ -14,13 +18,19 @@ import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.utils.Align;
 
+import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 
 public class Tile {
 
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
     private static final PolygonSpriteBatch POLY_BATCH = RENDERER_MANAGER.getPolygonSpriteBatch();
+    private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
+
+    private static final FontManager FONT_MANAGER = FontManager.getInstance();
+    private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Placeholder");
 
     private World world;
 
@@ -38,6 +48,9 @@ public class Tile {
     private Texture fretTex;
     private PolygonRegion region;
     private PolygonRegion fretRegion;
+
+    private Vector2 fontPos = new Vector2();
+    private Matrix4 fontMatrix4 = new Matrix4();
 
     private Body body; // for frets
     private Fixture fret;
@@ -115,6 +128,15 @@ public class Tile {
         );
         body.setTransform(fretPos, rot);
 
+        Affine2 fontTransform = new Affine2();
+        float fontRot = rot;
+        fontPos.x = x + (r1 + height + 2) * MathUtils.cos(fontRot); // + 2 for font offset
+        fontPos.y = y + (r1 + height + 2) * MathUtils.sin(fontRot);
+        fontTransform.setToTrnRotRadScl(fontPos, fontRot + radians / 2 + MathUtils.PI / 2, new Vector2(0.4f, 0.4f));
+        fontMatrix4.set(fontTransform);
+
+        //fontMatrix4.scale(0.5f, 0.5f, 1);
+
         for (int i = 0; i < segments; i++) {
             int v = i * 4;
             int ind = i * 2;
@@ -162,6 +184,11 @@ public class Tile {
         POLY_BATCH.draw(region, 0, 0);
         POLY_BATCH.draw(fretRegion, 0, 0);
         POLY_BATCH.end();
+
+        SPRITE_BATCH.begin();
+        SPRITE_BATCH.setTransformMatrix(fontMatrix4);
+        FONT.draw(SPRITE_BATCH, Integer.toString(number), 0, 0, 16, Align.center, true);
+        SPRITE_BATCH.end();
     }
 
     public float getSize() { return size; }
