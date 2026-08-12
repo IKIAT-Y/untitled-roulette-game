@@ -11,7 +11,7 @@ import io.wasabi.urg.screens.GameScreen;
 import io.wasabi.urg.state.RunState;
 
 public class Roulette extends Game {
-
+    private static final Roulette INSTANCE = new Roulette();
     private final RunState runState = new RunState();
 
     // Renderers
@@ -19,6 +19,12 @@ public class Roulette extends Game {
 
     private Viewport viewport;
     private OrthographicCamera camera;
+
+    private Roulette() {}
+
+    public static Roulette getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public void create() {

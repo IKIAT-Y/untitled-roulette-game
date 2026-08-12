@@ -20,10 +20,11 @@ import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Align;
 
+import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 
-public class Tile {
+public class Tile extends GameObject{
 
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
     private static final PolygonSpriteBatch POLY_BATCH = RENDERER_MANAGER.getPolygonSpriteBatch();
