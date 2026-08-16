@@ -52,7 +52,7 @@ public class GameScreen implements Screen {
         ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
         shapeRenderer.setColor(1f, 1f, 1f, 1f);
 
-        wheel.render();
+        wheel.render(delta);
 
         ball.update(delta);
         ball.render();

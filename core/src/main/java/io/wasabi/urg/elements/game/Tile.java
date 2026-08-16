@@ -16,10 +16,8 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.Joint;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
-import com.badlogic.gdx.physics.box2d.joints.WeldJointDef;
 import com.badlogic.gdx.utils.Align;
 
 import io.wasabi.urg.elements.GameObject;
@@ -36,7 +34,6 @@ public class Tile extends GameObject{
     private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Placeholder");
 
     private World world;
-    private Wheel wheel;
 
     private int number;
     private float size = 1; // multiplier
@@ -58,11 +55,9 @@ public class Tile extends GameObject{
 
     private Body body; // for frets
     private Fixture fret;
-    private Joint weld;
 
-    public Tile(Wheel wheel, World world, int number, Vector2 position, float radius, float height) {
+    public Tile(World world, int number, Vector2 position, float radius, float height) {
         this.world = world;
-        this.wheel = wheel;
 
         this.number = number;
         this.position = position;
@@ -111,11 +106,6 @@ public class Tile extends GameObject{
 
         fret = body.createFixture(fretFixture);
         fretShape.dispose();
-
-        WeldJointDef weldDef = new WeldJointDef();
-        weldDef.bodyA = body;
-        weldDef.bodyB = wheel.getBody();
-        weld = world.createJoint(weldDef);
     }
 
     private void update() {

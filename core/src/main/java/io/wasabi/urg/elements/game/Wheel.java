@@ -18,6 +18,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.state.RunState;
+import io.wasabi.urg.util.tweens.Tween;
 
 public class Wheel {
     private static final Roulette GAME = Roulette.getInstance();
@@ -37,8 +38,9 @@ public class Wheel {
     private final Body body;
     private final Fixture innerFixture;
 
-    // placeholder, i think this should be actually stored inside the Player's class
-    public List<Tile> tiles = RUN_STATE.getTiles();
+    private Tween wheelVelocityTween = new Tween(4.5f, -10, 0, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
+
+    private List<Tile> tiles = RUN_STATE.getTiles();
 
     public Wheel(World world, Vector2 position) {
         this.world = world;
@@ -48,20 +50,20 @@ public class Wheel {
         radius = 80f;
         tileSize = 25;
 
-        for (int i = 0; i < 37; i++) {
-            Tile tile = new Tile(this, world, i, position, radius, tileSize);
-            //tile.setSize(0.5f + MathUtils.random.nextFloat());
-            tiles.add(tile);
-        }
-
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyType.KinematicBody;
         bodyDef.position.set(position);
         body = this.world.createBody(bodyDef);
 
+        for (int i = 0; i < 37; i++) {
+            Tile tile = new Tile(world, i, position, radius, tileSize);
+            //tile.setSize(0.5f + MathUtils.random.nextFloat());
+            tiles.add(tile);
+        }
+
         innerFixture = addRing(radius, 0.3f, 0.5f, false);
 
-        body.setAngularVelocity(0.8f);
+        body.setAngularVelocity(-10f);
 
         update();
     }
@@ -130,11 +132,12 @@ public class Wheel {
         }
     }
 
-    public void render() {
+    public void render(float delta) {
         // placeholder render function
         float r1 = radius;
         float r2 = radius + tileSize;
 
+        body.setAngularVelocity(wheelVelocityTween.update(delta));
         setRotation(body.getAngle());
 
         for (Tile tile : tiles) {
