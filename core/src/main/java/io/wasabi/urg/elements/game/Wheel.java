@@ -51,7 +51,7 @@ public class Wheel {
         tileSize = 25;
 
         BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyType.StaticBody;
+        bodyDef.type = BodyType.KinematicBody;
         bodyDef.position.set(position);
         body = this.world.createBody(bodyDef);
 
@@ -154,4 +154,6 @@ public class Wheel {
     public void dispose() {
         world.destroyBody(body);
     }
+
+    public Body getBody() { return body; }
 }
