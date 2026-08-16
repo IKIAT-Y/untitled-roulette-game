@@ -8,24 +8,21 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.game.Ball;
-import io.wasabi.urg.elements.game.Frets;
 import io.wasabi.urg.elements.game.Wheel;
-import io.wasabi.urg.elements.game.WheelBoundary;
 import io.wasabi.urg.managers.RendererManager;
 
 public class GameScreen implements Screen {
     private final Roulette game;
 
-    private ShapeRenderer shapeRenderer;
+    // Renderers
+    private final ShapeRenderer shapeRenderer;
 
     // Physics
-    private World world;
+    private final World world;
 
     // Elements
     private Ball ball;
     private Wheel wheel;
-    private Frets frets;
-    private WheelBoundary boundary;
 
     public GameScreen(final Roulette game) {
         this.game = game;
@@ -33,15 +30,13 @@ public class GameScreen implements Screen {
 
         this.world = new World(new Vector2(0f, 0f), true);
 
-        this.wheel = new Wheel();
-        wheel.setPosition(-120f, 0);
-
         Vector2 wheelCenter = new Vector2(-120f, 0);
+        this.wheel = new Wheel(world, wheelCenter);
         this.ball = new Ball(world, 6f, wheelCenter);
 
         // Wheel boundaries and frets for bouncing
-        this.frets = new Frets(world, wheelCenter, 100f, 115f, 37, 1f);
-        this.boundary = new WheelBoundary(world, wheelCenter, 100f, 150f, ball);
+        //this.frets = new Frets(world, wheelCenter, 100f, 115f, 37, 1f);
+        //this.boundary = new WheelBoundary(world, wheelCenter, 100f, 150f);
 
         float startAngleRad = 0f;
         float initialSpeed = 2000f;
@@ -57,14 +52,10 @@ public class GameScreen implements Screen {
         ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
         shapeRenderer.setColor(1f, 1f, 1f, 1f);
 
-        ball.update(delta);
-        ball.render();
-
         wheel.render();
 
-        boundary.update(delta);
-        boundary.render();
-        frets.render();
+        ball.update(delta);
+        ball.render();
     }
 
     @Override
@@ -97,8 +88,6 @@ public class GameScreen implements Screen {
         shapeRenderer.dispose();
         ball.dispose();
         wheel.dispose();
-        boundary.dispose();
-        frets.dispose();
         world.dispose();
     }
 }
