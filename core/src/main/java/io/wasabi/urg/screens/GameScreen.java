@@ -12,6 +12,7 @@ import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.managers.RoundManager;
 import io.wasabi.urg.managers.SoundManager;
 
 import java.util.Random;
@@ -38,10 +39,6 @@ public class GameScreen implements Screen {
         Vector2 wheelCenter = new Vector2(-120f, 0);
         this.wheel = new Wheel(world, wheelCenter);
         this.ball = new Ball(world, 6f, wheelCenter);
-
-        // Wheel boundaries and frets for bouncing
-        //this.frets = new Frets(world, wheelCenter, 100f, 115f, 37, 1f);
-        //this.boundary = new WheelBoundary(world, wheelCenter, 100f, 150f);
 
         // Move this to launch method when the player presses the spin button
         float startAngleRad = 0f;
@@ -99,4 +96,6 @@ public class GameScreen implements Screen {
         wheel.dispose();
         world.dispose();
     }
+
+    public Wheel getWheel() {return wheel;}
 }

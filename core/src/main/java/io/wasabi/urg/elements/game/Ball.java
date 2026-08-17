@@ -296,6 +296,7 @@ public class Ball extends GameObject {
         Tile tile = getLandedTile();
         if (tile != null) {
             System.out.println("Landed on tile: " + tile.getNumber());
+            System.out.println("Tile multiplier: " + tile.getBetMultiplier());
         }
 
         Roulette.getInstance().getRunState().setLastTile(tile);
