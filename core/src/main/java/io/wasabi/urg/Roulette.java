@@ -7,12 +7,14 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.managers.RoundManager;
 import io.wasabi.urg.screens.GameScreen;
 import io.wasabi.urg.state.RunState;
 
 public class Roulette extends Game {
     private static final Roulette INSTANCE = new Roulette();
     private final RunState runState = new RunState();
+    private final RoundManager roundManager = new RoundManager(runState);
 
     // Renderers
     private RendererManager rendererManager;
@@ -62,4 +64,5 @@ public class Roulette extends Game {
     }
 
     public RunState getRunState() { return runState; }
+    public RoundManager getRoundManager() { return roundManager; }
 }
