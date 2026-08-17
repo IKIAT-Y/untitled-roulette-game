@@ -21,11 +21,12 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Align;
 
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.elements.tiles.DefaultTile;
+import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 
-public class Tile extends GameObject{
-
+public class Tile extends GameObject {
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
     private static final PolygonSpriteBatch POLY_BATCH = RENDERER_MANAGER.getPolygonSpriteBatch();
     private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
@@ -33,10 +34,11 @@ public class Tile extends GameObject{
     private static final FontManager FONT_MANAGER = FontManager.getInstance();
     private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Placeholder");
 
-    private World world;
+    private final World world;
 
     private int number;
     private float size = 1; // multiplier
+    private TileType type;
 
     private float betMultiplier = 1.0f; // multiplier for bets on this tile
     private int color; // 0 for red, 1 for black, 2 for green
@@ -48,7 +50,6 @@ public class Tile extends GameObject{
     private float height;
     private float numHeight;
 
-    private Texture tex;
     private Texture fretTex;
     private PolygonRegion region;
     private PolygonRegion fretRegion;
@@ -68,21 +69,16 @@ public class Tile extends GameObject{
         this.height = height;
         this.numHeight = height;
 
-        Pixmap pix = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-
-        if (number == 0) {
-            pix.setColor(0x00FF00FF);
-            this.color = 2; // red
-        } else if (number % 2 == 0) {
-            pix.setColor(0xFF0000FF);
-            this.color = 0; // red
+        type = new DefaultTile();
+        if (number % 2 == 0) {
+            if (number == 0) {
+                type.setColour(TileType.TileColour.GREEN);
+            } else {
+                type.setColour(TileType.TileColour.RED);
+            }
         } else {
-            pix.setColor(0x000000FF);
-            this.color = 1; // black
+            type.setColour(TileType.TileColour.BLACK);
         }
-        pix.fill();
-
-        tex = new Texture(pix);
 
         Pixmap fretPix = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         fretPix.setColor(0xFFFFFFFF);
@@ -166,7 +162,7 @@ public class Tile extends GameObject{
 
             rot += radInc;
         }
-        region = new PolygonRegion(new TextureRegion(tex), vertices, tris);
+        region = new PolygonRegion(new TextureRegion(type.getTexture()), vertices, tris);
 
         PolygonShape shape = (PolygonShape) fret.getShape();
         int vertexCount = shape.getVertexCount();
