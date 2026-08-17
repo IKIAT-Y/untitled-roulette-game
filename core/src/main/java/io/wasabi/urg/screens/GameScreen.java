@@ -7,9 +7,12 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.wasabi.urg.Roulette;
+import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.managers.RendererManager;
+
+import java.util.Random;
 
 public class GameScreen implements Screen {
     private final Roulette game;
@@ -38,10 +41,12 @@ public class GameScreen implements Screen {
         //this.frets = new Frets(world, wheelCenter, 100f, 115f, 37, 1f);
         //this.boundary = new WheelBoundary(world, wheelCenter, 100f, 150f);
 
+        // Move this to launch method when the player presses the spin button
         float startAngleRad = 0f;
-        float initialSpeed = 2000f;
+        float initialSpeed = new Random().nextFloat() * (1000f) + 1500f;
         float outerTrackRadius = 200f;
         float innerWheelRadius = 150f;
+        Roulette.getInstance().getRunState().triggerCardEffects("beforeSpin");
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
         wheel.spin(4.5f, -10f);
     }

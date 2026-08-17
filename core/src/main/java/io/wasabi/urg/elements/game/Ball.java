@@ -158,7 +158,8 @@ public class Ball extends GameObject {
                 stepPhysicsFixed(dt);
                 break;
             case STOPPED:
-                return;
+                world.step(dt, 6, 2);
+                break;
         }
     }
 
@@ -287,14 +288,16 @@ public class Ball extends GameObject {
     private void finalizeStop() {
         ball.setLinearVelocity(0f, 0f);
         ball.setAngularVelocity(0f);
-        ball.setType(BodyType.StaticBody);
+        ball.setType(BodyType.DynamicBody);
         state = State.STOPPED;
 
         Tile tile = getLandedTile();
         if (tile != null) {
-            System.out.println(tile.getNumber());
+            System.out.println("Landed on tile: " + tile.getNumber());
         }
 
+        Roulette.getInstance().getRunState().setLastTile(tile);
+        Roulette.getInstance().getRoundManager().recordSpin();
     }
 
     private Tile getLandedTile() {
