@@ -6,6 +6,7 @@ import java.util.List;
 import com.badlogic.gdx.utils.IntArray;
 
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.game.Tile;
 
 /** Stores the player's progress and inventory for the current run. */
@@ -13,8 +14,10 @@ public final class RunState {
     private int chips;
     private int score;
 
+    private Tile lastTile = null; // The last tile the player landed on, used for certain card effects.
+
     private final List<Tile> tiles = new ArrayList<>();
-    private final List<GameObject> ownedCards = new ArrayList<>();
+    private final List<Card> ownedCards = new ArrayList<>();
     private final List<GameObject> ownedCharms = new ArrayList<>();
     private final IntArray chipHistory = new IntArray();
 
@@ -61,22 +64,22 @@ public final class RunState {
         return tiles;
     }
 
-    public void addCard(GameObject card) {
+    public void addCard(Card card) {
         addUnique(ownedCards, card);
     }
 
-    public boolean removeCard(GameObject card) {
+    public boolean removeCard(Card card) {
         if (ownsCard(card)) {
             return ownedCards.remove(card);
         }
         return false;
     }
 
-    public boolean ownsCard(GameObject card) {
+    public boolean ownsCard(Card card) {
         return ownedCards.contains(card);
     }
 
-    public List<GameObject> getOwnedCards() {
+    public List<Card> getOwnedCards() {
         return ownedCards;
     }
 
@@ -132,6 +135,37 @@ public final class RunState {
     private void requireNonNegative(int value, String name) {
         if (value < 0) {
             throw new IllegalArgumentException(name + " cannot be negative");
+        }
+    }
+
+    public void setLastTile(Tile tile) { this.lastTile = tile; }
+
+    public Tile getLastTile() { return lastTile; }
+
+    public void triggerCardEffects(String effectType) {
+        switch (effectType) {
+            case "roundStart":
+                for (Card card : ownedCards) {
+                    card.roundStartEffect();
+                }
+                break;
+            case "beforeSpin":
+                for (Card card : ownedCards) {
+                    card.beforeSpinEffect();
+                }
+                break;
+            case "afterSpin":
+                for (Card card : ownedCards) {
+                    card.afterSpinEffect();
+                }
+                break;
+            case "roundEnd":
+                for (Card card : ownedCards) {
+                    card.roundEndEffect();
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown effect type: " + effectType);
         }
     }
 }
