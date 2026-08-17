@@ -36,6 +36,9 @@ public class Roulette extends Game {
 
         FontManager.getInstance().initialize(this);
 
+        // Card testing
+        runState.addCard(new io.wasabi.urg.elements.card.ExtraChange());
+
         this.setScreen(new GameScreen(this));
     }
 
