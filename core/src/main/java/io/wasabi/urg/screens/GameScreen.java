@@ -48,6 +48,7 @@ public class GameScreen implements Screen {
         float innerWheelRadius = 150f;
         Roulette.getInstance().getRunState().triggerCardEffects("beforeSpin");
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
+        wheel.spin(4.5f, -10f);
     }
 
     @Override
@@ -57,7 +58,7 @@ public class GameScreen implements Screen {
         ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
         shapeRenderer.setColor(1f, 1f, 1f, 1f);
 
-        wheel.render();
+        wheel.render(delta);
 
         ball.update(delta);
         ball.render();

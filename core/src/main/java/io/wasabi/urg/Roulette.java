@@ -64,5 +64,6 @@ public class Roulette extends Game {
     }
 
     public RunState getRunState() { return runState; }
+    public Viewport getViewport() { return viewport; }
     public RoundManager getRoundManager() { return roundManager; }
 }

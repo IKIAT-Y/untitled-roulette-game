@@ -18,6 +18,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.state.RunState;
+import io.wasabi.urg.util.tweens.Tween;
 
 public class Wheel {
     private static final Roulette GAME = Roulette.getInstance();
@@ -32,13 +33,12 @@ public class Wheel {
     private float rotation; // in Degrees
     private float radius;
     private float tileSize;
-    private float speed = 3.0f;
 
     private final Body body;
-    private final Fixture innerFixture;
 
-    // placeholder, i think this should be actually stored inside the Player's class
-    public List<Tile> tiles = RUN_STATE.getTiles();
+    private Tween wheelVelocityTween;
+
+    private final List<Tile> tiles = RUN_STATE.getTiles();
 
     public Wheel(World world, Vector2 position) {
         this.world = world;
@@ -48,18 +48,20 @@ public class Wheel {
         radius = 80f;
         tileSize = 25;
 
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyType.KinematicBody;
+        bodyDef.position.set(position);
+        body = this.world.createBody(bodyDef);
+
         for (int i = 0; i < 37; i++) {
             Tile tile = new Tile(world, i, position, radius, tileSize);
             //tile.setSize(0.5f + MathUtils.random.nextFloat());
             tiles.add(tile);
         }
 
-        BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyType.StaticBody;
-        bodyDef.position.set(position);
-        body = this.world.createBody(bodyDef);
+        addRing(radius, 0.3f, 0.5f, false);
 
-        innerFixture = addRing(radius, 0.3f, 0.5f, false);
+        body.setAngularVelocity(-10f);
 
         update();
     }
@@ -128,13 +130,15 @@ public class Wheel {
         }
     }
 
-    public void render() {
+    public void render(float delta) {
         // placeholder render function
         float r1 = radius;
         float r2 = radius + tileSize;
 
-        setRotation(rotation - speed);
-        speed *= 0.98;
+        if (wheelVelocityTween != null) {
+            body.setAngularVelocity(wheelVelocityTween.update(delta));
+            setRotation(body.getAngle());
+        }
 
         for (Tile tile : tiles) {
             tile.render();
@@ -147,7 +151,18 @@ public class Wheel {
         SHAPE_RENDERER.end();
     }
 
+    /**
+     * Spins the wheel for a set amount of time, with given initial speed.
+     * @param duration The spin time
+     * @param initialSpeed The initial speed
+     */
+    public void spin(float duration, float initialSpeed) {
+        wheelVelocityTween = new Tween(duration, initialSpeed, 0, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
+    }
+
     public void dispose() {
         world.destroyBody(body);
     }
+
+    public Body getBody() { return body; }
 }

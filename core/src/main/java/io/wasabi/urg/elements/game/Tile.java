@@ -87,7 +87,7 @@ public class Tile extends GameObject{
 
     private void build() {
         BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyType.StaticBody;
+        bodyDef.type = BodyType.KinematicBody;
         body = this.world.createBody(bodyDef);
         body.setTransform(position, 0);
 
