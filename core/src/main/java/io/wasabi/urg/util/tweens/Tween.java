@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.EnumMap;
 
 import io.wasabi.urg.util.tweens.formulae.QuadIn;
+import io.wasabi.urg.util.tweens.formulae.QuadInOut;
 import io.wasabi.urg.util.tweens.formulae.QuadOut;
 
 public class Tween {
@@ -19,6 +20,7 @@ public class Tween {
         put(TweenStyle.QUAD, new EnumMap<TweenDirection, Class<? extends TweenFormula>>(TweenDirection.class) {{
             put(TweenDirection.IN, QuadIn.class);
             put(TweenDirection.OUT, QuadOut.class);
+            put(TweenDirection.INOUT, QuadInOut.class);
         }});
     }};
 
