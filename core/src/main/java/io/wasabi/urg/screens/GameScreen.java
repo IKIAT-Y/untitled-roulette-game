@@ -43,6 +43,7 @@ public class GameScreen implements Screen {
         float outerTrackRadius = 200f;
         float innerWheelRadius = 150f;
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
+        wheel.spin(4.5f, -10f);
     }
 
     @Override

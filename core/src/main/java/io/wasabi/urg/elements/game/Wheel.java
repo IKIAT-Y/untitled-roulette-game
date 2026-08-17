@@ -33,14 +33,12 @@ public class Wheel {
     private float rotation; // in Degrees
     private float radius;
     private float tileSize;
-    private float speed = 3.0f;
 
     private final Body body;
-    private final Fixture innerFixture;
 
-    private Tween wheelVelocityTween = new Tween(4.5f, -10, 0, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
+    private Tween wheelVelocityTween;
 
-    private List<Tile> tiles = RUN_STATE.getTiles();
+    private final List<Tile> tiles = RUN_STATE.getTiles();
 
     public Wheel(World world, Vector2 position) {
         this.world = world;
@@ -61,7 +59,7 @@ public class Wheel {
             tiles.add(tile);
         }
 
-        innerFixture = addRing(radius, 0.3f, 0.5f, false);
+        addRing(radius, 0.3f, 0.5f, false);
 
         body.setAngularVelocity(-10f);
 
@@ -137,8 +135,10 @@ public class Wheel {
         float r1 = radius;
         float r2 = radius + tileSize;
 
-        body.setAngularVelocity(wheelVelocityTween.update(delta));
-        setRotation(body.getAngle());
+        if (wheelVelocityTween != null) {
+            body.setAngularVelocity(wheelVelocityTween.update(delta));
+            setRotation(body.getAngle());
+        }
 
         for (Tile tile : tiles) {
             tile.render();
@@ -149,6 +149,15 @@ public class Wheel {
         SHAPE_RENDERER.circle(position.x, position.y, r1);
         SHAPE_RENDERER.circle(position.x, position.y, r2);
         SHAPE_RENDERER.end();
+    }
+
+    /**
+     * Spins the wheel for a set amount of time, with given initial speed.
+     * @param duration The spin time
+     * @param initialSpeed The initial speed
+     */
+    public void spin(float duration, float initialSpeed) {
+        wheelVelocityTween = new Tween(duration, initialSpeed, 0, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
     }
 
     public void dispose() {
