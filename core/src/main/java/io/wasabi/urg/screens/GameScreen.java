@@ -5,6 +5,9 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.MathUtils;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.card.Card;
@@ -26,6 +29,7 @@ public class GameScreen implements Screen {
     // Elements
     private Ball ball;
     private Wheel wheel;
+    private Vector2 wheelCenter = new Vector2(-120f, 0);
 
     public GameScreen(final Roulette game) {
         this.game = game;
@@ -33,15 +37,17 @@ public class GameScreen implements Screen {
 
         this.world = new World(new Vector2(0f, 0f), true);
 
-        Vector2 wheelCenter = new Vector2(-120f, 0);
+        
         this.wheel = new Wheel(world, wheelCenter);
         this.ball = new Ball(world, 6f, wheelCenter);
+        spin();
 
         // Wheel boundaries and frets for bouncing
         //this.frets = new Frets(world, wheelCenter, 100f, 115f, 37, 1f);
         //this.boundary = new WheelBoundary(world, wheelCenter, 100f, 150f);
-
-        // Move this to launch method when the player presses the spin button
+    }
+    
+    private void spin() {
         float startAngleRad = 0f;
         float initialSpeed = new Random().nextFloat() * (1000f) + 1500f;
         float outerTrackRadius = 200f;
@@ -50,12 +56,27 @@ public class GameScreen implements Screen {
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
     }
 
+    private void handleWheelClick() {
+        if (!Gdx.input.justTouched() || ball.getState() != Ball.State.STOPPED) {
+            return;
+        }
+
+        Vector3 touch = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0f);
+        game.getCamera().unproject(touch);
+
+        if (wheel.containsPoint(new Vector2(touch.x, touch.y))) {
+            spin();
+        }
+    }
+
     @Override
     public void render(float delta) {
         // TODO: game screen rendering
         // includes the roulette wheel & the ui
         ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
         shapeRenderer.setColor(1f, 1f, 1f, 1f);
+
+        handleWheelClick();
 
         wheel.render();
 

@@ -146,8 +146,14 @@ public class Wheel {
         SHAPE_RENDERER.circle(position.x, position.y, r2);
         SHAPE_RENDERER.end();
     }
+    
+    public boolean containsPoint(Vector2 point) {
+        return point.dst2(position) <= (radius + tileSize) * (radius + tileSize);
+    }
 
     public void dispose() {
         world.destroyBody(body);
     }
+
+
 }
