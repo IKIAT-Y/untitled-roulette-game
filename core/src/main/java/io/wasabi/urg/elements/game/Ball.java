@@ -19,6 +19,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.state.RunState;
 
 public class Ball extends GameObject {
@@ -240,6 +241,7 @@ public class Ball extends GameObject {
             ball.setLinearVelocity(exitVelocity);
 
             state = State.BOUNCING;
+            SoundManager.getInstance().playSound("bounce1");
         }
     }
 
