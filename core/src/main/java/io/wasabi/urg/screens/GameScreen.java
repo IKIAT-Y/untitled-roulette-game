@@ -53,6 +53,7 @@ public class GameScreen implements Screen {
         float outerTrackRadius = 200f;
         float innerWheelRadius = 150f;
         Roulette.getInstance().getRunState().triggerCardEffects("beforeSpin");
+        wheel.spin();
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
     }
 
