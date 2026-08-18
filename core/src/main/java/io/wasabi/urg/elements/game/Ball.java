@@ -19,6 +19,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.state.RunState;
 
 public class Ball extends GameObject {
@@ -51,17 +52,17 @@ public class Ball extends GameObject {
     private float currentRadius = 0f;
 
     // How fast the ball moves radially inward during DROPPING
-    private float radialDropSpeed = 120f;
+    private float radialDropSpeed = 250f;
 
     // Used during Spin state
     private State state = State.STOPPED;
     private float tangentialSpeed = 0f;
 
-    private float decelerationFactor = 0.6f;
-    private float dropDecelerationFactor = 0.4f; // equivalent to old pow(0.999, 5) per-frame @60fps
+    private float decelerationFactor = 0.5f;
+    private float dropDecelerationFactor = 0.2f;
 
     // Speed to enter DROPPING state
-    private float dropSpeedThreshold = 300f;
+    private float dropSpeedThreshold = 400f;
 
     // Speed to enter SETTLE state
     private float settleSpeedThreshold = 5f;
@@ -241,6 +242,7 @@ public class Ball extends GameObject {
             ball.setLinearVelocity(exitVelocity);
 
             state = State.BOUNCING;
+            SoundManager.getInstance().playSound("bounce1");
         }
     }
 
@@ -270,7 +272,7 @@ public class Ball extends GameObject {
 
     private void updateSettling() {
         // While settling apply large damping to put it to a complete stop
-        float bounceDampingPerSecond = 0.9f;
+        float bounceDampingPerSecond = 0.99f;
         float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP);
         Vector2 vel = ball.getLinearVelocity();
         ball.setLinearVelocity(
@@ -293,11 +295,13 @@ public class Ball extends GameObject {
         Tile tile = getLandedTile();
         if (tile != null) {
             System.out.println("Landed on tile: " + tile.getNumber());
+            System.out.println("Tile multiplier: " + tile.getBetMultiplier());
         }
 
         Roulette.getInstance().getRunState().setLastTile(tile);
         Roulette.getInstance().getRunState().triggerCardEffects("afterSpin");
         Roulette.getInstance().getRunState().resolveActiveBets();
+        Roulette.getInstance().getRoundManager().recordSpin();
     }
 
     private Tile getLandedTile() {

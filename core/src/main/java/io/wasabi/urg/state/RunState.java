@@ -14,6 +14,7 @@ import io.wasabi.urg.elements.game.Tile;
 public final class RunState {
     private int chips;
     private int score;
+    private int tickets = 67;
 
     private Tile lastTile = null; // The last tile the player landed on, used for certain card effects.
 
@@ -41,6 +42,25 @@ public final class RunState {
         }
 
         chips -= amount;
+        return true;
+    }
+
+    public int getTickets() {
+        return tickets;
+    }
+
+    public void addTickets(int amount) {
+        requireNonNegative(amount, "amount");
+        tickets += amount;
+    }
+
+    public boolean spendTickets(int amount) {
+        requireNonNegative(amount, "amount");
+        if (amount > tickets) {
+            return false;
+        }
+
+        tickets -= amount;
         return true;
     }
 
@@ -77,6 +97,15 @@ public final class RunState {
             return ownedCards.remove(card);
         }
         return false;
+    }
+
+    public void reorderCard(Card card, int newIndex) {
+        if (!ownedCards.contains(card)) {
+            return;
+        }
+        ownedCards.remove(card);
+        newIndex = Math.max(0, Math.min(newIndex, ownedCards.size()));
+        ownedCards.add(newIndex, card);
     }
 
     public boolean ownsCard(Card card) {
@@ -120,6 +149,7 @@ public final class RunState {
 
         chips = startingChips;
         score = 0;
+        tickets = 0;
         tiles.clear();
         ownedCards.clear();
         ownedCharms.clear();
