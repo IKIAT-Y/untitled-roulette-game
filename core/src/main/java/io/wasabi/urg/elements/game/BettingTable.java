@@ -211,7 +211,13 @@ public class BettingTable extends GameObject {
     }
 
     public void placeBet(BetZone zone, Chip chip) {
-        int amount = Math.round(chip.getDenomination().value * runState.getChips());
+        int balance = runState.getChips();
+        // Denominations are a percentage of balance (see ChipDenomination) — at low
+        // balances a straight Math.round can floor small percentages (ONE, FIVE) to
+        // zero chips, silently discarding the chip instead of placing a real bet.
+        // Once the player has any chips at all, every denomination should place at
+        // least 1.
+        int amount = balance <= 0 ? 0 : Math.max(1, Math.round(chip.getDenomination().value * balance));
         if (amount <= 0 || !runState.spendChips(amount)) {
             discardChip(chip);
             return;
