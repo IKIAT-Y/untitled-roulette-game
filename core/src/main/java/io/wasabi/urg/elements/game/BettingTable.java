@@ -57,6 +57,23 @@ public class BettingTable extends GameObject {
     private BetZone hoveredZone;
     private Chip draggingChip;
 
+    /**
+     * Procedural betting table. Reads its tiles straight from
+     * {@link RunState#getTiles()} — the
+     * same list {@link Wheel} draws from — so the table always reflects the current
+     * roguelike
+     * pocket configuration without anything needing to push updates to it
+     * explicitly (though
+     * {@link #rebuildLayout()} is exposed for callers who want to force an
+     * immediate rebuild
+     * rather than waiting for the next {@link #update(float)}).
+     *
+     * Owns bet placement, the chip tray, and payout resolution. Input (drag/drop)
+     * is handled by
+     * {@link io.wasabi.urg.elements.betting.ChipDragController}, which calls back
+     * into this class
+     * for every actual state change.
+     */
     public BettingTable() {
         this.runState = Roulette.getInstance().getRunState();
         this.tiles = runState.getTiles();
