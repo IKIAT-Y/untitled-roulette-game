@@ -7,10 +7,7 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.elements.card.Card;
-import io.wasabi.urg.managers.FontManager;
-import io.wasabi.urg.managers.RendererManager;
-import io.wasabi.urg.managers.RoundManager;
-import io.wasabi.urg.managers.SoundManager;
+import io.wasabi.urg.managers.*;
 import io.wasabi.urg.screens.GameScreen;
 import io.wasabi.urg.state.RunState;
 
@@ -43,7 +40,9 @@ public class Roulette extends Game {
     @Override
     public void create() {
         camera = new OrthographicCamera();
-        viewport = new ExtendViewport(640, 480, camera); // change this depending on actual game size at launch (?)
+        int VIEWPORT_WIDTH = 1600;
+        int VIEWPORT_HEIGHT = 900;
+        viewport = new ExtendViewport(VIEWPORT_WIDTH, VIEWPORT_HEIGHT, camera); // change this depending on actual game size at launch (?)
 
         rendererManager = RendererManager.getInstance();
         rendererManager.initialize(this);
@@ -51,12 +50,15 @@ public class Roulette extends Game {
         FontManager.getInstance().initialize(this);
 
         soundManager.initialize();
+        TextureManager.getInstance().initialize();
 
         initializeCardPool();
 
         // Card testing
         runState.addCard(getRandomCard());
-        System.out.println("Added card: " + runState.getOwnedCards().get(0).getClass().getSimpleName());
+        runState.addCard(getRandomCard());
+        runState.addCard(getRandomCard());
+        runState.addCard(getRandomCard());
 
         this.gameScreen = new GameScreen(this);
         this.setScreen(this.gameScreen);
@@ -75,6 +77,7 @@ public class Roulette extends Game {
 
     public Card getRandomCard() {
         // 5% chance for rare 25% chance for uncommon 70% chance for common
+        // Moves down in rarity if the pool is empty for that rarity
         double roll = Math.random();
 
         if (roll < 0.05 && !rareCards.isEmpty()) {
@@ -137,6 +140,7 @@ public class Roulette extends Game {
             getScreen().dispose();
         }
         soundManager.dispose();
+        TextureManager.getInstance().dispose();
     }
 
     @Override

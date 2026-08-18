@@ -75,6 +75,15 @@ public final class RunState {
         return false;
     }
 
+    public void reorderCard(Card card, int newIndex) {
+        if (!ownedCards.contains(card)) {
+            return;
+        }
+        ownedCards.remove(card);
+        newIndex = Math.max(0, Math.min(newIndex, ownedCards.size()));
+        ownedCards.add(newIndex, card);
+    }
+
     public boolean ownsCard(Card card) {
         return ownedCards.contains(card);
     }
