@@ -42,6 +42,25 @@ public final class RunState {
         return true;
     }
 
+    public int getTickets() {
+        return tickets;
+    }
+
+    public void addTickets(int amount) {
+        requireNonNegative(amount, "amount");
+        tickets += amount;
+    }
+
+    public boolean spendTickets(int amount) {
+        requireNonNegative(amount, "amount");
+        if (amount > tickets) {
+            return false;
+        }
+
+        tickets -= amount;
+        return true;
+    }
+
     public int getScore() {
         return score;
     }
@@ -122,6 +141,7 @@ public final class RunState {
 
         chips = startingChips;
         score = 0;
+        tickets = 0;
         tiles.clear();
         ownedCards.clear();
         ownedCharms.clear();

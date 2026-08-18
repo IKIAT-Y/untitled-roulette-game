@@ -19,6 +19,7 @@ import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.managers.RoundManager;
 import io.wasabi.urg.managers.SoundManager;
 
 import java.util.Random;
@@ -59,6 +60,7 @@ public class GameScreen implements Screen {
     }
     
     private void spin() {
+        // Move this to launch method when the player presses the spin button
         float startAngleRad = 0f;
         float initialSpeed = new Random().nextFloat() * (1000f) + 1500f;
         float outerTrackRadius = 200f;
@@ -160,4 +162,6 @@ public class GameScreen implements Screen {
         world.dispose();
         ticketTexture.dispose();
     }
+
+    public Wheel getWheel() {return wheel;}
 }

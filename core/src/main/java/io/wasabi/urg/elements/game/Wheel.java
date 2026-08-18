@@ -176,4 +176,11 @@ public class Wheel {
     }
 
     public Body getBody() { return body; }
+    public List<Tile> getTiles() { return tiles; }
+
+    public void resetTileMultipliers() {
+        for (Tile tile : tiles) {
+            tile.setBetMultiplier(1f);
+        }
+    }
 }
