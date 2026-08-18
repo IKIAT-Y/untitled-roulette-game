@@ -21,7 +21,7 @@ public final class RunState {
     private final List<Card> ownedCards = new ArrayList<>();
     private final List<GameObject> ownedCharms = new ArrayList<>();
     private final IntArray chipHistory = new IntArray();
-    
+
 
     public int getChips() {
         return chips;
@@ -68,10 +68,6 @@ public final class RunState {
     public void addScore(int amount) {
         requireNonNegative(amount, "amount");
         score += amount;
-    }
-
-    public int getTickets() {
-        return tickets;
     }
 
     public void addTile(Tile tile) {
