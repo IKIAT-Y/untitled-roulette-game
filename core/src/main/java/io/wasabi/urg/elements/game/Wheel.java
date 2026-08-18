@@ -33,6 +33,8 @@ public class Wheel {
     private float rotation; // in Degrees
     private float radius;
     private float tileSize;
+    private static final float STARTING_SPEED = 3.0f;
+    private float speed;
 
     private final Body body;
 
@@ -43,6 +45,7 @@ public class Wheel {
     public Wheel(World world, Vector2 position) {
         this.world = world;
         this.position = position;
+        speed = STARTING_SPEED;
 
         // Testing
         radius = 80f;
@@ -149,6 +152,14 @@ public class Wheel {
         SHAPE_RENDERER.circle(position.x, position.y, r1);
         SHAPE_RENDERER.circle(position.x, position.y, r2);
         SHAPE_RENDERER.end();
+    }
+    
+    public boolean containsPoint(Vector2 point) {
+        return point.dst2(position) <= (radius + tileSize) * (radius + tileSize);
+    }
+
+    public void spin() {
+        speed = STARTING_SPEED;
     }
 
     /**
