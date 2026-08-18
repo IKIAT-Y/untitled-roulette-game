@@ -12,6 +12,8 @@ public class RoundManager {
     private int round = 1;
     private RoundConfig currentConfig;
     private int spinsRemaining = 5;
+    private boolean gameOver;
+    private boolean runComplete;
     private final RunState runState;
 
     public RoundManager(RunState runState) {
@@ -24,7 +26,7 @@ public class RoundManager {
 
         // Boss Round
         if (round == ROUNDS_PER_ACT) {
-            return new RoundConfig(act, round, true, quota, 2f, spinsRemaining);
+            return new RoundConfig(act, round, true, quota, 1f, spinsRemaining);
         }
 
         // Normal Round
@@ -32,14 +34,24 @@ public class RoundManager {
     }
 
     public void startRound() {
+        if (gameOver || runComplete) {
+            return;
+        }
+
         spinsRemaining = SPINS_PER_ROUND;
         currentConfig = buildConfig();
         runState.triggerCardEffects("roundStart");
+        printQuotaStatus();
     }
 
     public void recordSpin() {
+        if (gameOver || runComplete || spinsRemaining <= 0) {
+            return;
+        }
+
         spinsRemaining--;
         runState.triggerCardEffects("afterSpin");
+        printQuotaStatus();
 
         // Temp Debug
         System.out.println("Act: " + act + ", Round: " + round + ", Quota: " + currentConfig.getQuota() + ", Chips: " + runState.getChips());
@@ -58,20 +70,40 @@ public class RoundManager {
         runState.triggerCardEffects("roundEnd");
         runState.recordRoundBalance();
 
+        if (round == ROUNDS_PER_ACT && act == TOTAL_ACTS) {
+            runComplete = true;
+            System.out.println("Run complete: final quota reached.");
+            return;
+        }
+
         if (round == ROUNDS_PER_ACT) {
             act++;
             round = 1;
         } else {
             round++;
         }
+
+        startRound();
     }
 
     public void gameOver() {
-        // Handle game over logic here
+        gameOver = true;
+        System.out.println("Game over: quota not reached.");
+    }
+// temporary way to check whether the quota has been reached or not, will be replaced with a proper UI later
+    private void printQuotaStatus() {
+        System.out.println(
+            "Act " + act
+                + ", Round " + round
+                + " | Quota: " + runState.getChips() + " / " + currentConfig.getQuota()
+                + " | Spins remaining: " + spinsRemaining
+        );
     }
 
     public RoundConfig getCurrentConfig() { return currentConfig; }
     public int getSpinsRemaining() { return spinsRemaining; }
     public int getAct() { return act; }
     public int getRound() { return round; }
+    public boolean isGameOver() { return gameOver; }
+    public boolean isRunComplete() { return runComplete; }
 }

@@ -40,6 +40,7 @@ public class Roulette extends Game {
 
         // Card testing
         runState.addCard(new io.wasabi.urg.elements.card.ExtraChange());
+        roundManager.startRound();
 
         this.setScreen(new GameScreen(this));
     }
