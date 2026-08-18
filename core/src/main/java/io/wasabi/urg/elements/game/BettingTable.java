@@ -101,11 +101,9 @@ public class BettingTable extends GameObject {
     }
 
     /**
-     * Regenerates the grid + every bet zone from the current tile list, refunds any
-     * bets
-     * that no longer make sense (a covered tile was removed from the run), and
-     * rebuilds the
-     * chip tray position to match the new table bounds.
+     * Regenerates the grid + every bet zone from the current tile list, drops any
+     * bets that no longer make sense (a covered tile was removed from the run), and
+     * rebuilds the chip tray position to match the new table bounds.
      */
     public void rebuildLayout() {
         this.layout = generator.generate(tiles, posX, posY);
@@ -125,7 +123,8 @@ public class BettingTable extends GameObject {
             }
         }
         for (Bet bet : orphaned) {
-            runState.addChips(bet.getAmount());
+            // No refund — placing a bet never deducted chips in the first place, see
+            // placeBet().
             activeBets.remove(bet);
             placedChips.removeIf(chip -> chip.getBet() == bet);
         }
@@ -190,18 +189,16 @@ public class BettingTable extends GameObject {
     }
 
     /**
-     * Picks an already-placed chip back up, refunding its stake immediately. If the
-     * player
-     * drops it back on a zone the stake is re-charged there; if they drop it off
-     * the table
-     * it simply stays refunded.
+     * Picks an already-placed chip back up. No refund needed — placing a bet never
+     * deducted chips in the first place, see {@link #placeBet}. If the player drops
+     * it back on a zone it's re-tracked there; if they drop it off the table it's
+     * simply gone from {@link #activeBets}.
      */
     public Chip beginDragFromPlaced(Chip chip) {
         Bet bet = chip.getBet();
         if (bet == null)
             return null;
 
-        runState.addChips(bet.getAmount());
         activeBets.remove(bet);
         placedChips.remove(chip);
         chip.setBet(null);
@@ -210,15 +207,25 @@ public class BettingTable extends GameObject {
         return chip;
     }
 
+    /**
+     * Places (or re-places) a bet. Chip denominations are a percentage of the
+     * player's real balance ({@link RunState#getChips()}) — deliberately NOT of
+     * balance-minus-already-placed-bets, so every chip keeps a stable value for the
+     * whole betting round instead of shrinking as more bets go down. Actually
+     * spending the chips happens once, in bulk, at {@link RunState#resolveActiveBets()}
+     * — placing a bet here only ever reserves against the player's real balance
+     * minus what's already reserved by other pending bets, it never mutates
+     * {@link RunState#getChips()} itself.
+     */
     public void placeBet(BetZone zone, Chip chip) {
         int balance = runState.getChips();
-        // Denominations are a percentage of balance (see ChipDenomination) — at low
-        // balances a straight Math.round can floor small percentages (ONE, FIVE) to
-        // zero chips, silently discarding the chip instead of placing a real bet.
-        // Once the player has any chips at all, every denomination should place at
-        // least 1.
+        // At low balances a straight Math.round can floor small percentages (ONE,
+        // FIVE) to zero chips, silently discarding the chip instead of placing a real
+        // bet. Once the player has any chips at all, every denomination should place
+        // at least 1.
         int amount = balance <= 0 ? 0 : Math.max(1, Math.round(chip.getDenomination().value * balance));
-        if (amount <= 0 || !runState.spendChips(amount)) {
+        int available = balance - totalCommitted();
+        if (amount <= 0 || amount > available) {
             discardChip(chip);
             return;
         }
@@ -234,6 +241,16 @@ public class BettingTable extends GameObject {
         activeBets.add(bet);
         placedChips.add(chip);
         draggingChip = null;
+    }
+
+    /** Sum of every currently-pending bet's stake — reserved against the balance
+     * but not yet deducted from it. */
+    private int totalCommitted() {
+        int total = 0;
+        for (Bet bet : activeBets) {
+            total += bet.getAmount();
+        }
+        return total;
     }
 
     /**
@@ -265,12 +282,11 @@ public class BettingTable extends GameObject {
     // ---------------------------------------------------------------------------------------
 
     /**
-     * Refunds and clears every active bet (player-initiated, before spinning).
-     * Actual
-     * resolution after a spin happens in {@link RunState#resolveActiveBets()},
-     * called from
-     * {@link Ball#finalizeStop()} — this table doesn't need to be on screen for
-     * that to work.
+     * Clears every active bet (player-initiated, before spinning). No refund needed
+     * — placing a bet never deducted chips, see {@link #placeBet}. Actual
+     * resolution (the only point chips actually change hands) happens in
+     * {@link RunState#resolveActiveBets()}, called from {@link Ball#finalizeStop()}
+     * — this table doesn't need to be on screen for that to work.
      */
     public void clearBets() {
         runState.clearActiveBets();
