@@ -37,6 +37,10 @@ public class Roulette extends Game {
         return INSTANCE;
     }
 
+    public OrthographicCamera getCamera() {
+        return camera;
+    }
+
     @Override
     public void create() {
         camera = new OrthographicCamera();
@@ -51,6 +55,8 @@ public class Roulette extends Game {
 
         soundManager.initialize();
         TextureManager.getInstance().initialize();
+
+        initializeCardPool();
 
         initializeCardPool();
 

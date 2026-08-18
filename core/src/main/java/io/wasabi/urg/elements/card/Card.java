@@ -100,4 +100,8 @@ public abstract class Card extends GameObject {
             hasTarget = false;
         }
     }
+
+    public void render() {
+        // Default implementation does nothing
+    }
 }
