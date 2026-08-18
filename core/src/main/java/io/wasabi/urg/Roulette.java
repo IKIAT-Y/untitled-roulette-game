@@ -73,6 +73,10 @@ public class Roulette extends Game {
         return INSTANCE.viewport;
     }
 
+    public OrthographicCamera getCamera() {
+        return INSTANCE.camera;
+    }
+
     public float getWorldWidth() {
         return MIN_WORLD_WIDTH;
     }
