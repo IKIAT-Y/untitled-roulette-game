@@ -145,7 +145,6 @@ public class Ball extends GameObject {
         float dt = Math.min(delta, MAX_DELTA);
 
         // System.out.println(state.toString());
-
         switch (state) {
             case SPINNING:
                 updateSpinning(dt);

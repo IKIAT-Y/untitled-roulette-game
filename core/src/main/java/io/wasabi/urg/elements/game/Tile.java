@@ -86,6 +86,22 @@ public class Tile extends GameObject {
         update();
     }
 
+    /**
+     * Re-creates this tile's fret body/fixture in a different Box2D world. Tiles
+     * persist across screen transitions (see RunState.tiles and Wheel's "create
+     * tiles if they don't exist yet" reuse guard) so their identity survives for
+     * betting purposes, but each GameScreen owns its own disposable World — the
+     * fret {@link #body}/{@link #fret} created in a previous World is destroyed
+     * along with it (see GameScreen#dispose), so any tile being reused in a fresh
+     * World needs its physics rebuilt here or the wheel's collision segments
+     * silently stop existing.
+     */
+    public void attachToWorld(World world) {
+        this.world = world;
+        build();
+        update();
+    }
+
     private void build() {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyType.StaticBody;

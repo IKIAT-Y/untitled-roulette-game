@@ -56,6 +56,14 @@ public class Wheel {
                 // tile.setSize(0.5f + MathUtils.random.nextFloat());
                 tiles.add(tile);
             }
+        } else {
+            // Tiles persist across screens (RunState.tiles), but each GameScreen creates
+            // its own disposable Box2D World — the fret bodies these tiles built in the
+            // previous World were destroyed along with it, so they need rebuilding here
+            // or the wheel ends up with no collision segments between pockets.
+            for (Tile tile : tiles) {
+                tile.attachToWorld(world);
+            }
         }
 
         BodyDef bodyDef = new BodyDef();
