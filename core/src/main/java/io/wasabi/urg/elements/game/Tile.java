@@ -48,7 +48,6 @@ public class Tile extends GameObject {
     private float numHeight;
 
     private Texture fretTex;
-    private PolygonRegion region;
     private PolygonRegion fretRegion;
 
     private Vector2 fontPos = new Vector2();
@@ -57,7 +56,7 @@ public class Tile extends GameObject {
     private Body body; // for frets
     private Fixture fret;
 
-    public Tile(World world, int number, Vector2 position, float radius, float height) {
+    public Tile(World world, TileType type, int number, Vector2 position, float radius, float height) {
         this.world = world;
 
         this.number = number;
@@ -66,16 +65,7 @@ public class Tile extends GameObject {
         this.height = height;
         this.numHeight = height;
 
-        type = new DefaultTile();
-        if (number % 2 == 0) {
-            if (number == 0) {
-                type.setColour(TileType.TileColour.GREEN);
-            } else {
-                type.setColour(TileType.TileColour.RED);
-            }
-        } else {
-            type.setColour(TileType.TileColour.BLACK);
-        }
+        this.type = type;
 
         Pixmap fretPix = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         fretPix.setColor(0xFFFFFFFF);
@@ -159,7 +149,7 @@ public class Tile extends GameObject {
 
             rot += radInc;
         }
-        region = new PolygonRegion(new TextureRegion(type.getTexture()), vertices, tris);
+        type.setRegion(vertices, tris);
 
         PolygonShape shape = (PolygonShape) fret.getShape();
         int vertexCount = shape.getVertexCount();
@@ -184,7 +174,7 @@ public class Tile extends GameObject {
     @Override
     public void render() {
         POLY_BATCH.begin();
-        POLY_BATCH.draw(region, 0, 0);
+        type.drawTextures();
         POLY_BATCH.draw(fretRegion, 0, 0);
         POLY_BATCH.end();
 
@@ -195,7 +185,7 @@ public class Tile extends GameObject {
     }
 
     public float getSize() { return size; }
-    public PolygonRegion getRegion() { return region; }
+    public PolygonRegion getRegion() { return type.getRegion(); }
     public int getNumber() { return number; }
 
     public void setPosition(Vector2 position) {

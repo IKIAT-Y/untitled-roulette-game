@@ -4,8 +4,18 @@ import java.util.EnumMap;
 
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.PolygonRegion;
+import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+
+import io.wasabi.urg.managers.RendererManager;
 
 public abstract class TileType {
+    private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
+    private static final PolygonSpriteBatch POLY_BATCH = RENDERER_MANAGER.getPolygonSpriteBatch();
+    private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
+
     public enum TileColour {
         BLACK, RED, GREEN
     }
@@ -18,6 +28,7 @@ public abstract class TileType {
 
     protected Texture texture;
     protected TileColour colour;
+    protected PolygonRegion region;
 
     public TileType() {
 
@@ -31,5 +42,14 @@ public abstract class TileType {
         texture = new Texture(pix);
     }
 
+    public void setRegion(float[] vertices, short[] indices) {
+        region = new PolygonRegion(new TextureRegion(texture), vertices, indices);
+    }
+
+    public void drawTextures() {
+        POLY_BATCH.draw(region, 0, 0);
+    }
+
     public Texture getTexture() { return texture; }
+    public PolygonRegion getRegion() { return region; }
 }

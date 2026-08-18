@@ -16,6 +16,8 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 
 import io.wasabi.urg.Roulette;
+import io.wasabi.urg.elements.tiles.DefaultTile;
+import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.util.tweens.Tween;
@@ -26,6 +28,9 @@ public class Wheel {
 
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
     private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
+
+    private static final int[] WHEEL_NUMBER_ORDER = new int[] {
+        0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26};
 
     private final World world;
 
@@ -53,9 +58,18 @@ public class Wheel {
         bodyDef.position.set(position);
         body = this.world.createBody(bodyDef);
 
-        for (int i = 0; i < 37; i++) {
-            Tile tile = new Tile(world, i, position, radius, tileSize);
-            //tile.setSize(0.5f + MathUtils.random.nextFloat());
+        for (int i = 0; i < WHEEL_NUMBER_ORDER.length; i++) {
+            TileType type = new DefaultTile();
+            if (i % 2 == 0) {
+                if (i == 0) {
+                    type.setColour(TileType.TileColour.GREEN);
+                } else {
+                    type.setColour(TileType.TileColour.BLACK);
+                }
+            } else {
+                type.setColour(TileType.TileColour.RED);
+            }
+            Tile tile = new Tile(world, type, WHEEL_NUMBER_ORDER[i], position, radius, tileSize);
             tiles.add(tile);
         }
 
