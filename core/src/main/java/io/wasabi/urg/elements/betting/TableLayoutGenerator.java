@@ -1,9 +1,11 @@
 package io.wasabi.urg.elements.betting;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +27,16 @@ import io.wasabi.urg.elements.game.Tile;
  * Pure data in, data out — no rendering calls in here, so this is unit-testable
  * without libGDX
  * needing a graphics context.
+ *
+ * <p>
+ * <b>Duplicate numbers:</b> the roguelike layer can add a second physical tile
+ * with a number that's already on the wheel (e.g. to bias probability toward
+ * it). That must not create a second betting pocket — every zone here is built
+ * per distinct NUMBER, not per Tile, so duplicates share one grid cell/zone
+ * whose {@link BetZone#getCoveredTiles()} includes every physical tile with
+ * that number. A bet on it wins if the ball lands on ANY of them, and payouts
+ * are unaffected (still one bet, one stake, the normal multiplier).
+ * </p>
  *
  * <p>
  * <b>Note on Tile:</b> Tile currently only exposes {@link Tile#getNumber()} —
@@ -53,26 +65,30 @@ public class TableLayoutGenerator {
         }
         // Sort ascending by number so grid fill order matches a real table (1,2,3 /
         // 4,5,6 / ...).
-        // Duplicate numbers (a roguelike tile duplicate) are stable-sorted by original
-        // list order.
         standard.sort(Comparator.comparingInt(Tile::getNumber));
 
-        int rows = TableLayoutConfig.ROWS;
-        int columns = (int) Math.ceil(standard.size() / (float) rows);
+        // Group by number so duplicate tiles (see class javadoc) collapse onto one
+        // grid cell. groupByNumber uses a LinkedHashMap, so key order follows the
+        // ascending sort above.
+        Map<Integer, List<Tile>> tilesByNumber = groupByNumber(standard);
+        List<Integer> uniqueNumbers = new ArrayList<>(tilesByNumber.keySet());
 
-        Map<Tile, GridPoint2> positions = assignGridPositions(standard, rows);
+        int rows = TableLayoutConfig.ROWS;
+        int columns = (int) Math.ceil(uniqueNumbers.size() / (float) rows);
+
+        Map<Integer, GridPoint2> numberPositions = assignGridPositions(uniqueNumbers, rows);
 
         List<BetZone> zones = new ArrayList<>();
-        zones.addAll(buildStraightZones(positions, originX, originY, rows));
-        zones.addAll(buildHorizontalSplitZones(positions, columns, rows, originX, originY));
-        zones.addAll(buildVerticalSplitZones(positions, columns, rows, originX, originY));
-        zones.addAll(buildStreetZones(positions, columns, rows, originX, originY));
-        zones.addAll(buildCornerZones(positions, columns, rows, originX, originY));
-        zones.addAll(buildSixLineZones(positions, columns, rows, originX, originY));
-        zones.addAll(buildColumnZones(positions, columns, rows, originX, originY));
-        zones.addAll(buildDozenZones(standard, columns, rows, originX, originY));
-        zones.addAll(buildOutsideCategoryZones(standard, columns, rows, originX, originY));
-        zones.addAll(buildZeroZones(zeros, columns, rows, originX, originY));
+        zones.addAll(buildStraightZones(numberPositions, tilesByNumber, originX, originY, rows));
+        zones.addAll(buildHorizontalSplitZones(numberPositions, tilesByNumber, columns, rows, originX, originY));
+        zones.addAll(buildVerticalSplitZones(numberPositions, tilesByNumber, columns, rows, originX, originY));
+        zones.addAll(buildStreetZones(numberPositions, tilesByNumber, columns, rows, originX, originY));
+        zones.addAll(buildCornerZones(numberPositions, tilesByNumber, columns, rows, originX, originY));
+        zones.addAll(buildSixLineZones(numberPositions, tilesByNumber, columns, rows, originX, originY));
+        zones.addAll(buildColumnZones(numberPositions, tilesByNumber, columns, rows, originX, originY));
+        zones.addAll(buildDozenZones(uniqueNumbers, tilesByNumber, columns, rows, originX, originY));
+        zones.addAll(buildOutsideCategoryZones(standard, uniqueNumbers, tilesByNumber, originX, originY));
+        zones.addAll(buildZeroZones(zeros, rows, originX, originY));
 
         Rectangle bounds = new Rectangle(
                 originX,
@@ -82,7 +98,14 @@ public class TableLayoutGenerator {
                 rows * TableLayoutConfig.CELL_HEIGHT + TableLayoutConfig.DOZEN_STRIP_HEIGHT
                         + TableLayoutConfig.OUTSIDE_BOX_HEIGHT + TableLayoutConfig.OUTSIDE_BOX_GAP);
 
-        return new BettingTableLayout(positions, zeros, zones, bounds, columns, rows, originX, originY);
+        // The public API still keys grid positions by Tile (see BettingTableLayout) —
+        // every physical tile shares its number's one cell with any duplicates.
+        Map<Tile, GridPoint2> tilePositions = new HashMap<>();
+        for (Tile tile : standard) {
+            tilePositions.put(tile, numberPositions.get(tile.getNumber()));
+        }
+
+        return new BettingTableLayout(tilePositions, zeros, zones, bounds, columns, rows, originX, originY);
     }
 
     // ---------------------------------------------------------------------------------------
@@ -105,14 +128,32 @@ public class TableLayoutGenerator {
     // Grid geometry helpers
     // ---------------------------------------------------------------------------------------
 
-    private Map<Tile, GridPoint2> assignGridPositions(List<Tile> standard, int rows) {
-        Map<Tile, GridPoint2> positions = new HashMap<>();
-        for (int i = 0; i < standard.size(); i++) {
+    /** Groups tiles by number, preserving each number's first-seen order. */
+    private Map<Integer, List<Tile>> groupByNumber(List<Tile> tiles) {
+        Map<Integer, List<Tile>> byNumber = new LinkedHashMap<>();
+        for (Tile tile : tiles) {
+            byNumber.computeIfAbsent(tile.getNumber(), n -> new ArrayList<>()).add(tile);
+        }
+        return byNumber;
+    }
+
+    /** Every physical tile across the given numbers — the covered-tiles list for a zone. */
+    private List<Tile> tilesFor(Map<Integer, List<Tile>> tilesByNumber, List<Integer> numbers) {
+        List<Tile> combined = new ArrayList<>();
+        for (Integer number : numbers) {
+            combined.addAll(tilesByNumber.get(number));
+        }
+        return combined;
+    }
+
+    private Map<Integer, GridPoint2> assignGridPositions(List<Integer> uniqueNumbers, int rows) {
+        Map<Integer, GridPoint2> positions = new HashMap<>();
+        for (int i = 0; i < uniqueNumbers.size(); i++) {
             // Each run of `rows` consecutive numbers fills one column bottom-up (1 at the
             // bottom, matching a real table), then moves to the next column to the right.
             int col = i / rows;
             int row = rows - 1 - (i % rows);
-            positions.put(standard.get(i), new GridPoint2(col, row));
+            positions.put(uniqueNumbers.get(i), new GridPoint2(col, row));
         }
         return positions;
     }
@@ -125,8 +166,8 @@ public class TableLayoutGenerator {
         return TableGeometry.cellY(row, rows, originY);
     }
 
-    private Tile tileAt(Map<Tile, GridPoint2> positions, int col, int row) {
-        for (Map.Entry<Tile, GridPoint2> entry : positions.entrySet()) {
+    private Integer numberAt(Map<Integer, GridPoint2> numberPositions, int col, int row) {
+        for (Map.Entry<Integer, GridPoint2> entry : numberPositions.entrySet()) {
             GridPoint2 p = entry.getValue();
             if (p.x == col && p.y == row) {
                 return entry.getKey();
@@ -143,129 +184,129 @@ public class TableLayoutGenerator {
     // Inside bets
     // ---------------------------------------------------------------------------------------
 
-    private List<BetZone> buildStraightZones(Map<Tile, GridPoint2> positions,
-            float originX, float originY, int rows) {
+    private List<BetZone> buildStraightZones(Map<Integer, GridPoint2> numberPositions,
+            Map<Integer, List<Tile>> tilesByNumber, float originX, float originY, int rows) {
         List<BetZone> zones = new ArrayList<>();
-        for (Map.Entry<Tile, GridPoint2> entry : positions.entrySet()) {
-            Tile tile = entry.getKey();
+        for (Map.Entry<Integer, GridPoint2> entry : numberPositions.entrySet()) {
             GridPoint2 p = entry.getValue();
             float x = cellX(p.x, originX);
             float y = cellY(p.y, rows, originY);
             Vector2 anchor = new Vector2(x + TableLayoutConfig.CELL_WIDTH / 2f,
                     y + TableLayoutConfig.CELL_HEIGHT / 2f);
-            zones.add(new BetZone(BetType.STRAIGHT, Collections.singletonList(tile),
+            zones.add(new BetZone(BetType.STRAIGHT, tilesFor(tilesByNumber, Collections.singletonList(entry.getKey())),
                     rectPolygon(x, y, TableLayoutConfig.CELL_WIDTH, TableLayoutConfig.CELL_HEIGHT),
                     anchor));
         }
         return zones;
     }
 
-    private List<BetZone> buildHorizontalSplitZones(Map<Tile, GridPoint2> positions, int columns,
-            int rows, float originX, float originY) {
+    private List<BetZone> buildHorizontalSplitZones(Map<Integer, GridPoint2> numberPositions,
+            Map<Integer, List<Tile>> tilesByNumber, int columns, int rows, float originX, float originY) {
         List<BetZone> zones = new ArrayList<>();
         float w = TableLayoutConfig.SPLIT_HIT_WIDTH;
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < columns - 1; col++) {
-                Tile a = tileAt(positions, col, row);
-                Tile b = tileAt(positions, col + 1, row);
+                Integer a = numberAt(numberPositions, col, row);
+                Integer b = numberAt(numberPositions, col + 1, row);
                 if (a == null || b == null)
                     continue;
 
                 float borderX = cellX(col + 1, originX);
                 float y = cellY(row, rows, originY);
                 Vector2 anchor = new Vector2(borderX, y + TableLayoutConfig.CELL_HEIGHT / 2f);
-                zones.add(new BetZone(BetType.SPLIT, java.util.Arrays.asList(a, b),
+                zones.add(new BetZone(BetType.SPLIT, tilesFor(tilesByNumber, Arrays.asList(a, b)),
                         rectPolygon(borderX - w / 2f, y, w, TableLayoutConfig.CELL_HEIGHT), anchor));
             }
         }
         return zones;
     }
 
-    private List<BetZone> buildVerticalSplitZones(Map<Tile, GridPoint2> positions, int columns,
-            int rows, float originX, float originY) {
+    private List<BetZone> buildVerticalSplitZones(Map<Integer, GridPoint2> numberPositions,
+            Map<Integer, List<Tile>> tilesByNumber, int columns, int rows, float originX, float originY) {
         List<BetZone> zones = new ArrayList<>();
         float h = TableLayoutConfig.SPLIT_HIT_WIDTH;
         for (int col = 0; col < columns; col++) {
             for (int row = 0; row < rows - 1; row++) {
-                Tile a = tileAt(positions, col, row);
-                Tile b = tileAt(positions, col, row + 1);
+                Integer a = numberAt(numberPositions, col, row);
+                Integer b = numberAt(numberPositions, col, row + 1);
                 if (a == null || b == null)
                     continue;
 
                 float x = cellX(col, originX);
                 float borderY = cellY(row, rows, originY); // bottom of `row` == top of `row+1`
                 Vector2 anchor = new Vector2(x + TableLayoutConfig.CELL_WIDTH / 2f, borderY);
-                zones.add(new BetZone(BetType.SPLIT, java.util.Arrays.asList(a, b),
+                zones.add(new BetZone(BetType.SPLIT, tilesFor(tilesByNumber, Arrays.asList(a, b)),
                         rectPolygon(x, borderY - h / 2f, TableLayoutConfig.CELL_WIDTH, h), anchor));
             }
         }
         return zones;
     }
 
-    private List<BetZone> buildStreetZones(Map<Tile, GridPoint2> positions, int columns, int rows,
-            float originX, float originY) {
+    private List<BetZone> buildStreetZones(Map<Integer, GridPoint2> numberPositions,
+            Map<Integer, List<Tile>> tilesByNumber, int columns, int rows, float originX, float originY) {
         List<BetZone> zones = new ArrayList<>();
         float stripH = TableLayoutConfig.STREET_STRIP_HEIGHT;
         float y = originY - stripH;
         for (int col = 0; col < columns; col++) {
-            List<Tile> colTiles = new ArrayList<>();
+            List<Integer> colNumbers = new ArrayList<>();
             for (int row = 0; row < rows; row++) {
-                Tile t = tileAt(positions, col, row);
-                if (t == null)
+                Integer n = numberAt(numberPositions, col, row);
+                if (n == null)
                     break;
-                colTiles.add(t);
+                colNumbers.add(n);
             }
-            if (colTiles.size() != rows)
+            if (colNumbers.size() != rows)
                 continue; // ragged/incomplete column — no street bet
 
             float x = cellX(col, originX);
             float width = TableLayoutConfig.CELL_WIDTH;
             Vector2 anchor = new Vector2(x + width / 2f, y + stripH / 2f);
-            zones.add(new BetZone(BetType.STREET, colTiles, rectPolygon(x, y, width, stripH), anchor));
+            zones.add(new BetZone(BetType.STREET, tilesFor(tilesByNumber, colNumbers),
+                    rectPolygon(x, y, width, stripH), anchor));
         }
         return zones;
     }
 
-    private List<BetZone> buildCornerZones(Map<Tile, GridPoint2> positions, int columns, int rows,
-            float originX, float originY) {
+    private List<BetZone> buildCornerZones(Map<Integer, GridPoint2> numberPositions,
+            Map<Integer, List<Tile>> tilesByNumber, int columns, int rows, float originX, float originY) {
         List<BetZone> zones = new ArrayList<>();
         float size = TableLayoutConfig.CORNER_HIT_SIZE;
         for (int row = 0; row < rows - 1; row++) {
             for (int col = 0; col < columns - 1; col++) {
-                Tile a = tileAt(positions, col, row);
-                Tile b = tileAt(positions, col + 1, row);
-                Tile c = tileAt(positions, col, row + 1);
-                Tile d = tileAt(positions, col + 1, row + 1);
+                Integer a = numberAt(numberPositions, col, row);
+                Integer b = numberAt(numberPositions, col + 1, row);
+                Integer c = numberAt(numberPositions, col, row + 1);
+                Integer d = numberAt(numberPositions, col + 1, row + 1);
                 if (a == null || b == null || c == null || d == null)
                     continue;
 
                 float crossX = cellX(col + 1, originX);
                 float crossY = cellY(row, rows, originY);
                 Vector2 anchor = new Vector2(crossX, crossY);
-                zones.add(new BetZone(BetType.CORNER, java.util.Arrays.asList(a, b, c, d),
+                zones.add(new BetZone(BetType.CORNER, tilesFor(tilesByNumber, Arrays.asList(a, b, c, d)),
                         rectPolygon(crossX - size / 2f, crossY - size / 2f, size, size), anchor));
             }
         }
         return zones;
     }
 
-    private List<BetZone> buildSixLineZones(Map<Tile, GridPoint2> positions, int columns, int rows,
-            float originX, float originY) {
+    private List<BetZone> buildSixLineZones(Map<Integer, GridPoint2> numberPositions,
+            Map<Integer, List<Tile>> tilesByNumber, int columns, int rows, float originX, float originY) {
         List<BetZone> zones = new ArrayList<>();
         float w = TableLayoutConfig.SIX_LINE_HIT_WIDTH;
         float stripH = TableLayoutConfig.STREET_STRIP_HEIGHT;
         float y = originY - stripH;
         for (int col = 0; col < columns - 1; col++) {
-            List<Tile> combined = new ArrayList<>();
+            List<Integer> combined = new ArrayList<>();
             boolean complete = true;
             for (int c = col; c <= col + 1 && complete; c++) {
                 for (int row = 0; row < rows; row++) {
-                    Tile t = tileAt(positions, c, row);
-                    if (t == null) {
+                    Integer n = numberAt(numberPositions, c, row);
+                    if (n == null) {
                         complete = false;
                         break;
                     }
-                    combined.add(t);
+                    combined.add(n);
                 }
             }
             if (!complete)
@@ -275,7 +316,7 @@ public class TableLayoutGenerator {
             // border between the two columns it covers.
             float borderX = cellX(col + 1, originX);
             Vector2 anchor = new Vector2(borderX, y + stripH / 2f);
-            zones.add(new BetZone(BetType.SIX_LINE, combined,
+            zones.add(new BetZone(BetType.SIX_LINE, tilesFor(tilesByNumber, combined),
                     rectPolygon(borderX - w / 2f, y, w, stripH), anchor));
         }
         return zones;
@@ -285,61 +326,63 @@ public class TableLayoutGenerator {
     // Outside bets
     // ---------------------------------------------------------------------------------------
 
-    private List<BetZone> buildColumnZones(Map<Tile, GridPoint2> positions, int columns, int rows,
-            float originX, float originY) {
+    private List<BetZone> buildColumnZones(Map<Integer, GridPoint2> numberPositions,
+            Map<Integer, List<Tile>> tilesByNumber, int columns, int rows, float originX, float originY) {
         List<BetZone> zones = new ArrayList<>();
         float stripX = cellX(columns, originX); // right edge of the grid
         float stripW = TableLayoutConfig.COLUMN_STRIP_WIDTH;
         for (int row = 0; row < rows; row++) {
-            List<Tile> rowTiles = new ArrayList<>();
-            for (Map.Entry<Tile, GridPoint2> entry : positions.entrySet()) {
+            List<Integer> rowNumbers = new ArrayList<>();
+            for (Map.Entry<Integer, GridPoint2> entry : numberPositions.entrySet()) {
                 if (entry.getValue().y == row)
-                    rowTiles.add(entry.getKey());
+                    rowNumbers.add(entry.getKey());
             }
-            if (rowTiles.isEmpty())
+            if (rowNumbers.isEmpty())
                 continue;
 
             float y = cellY(row, rows, originY);
             Vector2 anchor = new Vector2(stripX + stripW / 2f, y + TableLayoutConfig.CELL_HEIGHT / 2f);
-            zones.add(new BetZone(BetType.COLUMN, rowTiles,
+            zones.add(new BetZone(BetType.COLUMN, tilesFor(tilesByNumber, rowNumbers),
                     rectPolygon(stripX, y, stripW, TableLayoutConfig.CELL_HEIGHT), anchor));
         }
         return zones;
     }
 
-    private List<BetZone> buildDozenZones(List<Tile> standardSorted, int columns, int rows,
-            float originX, float originY) {
+    private List<BetZone> buildDozenZones(List<Integer> uniqueNumbers, Map<Integer, List<Tile>> tilesByNumber,
+            int columns, int rows, float originX, float originY) {
         List<BetZone> zones = new ArrayList<>();
         int groupSize = TableLayoutConfig.DOZEN_GROUP_SIZE;
         float stripY = originY + rows * TableLayoutConfig.CELL_HEIGHT; // top edge of the grid
         float stripH = TableLayoutConfig.DOZEN_STRIP_HEIGHT;
 
-        // Fixed-size blocks of 12, like a real table. A trailing partial block (pocket
-        // count not
-        // a multiple of 12) intentionally gets no dozen zone — see architecture notes
-        // on scaling.
-        int fullBlocks = standardSorted.size() / groupSize;
+        // Fixed-size blocks of 12 distinct numbers, like a real table. A trailing
+        // partial block (unique number count not a multiple of 12) intentionally gets
+        // no dozen zone — see architecture notes on scaling.
+        int fullBlocks = uniqueNumbers.size() / groupSize;
         int columnsPerBlock = groupSize / rows; // assumes ROWS divides GROUP_SIZE evenly
 
         for (int block = 0; block < fullBlocks; block++) {
             int fromCol = block * columnsPerBlock;
             int toCol = fromCol + columnsPerBlock - 1;
-            List<Tile> blockTiles = standardSorted.subList(block * groupSize, (block + 1) * groupSize);
+            List<Integer> blockNumbers = uniqueNumbers.subList(block * groupSize, (block + 1) * groupSize);
 
             float leftX = cellX(fromCol, originX);
             float rightX = cellX(toCol, originX) + TableLayoutConfig.CELL_WIDTH;
             float width = rightX - leftX;
             Vector2 anchor = new Vector2(leftX + width / 2f, stripY + stripH / 2f);
-            zones.add(new BetZone(BetType.DOZEN, new ArrayList<>(blockTiles),
+            zones.add(new BetZone(BetType.DOZEN, tilesFor(tilesByNumber, blockNumbers),
                     rectPolygon(leftX, stripY, width, stripH), anchor));
         }
         return zones;
     }
 
-    private List<BetZone> buildOutsideCategoryZones(List<Tile> standard, int columns, int rows,
-            float originX, float originY) {
+    private List<BetZone> buildOutsideCategoryZones(List<Tile> standard, List<Integer> uniqueNumbers,
+            Map<Integer, List<Tile>> tilesByNumber, float originX, float originY) {
         List<BetZone> zones = new ArrayList<>();
 
+        // Colour/parity are per-tile attributes, so bucketing every physical tile
+        // (duplicates included) already covers every duplicate correctly — no need to
+        // go through tilesByNumber here.
         List<Tile> red = new ArrayList<>();
         List<Tile> black = new ArrayList<>();
         List<Tile> odd = new ArrayList<>();
@@ -355,15 +398,12 @@ public class TableLayoutGenerator {
                 even.add(t);
         }
 
-        // "High/low" generalised to rank-based halves rather than the hardcoded
-        // 1-18/19-36
-        // range, so this still works when the roguelike layer changes what numbers
-        // exist.
-        List<Tile> byNumber = new ArrayList<>(standard);
-        byNumber.sort(Comparator.comparingInt(Tile::getNumber));
-        int half = byNumber.size() / 2;
-        List<Tile> low = new ArrayList<>(byNumber.subList(0, half));
-        List<Tile> high = new ArrayList<>(byNumber.subList(half, byNumber.size()));
+        // "High/low" generalised to rank-based halves of the UNIQUE numbers in play
+        // (not raw physical tile count, which duplicate pockets would skew) so this
+        // still works as the roguelike layer changes what numbers exist.
+        int half = uniqueNumbers.size() / 2;
+        List<Tile> low = tilesFor(tilesByNumber, uniqueNumbers.subList(0, half));
+        List<Tile> high = tilesFor(tilesByNumber, uniqueNumbers.subList(half, uniqueNumbers.size()));
 
         float y = originY - TableLayoutConfig.OUTSIDE_BOX_GAP - TableLayoutConfig.OUTSIDE_BOX_HEIGHT;
         float x = originX;
@@ -390,19 +430,23 @@ public class TableLayoutGenerator {
         return zones;
     }
 
-    private List<BetZone> buildZeroZones(List<Tile> zeros, int columns, int rows,
-            float originX, float originY) {
+    private List<BetZone> buildZeroZones(List<Tile> zeros, int rows, float originX, float originY) {
         List<BetZone> zones = new ArrayList<>();
         if (zeros.isEmpty())
             return zones;
 
-        float slotHeight = (rows * TableLayoutConfig.CELL_HEIGHT) / zeros.size();
-        for (int i = 0; i < zeros.size(); i++) {
-            Tile tile = zeros.get(i);
+        // Grouped by number for the same reason as the main grid — e.g. two physical
+        // "0" tiles get one slot, covering both, instead of two duplicate zero cells.
+        Map<Integer, List<Tile>> zerosByNumber = groupByNumber(zeros);
+        List<Integer> uniqueZeroNumbers = new ArrayList<>(zerosByNumber.keySet());
+
+        float slotHeight = (rows * TableLayoutConfig.CELL_HEIGHT) / uniqueZeroNumbers.size();
+        for (int i = 0; i < uniqueZeroNumbers.size(); i++) {
+            List<Tile> coveredTiles = zerosByNumber.get(uniqueZeroNumbers.get(i));
             float x = originX;
             float y = originY + rows * TableLayoutConfig.CELL_HEIGHT - (i + 1) * slotHeight;
             Vector2 anchor = new Vector2(x + TableLayoutConfig.ZERO_COLUMN_WIDTH / 2f, y + slotHeight / 2f);
-            zones.add(new BetZone(BetType.STRAIGHT, Collections.singletonList(tile),
+            zones.add(new BetZone(BetType.STRAIGHT, new ArrayList<>(coveredTiles),
                     rectPolygon(x, y, TableLayoutConfig.ZERO_COLUMN_WIDTH, slotHeight), anchor));
         }
         return zones;

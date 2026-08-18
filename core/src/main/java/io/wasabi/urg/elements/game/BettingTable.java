@@ -127,11 +127,8 @@ public class BettingTable extends GameObject {
     private void invalidateOrphanedBets() {
         List<Bet> orphaned = new ArrayList<>();
         for (Bet bet : activeBets) {
-            for (Tile covered : bet.getZone().getCoveredTiles()) {
-                if (!tiles.contains(covered)) {
-                    orphaned.add(bet);
-                    break;
-                }
+            if (isOrphaned(bet.getZone())) {
+                orphaned.add(bet);
             }
         }
         for (Bet bet : orphaned) {
@@ -140,6 +137,21 @@ public class BettingTable extends GameObject {
             activeBets.remove(bet);
             placedChips.removeIf(chip -> chip.getBet() == bet);
         }
+    }
+
+    /**
+     * A zone is orphaned once any of the distinct NUMBERS it covers has no
+     * surviving tile at all. Straight zones on a duplicated number (see
+     * TableLayoutGenerator) list more than one covered tile for that single
+     * number — losing one duplicate shouldn't drop the bet as long as another tile
+     * with that number is still on the wheel.
+     */
+    private boolean isOrphaned(BetZone zone) {
+        Map<Integer, Boolean> numberSurvives = new HashMap<>();
+        for (Tile covered : zone.getCoveredTiles()) {
+            numberSurvives.merge(covered.getNumber(), tiles.contains(covered), Boolean::logicalOr);
+        }
+        return numberSurvives.containsValue(false);
     }
 
     private void rebuildTray() {
