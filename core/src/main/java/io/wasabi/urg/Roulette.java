@@ -18,8 +18,8 @@ public class Roulette extends Game {
     private static final Roulette INSTANCE = new Roulette();
     private GameScreen gameScreen;
     private final RunState runState = new RunState();
-    private final float MIN_WORLD_WIDTH = 640f; // Minimum width of the game world
-    private final float MIN_WORLD_HEIGHT = 480f; // Minimum height of the game world
+    private final float MIN_WORLD_WIDTH = 1600f; // Minimum width of the game world
+    private final float MIN_WORLD_HEIGHT = 900f; // Minimum height of the game world
     private final RoundManager roundManager = new RoundManager(runState);
     private final SoundManager soundManager = SoundManager.getInstance();
 

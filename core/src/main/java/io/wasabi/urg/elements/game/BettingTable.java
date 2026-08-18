@@ -37,11 +37,11 @@ public class BettingTable extends GameObject {
     private static final FontManager FONT_MANAGER = FontManager.getInstance();
     private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Placeholder");
 
-    private static final float CHIP_RADIUS = 8f;
-    private static final float CHIP_STACK_OFFSET = 3f;
-    private static final float TRAY_GAP = 6f;
-    private static final float TRAY_MARGIN = 12f;
-    private static final float NUMBER_FONT_SCALE = 0.5f;
+    private static final float CHIP_RADIUS = 32f;
+    private static final float CHIP_STACK_OFFSET = 10f;
+    private static final float TRAY_GAP = 168f;
+    private static final float TRAY_MARGIN = 90f;
+    private static final float NUMBER_FONT_SCALE = 2f;
 
     // Small, bounded cache (one entry per distinct pocket number ever drawn) so we
     // aren't allocating a fresh String every zone, every frame.
@@ -360,7 +360,7 @@ public class BettingTable extends GameObject {
             if (zone.getType() == BetType.STRAIGHT)
                 continue;
             Vector2 a = zone.getChipAnchor();
-            SHAPE_RENDERER.circle(a.x, a.y, 2f);
+            SHAPE_RENDERER.circle(a.x, a.y, 4f);
         }
 
         if (hoveredZone != null) {

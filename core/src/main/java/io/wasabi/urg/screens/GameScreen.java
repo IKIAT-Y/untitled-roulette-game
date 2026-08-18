@@ -62,7 +62,6 @@ public class GameScreen implements Screen {
         this.ticketTexture = new Texture(Gdx.files.internal("ticket.png"));
         this.world = new World(new Vector2(0f, 0f), true);
 
-        
         this.wheel = new Wheel(world, wheelCenter);
         this.ball = new Ball(world, 6f, wheelCenter);
 
@@ -72,7 +71,7 @@ public class GameScreen implements Screen {
 
         spin();
     }
-    
+
     private void spin() {
         // Move this to launch method when the player presses the spin button
         float startAngleRad = 0f;
@@ -98,6 +97,7 @@ public class GameScreen implements Screen {
             spin();
         }
     }
+
     private void renderTicketCounter() {
         int tickets = game.getRunState().getTickets();
 
@@ -108,10 +108,10 @@ public class GameScreen implements Screen {
         float screenHeight = Gdx.graphics.getHeight();
 
         float x = screenWidth - iconSize - padding;
-        //placeholder y
+        // placeholder y
         float y = padding - 50f;
 
-        uiProjection.setToOrtho2D(0,0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        uiProjection.setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         spriteBatch.setProjectionMatrix(uiProjection);
         uiTransform.idt();
@@ -146,7 +146,6 @@ public class GameScreen implements Screen {
         updateBetButtonLayout();
         betButton.update();
         betButton.draw(spriteBatch);
-
 
         SpriteBatch batch = RendererManager.getInstance().getSpriteBatch();
         batch.begin();
@@ -203,8 +202,8 @@ public class GameScreen implements Screen {
         float screenWidth = Gdx.graphics.getWidth();
         float screenHeight = Gdx.graphics.getHeight();
 
-        float widthScale = screenWidth / Math.max(1f, baseWindowWidth);
-        float heightScale = screenHeight / Math.max(1f, baseWindowHeight);
+        float widthScale = screenWidth / Math.max(1f, baseWindowWidth) * 4f;
+        float heightScale = screenHeight / Math.max(1f, baseWindowHeight) * 4f;
         float scale = Math.max(0.5f, Math.min(2.5f, Math.min(widthScale, heightScale)));
 
         float btnWidth = baseButtonWidth * scale;
@@ -213,8 +212,7 @@ public class GameScreen implements Screen {
         betButton.setSize(btnWidth, btnHeight);
         betButton.setPosition((screenWidth - btnWidth) / 2f, 0);
         com.badlogic.gdx.Gdx.input.setInputProcessor(
-            new io.wasabi.urg.managers.CardInputHandler(game.getRunState(), game.getViewport())
-        );
+                new io.wasabi.urg.managers.CardInputHandler(game.getRunState(), game.getViewport()));
     }
 
     @Override
@@ -243,5 +241,7 @@ public class GameScreen implements Screen {
         ticketTexture.dispose();
     }
 
-    public Wheel getWheel() {return wheel;}
+    public Wheel getWheel() {
+        return wheel;
+    }
 }

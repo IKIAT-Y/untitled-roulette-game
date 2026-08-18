@@ -37,10 +37,9 @@ public class BettingScreen implements Screen {
 
         this.bettingTable = new BettingTable();
 
-        // Table now lays out horizontally (fixed 3 rows, columns growing sideways),
-        // so it's wide/short rather than tall/narrow — centre it near the middle of
-        // the screen instead of hugging the left edge.
-        this.bettingTable.setPosition(-216f, -48f);
+        // Absolute value for now. Consider making this relative to table size and world
+        // coords.
+        this.bettingTable.setPosition(-640f, -48f);
 
         this.dragController = new ChipDragController(bettingTable, game.getCamera());
     }
@@ -101,9 +100,9 @@ public class BettingScreen implements Screen {
         float screenWidth = Gdx.graphics.getWidth();
         float screenHeight = Gdx.graphics.getHeight();
 
-        float widthScale = screenWidth / Math.max(1f, baseWindowWidth);
-        float heightScale = screenHeight / Math.max(1f, baseWindowHeight);
-        float scale = Math.max(0.5f, Math.min(4f, Math.min(widthScale, heightScale)));
+        float widthScale = screenWidth / Math.max(1f, baseWindowWidth) * 4f;
+        float heightScale = screenHeight / Math.max(1f, baseWindowHeight) * 4f;
+        float scale = Math.max(0.5f, Math.min(2.5f, Math.min(widthScale, heightScale)));
 
         float btnWidth = baseButtonWidth * scale;
         float btnHeight = baseButtonHeight * scale;
