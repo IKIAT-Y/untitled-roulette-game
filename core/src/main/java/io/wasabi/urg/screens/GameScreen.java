@@ -3,17 +3,21 @@ package io.wasabi.urg.screens;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.Texture;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.Wheel;
+import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
 
@@ -24,7 +28,11 @@ public class GameScreen implements Screen {
 
     // Renderers
     private final ShapeRenderer shapeRenderer;
-
+    private final SpriteBatch spriteBatch;
+    private final Texture ticketTexture;
+    // Matrices for UI rendering
+    private final Matrix4 uiProjection = new Matrix4();
+    private final Matrix4 uiTransform = new Matrix4();
     // Physics
     private final World world;
 
@@ -36,7 +44,8 @@ public class GameScreen implements Screen {
     public GameScreen(final Roulette game) {
         this.game = game;
         this.shapeRenderer = RendererManager.getInstance().getShapeRenderer();
-
+        this.spriteBatch = RendererManager.getInstance().getSpriteBatch();
+        this.ticketTexture = new Texture(Gdx.files.internal("ticket.png"));
         this.world = new World(new Vector2(0f, 0f), true);
 
         
@@ -73,6 +82,35 @@ public class GameScreen implements Screen {
             spin();
         }
     }
+    private void renderTicketCounter() {
+        int tickets = game.getRunState().getTickets();
+
+        float padding = 80f;
+        float iconSize = 32f;
+
+        float screenWidth = Gdx.graphics.getWidth();
+        float screenHeight = Gdx.graphics.getHeight();
+
+        float x = screenWidth - iconSize - padding;
+        //placeholder y
+        float y = padding - 50f;
+
+        uiProjection.setToOrtho2D(0,0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+        spriteBatch.setProjectionMatrix(uiProjection);
+        uiTransform.idt();
+        spriteBatch.setTransformMatrix(uiTransform);
+
+        spriteBatch.begin();
+
+        spriteBatch.draw(ticketTexture, x, y, iconSize, iconSize);
+
+        FontManager.getInstance()
+                .getFontByName("Placeholder")
+                .draw(spriteBatch, Integer.toString(tickets), x + iconSize + 8f, y + 24f);
+
+        spriteBatch.end();
+    }
 
     @Override
     public void render(float delta) {
@@ -86,6 +124,7 @@ public class GameScreen implements Screen {
 
         ball.update(delta);
         ball.render();
+        renderTicketCounter();
     }
 
     @Override
@@ -119,5 +158,6 @@ public class GameScreen implements Screen {
         ball.dispose();
         wheel.dispose();
         world.dispose();
+        ticketTexture.dispose();
     }
 }
