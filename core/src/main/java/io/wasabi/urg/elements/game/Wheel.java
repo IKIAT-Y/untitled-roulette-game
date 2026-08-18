@@ -48,10 +48,14 @@ public class Wheel {
         radius = 80f;
         tileSize = 25;
 
-        for (int i = 0; i < 37; i++) {
-            Tile tile = new Tile(world, i, position, radius, tileSize);
-            //tile.setSize(0.5f + MathUtils.random.nextFloat());
-            tiles.add(tile);
+        // Create tiles if they don't exist yet
+
+        if (tiles.isEmpty()) {
+            for (int i = 0; i < 37; i++) {
+                Tile tile = new Tile(world, i, position, radius, tileSize);
+                // tile.setSize(0.5f + MathUtils.random.nextFloat());
+                tiles.add(tile);
+            }
         }
 
         BodyDef bodyDef = new BodyDef();
