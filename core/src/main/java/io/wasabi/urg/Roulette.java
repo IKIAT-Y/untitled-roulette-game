@@ -157,10 +157,6 @@ public class Roulette extends Game {
         return viewport;
     }
 
-    public OrthographicCamera getCamera() {
-        return camera;
-    }
-
     public float getWorldWidth() {
         return MIN_WORLD_WIDTH;
     }
@@ -168,8 +164,13 @@ public class Roulette extends Game {
     public float getWorldHeight() {
         return MIN_WORLD_HEIGHT;
     }
-  
+
     @Override
-    public GameScreen getScreen() { return gameScreen; }
-    public RoundManager getRoundManager() { return roundManager; }
+    public GameScreen getScreen() {
+        return gameScreen;
+    }
+
+    public RoundManager getRoundManager() {
+        return roundManager;
+    }
 }
