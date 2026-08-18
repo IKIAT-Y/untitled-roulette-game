@@ -9,11 +9,12 @@ public final class TableLayoutConfig {
     public static final int DOZEN_GROUP_SIZE = 12; // rows per dozen block — scale or keep fixed, see notes
     public static final int COLUMN_GROUP_STRIDE = 3; // every 3rd pocket forms a "column" bet
 
+    // TODO: consider making these configurable, or at least scale with the table
+    // size. For now, they are fixed to match the default cell size.
+
     // Hit-box sizing for the "line" style bets that live on cell borders rather
     // than on a
-    // cell itself. These are first-pass values sized for readability, not visual
-    // polish —
-    // expect to retune once the table is actually on screen.
+    // cell itself.
     public static final float SPLIT_HIT_WIDTH = 10f; // width of the strip straddling a border
     public static final float CORNER_HIT_SIZE = 12f; // side length of the square at a 4-way join
     public static final float STREET_STRIP_HEIGHT = 12f; // strip hanging off the outer edge of a row
