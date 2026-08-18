@@ -13,6 +13,8 @@ import io.wasabi.urg.state.RunState;
 public class Roulette extends Game {
     private static final Roulette INSTANCE = new Roulette();
     private final RunState runState = new RunState();
+    private final float MIN_WORLD_WIDTH = 640f; // Minimum width of the game world
+    private final float MIN_WORLD_HEIGHT = 480f; // Minimum height of the game world
 
     // Renderers
     private RendererManager rendererManager;
@@ -27,14 +29,11 @@ public class Roulette extends Game {
         return INSTANCE;
     }
 
-    public Viewport getViewport() {
-        return INSTANCE.viewport;
-    }
-
     @Override
     public void create() {
         camera = new OrthographicCamera();
-        viewport = new ExtendViewport(640, 480, camera); // change this depending on actual game size at launch (?)
+        viewport = new ExtendViewport(MIN_WORLD_WIDTH, MIN_WORLD_HEIGHT, camera); // change this depending on actual
+                                                                                  // game size at launch (?)
 
         rendererManager = RendererManager.getInstance();
         rendererManager.initialize(this);
@@ -68,5 +67,17 @@ public class Roulette extends Game {
 
     public RunState getRunState() {
         return runState;
+    }
+
+    public Viewport getViewport() {
+        return INSTANCE.viewport;
+    }
+
+    public float getWorldWidth() {
+        return MIN_WORLD_WIDTH;
+    }
+
+    public float getWorldHeight() {
+        return MIN_WORLD_HEIGHT;
     }
 }
