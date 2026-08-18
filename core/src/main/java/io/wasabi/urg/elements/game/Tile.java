@@ -40,7 +40,6 @@ public class Tile extends GameObject {
     private TileType type;
 
     private float betMultiplier = 1.0f; // multiplier for bets on this tile
-    private int color; // 0 for red, 1 for black, 2 for green
 
     private Vector2 position;
     private float degrees;
@@ -214,7 +213,7 @@ public class Tile extends GameObject {
 
     public void setBetMultiplier(float betMultiplier) { this.betMultiplier = betMultiplier; }
     public float getBetMultiplier() { return betMultiplier; }
-    public int getColor() { return color; }
-    public void setColor(int color) { this.color = color; }
+    public TileType.TileColour getColor() { return type.getColour(); }
+    public void setColor(TileType.TileColour color) { type.setColour(color); }
 
 }

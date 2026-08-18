@@ -1,9 +1,10 @@
 package io.wasabi.urg.elements.card;
 
+import java.util.List;
+
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.game.Tile;
-
-import java.util.List;
+import io.wasabi.urg.elements.tiles.TileType;
 
 public class GreenCard extends Card {
 
@@ -14,7 +15,7 @@ public class GreenCard extends Card {
         System.out.println("GreenCard card effect triggered");
         List<Tile> tiles = Roulette.getInstance().getScreen().getWheel().getTiles();
         for (Tile tile : tiles) {
-            if (tile.getColor() == 2) {
+            if (tile.getColor() == TileType.TileColour.GREEN) {
                 tile.setBetMultiplier(tile.getBetMultiplier() * 3f);
             }
         }

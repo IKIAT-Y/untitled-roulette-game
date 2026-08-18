@@ -52,4 +52,5 @@ public abstract class TileType {
 
     public Texture getTexture() { return texture; }
     public PolygonRegion getRegion() { return region; }
+    public TileColour getColour() { return colour; }
 }
