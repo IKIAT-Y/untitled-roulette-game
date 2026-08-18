@@ -91,14 +91,14 @@ public class GameScreen implements Screen {
 
         float btnWidth = betButtonTexture.getWidth();
         float btnHeight = betButtonTexture.getHeight();
-        baseWindowWidth = Gdx.graphics.getWidth();
-        baseWindowHeight = Gdx.graphics.getHeight();
+        baseWindowWidth = game.getWorldWidth();
+        baseWindowHeight = game.getWorldHeight();
         baseButtonWidth = btnWidth;
         baseButtonHeight = btnHeight;
 
         betButton = new BetScreenButton(
                 betButtonTexture,
-                (Gdx.graphics.getWidth() - btnWidth) / 2f, 0,
+                (game.getWorldWidth() - btnWidth) / 2f, 0,
                 btnWidth, btnHeight,
                 () -> {
                     // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
