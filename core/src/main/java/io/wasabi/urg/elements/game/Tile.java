@@ -21,7 +21,6 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Align;
 
 import io.wasabi.urg.elements.GameObject;
-import io.wasabi.urg.elements.tiles.DefaultTile;
 import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
@@ -88,13 +87,14 @@ public class Tile extends GameObject {
         PolygonShape fretShape = new PolygonShape();
         fretShape.setAsBox(
             height,
-            1,
+            2.0f,
             new Vector2(0, 0),
             0
         );
 
         FixtureDef fretFixture = new FixtureDef();
         fretFixture.shape = fretShape;
+        fretFixture.density = 1.0f;
         fretFixture.friction = 0.6f;
         fretFixture.restitution = 0.5f;
 

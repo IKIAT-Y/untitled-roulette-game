@@ -1,18 +1,18 @@
 package io.wasabi.urg.screens;
 
+import java.util.List;
+import java.util.Random;
+
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.Texture;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.card.Card;
@@ -20,11 +20,7 @@ import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
-import io.wasabi.urg.managers.RoundManager;
 import io.wasabi.urg.managers.SoundManager;
-
-import java.util.List;
-import java.util.Random;
 
 public class GameScreen implements Screen {
     private final Roulette game;
@@ -51,12 +47,12 @@ public class GameScreen implements Screen {
         this.ticketTexture = new Texture(Gdx.files.internal("ticket.png"));
         this.world = new World(new Vector2(0f, 0f), true);
 
-        
+
         this.wheel = new Wheel(world, wheelCenter);
         this.ball = new Ball(world, 6f, wheelCenter);
         spin();
     }
-    
+
     private void spin() {
         // Move this to launch method when the player presses the spin button
         float startAngleRad = 0f;
@@ -64,10 +60,9 @@ public class GameScreen implements Screen {
         float outerTrackRadius = 400f;
         float innerWheelRadius = 300f;
         Roulette.getInstance().getRunState().triggerCardEffects("beforeSpin");
-        wheel.spin();
         SoundManager.getInstance().playSound("spin1");
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
-        wheel.spin(4.5f, -10f);
+        wheel.spin(3.0f, -10f);
     }
 
     private void handleWheelClick() {
