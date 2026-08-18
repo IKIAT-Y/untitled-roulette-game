@@ -9,6 +9,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.betting.BetScreenButton;
+import io.wasabi.urg.elements.betting.ChipDragController;
 import io.wasabi.urg.elements.game.BettingTable;
 import io.wasabi.urg.managers.RendererManager;
 
@@ -27,11 +28,21 @@ public class BettingScreen implements Screen {
     private float baseWindowHeight;
     private float baseButtonWidth;
     private float baseButtonHeight;
+    private ChipDragController dragController;
 
     public BettingScreen(final Roulette game) {
         this.game = game;
         this.shapeRenderer = RendererManager.getInstance().getShapeRenderer();
         this.spriteBatch = RendererManager.getInstance().getSpriteBatch();
+
+        this.bettingTable = new BettingTable();
+
+        // Table now lays out horizontally (fixed 3 rows, columns growing sideways),
+        // so it's wide/short rather than tall/narrow — centre it near the middle of
+        // the screen instead of hugging the left edge.
+        this.bettingTable.setPosition(-216f, -48f);
+
+        this.dragController = new ChipDragController(bettingTable, game.getCamera());
     }
 
     @Override
@@ -40,6 +51,8 @@ public class BettingScreen implements Screen {
 
         // ShapeRenderer renders
         shapeRenderer.setColor(1f, 1f, 1f, 1f);
+        bettingTable.update(delta);
+        bettingTable.render();
 
         // SpriteBatch renders
         updateBetButtonLayout();
@@ -55,6 +68,8 @@ public class BettingScreen implements Screen {
 
     @Override
     public void show() {
+
+        Gdx.input.setInputProcessor(dragController);
 
         betButtonTexture = new Texture(Gdx.files.internal("buttons/TEX_BUTTON_64x32_BetDown.png"));
 
