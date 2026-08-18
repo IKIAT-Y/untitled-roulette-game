@@ -1,16 +1,20 @@
 package io.wasabi.urg.elements.game;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Align;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
@@ -22,6 +26,7 @@ import io.wasabi.urg.elements.betting.Chip;
 import io.wasabi.urg.elements.betting.ChipDenomination;
 import io.wasabi.urg.elements.betting.PocketColor;
 import io.wasabi.urg.elements.betting.TableLayoutGenerator;
+import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.state.RunState;
 
@@ -29,11 +34,18 @@ public class BettingTable extends GameObject {
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
     private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
     private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
+    private static final FontManager FONT_MANAGER = FontManager.getInstance();
+    private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Placeholder");
 
     private static final float CHIP_RADIUS = 8f;
     private static final float CHIP_STACK_OFFSET = 3f;
     private static final float TRAY_GAP = 6f;
     private static final float TRAY_MARGIN = 12f;
+    private static final float NUMBER_FONT_SCALE = 0.5f;
+
+    // Small, bounded cache (one entry per distinct pocket number ever drawn) so we
+    // aren't allocating a fresh String every zone, every frame.
+    private final Map<Integer, String> numberLabels = new HashMap<>();
 
     private final RunState runState;
     private final List<Tile> tiles;
@@ -212,7 +224,8 @@ public class BettingTable extends GameObject {
      * player's real balance ({@link RunState#getChips()}) — deliberately NOT of
      * balance-minus-already-placed-bets, so every chip keeps a stable value for the
      * whole betting round instead of shrinking as more bets go down. Actually
-     * spending the chips happens once, in bulk, at {@link RunState#resolveActiveBets()}
+     * spending the chips happens once, in bulk, at
+     * {@link RunState#resolveActiveBets()}
      * — placing a bet here only ever reserves against the player's real balance
      * minus what's already reserved by other pending bets, it never mutates
      * {@link RunState#getChips()} itself.
@@ -243,8 +256,10 @@ public class BettingTable extends GameObject {
         draggingChip = null;
     }
 
-    /** Sum of every currently-pending bet's stake — reserved against the balance
-     * but not yet deducted from it. */
+    /**
+     * Sum of every currently-pending bet's stake — reserved against the balance
+     * but not yet deducted from it.
+     */
     private int totalCommitted() {
         int total = 0;
         for (Bet bet : activeBets) {
@@ -306,8 +321,10 @@ public class BettingTable extends GameObject {
         if (layout == null)
             return;
 
+        List<BetZone> straightZones = layout.getZonesOfType(BetType.STRAIGHT);
+
         SHAPE_RENDERER.begin(ShapeType.Filled);
-        for (BetZone zone : layout.getZonesOfType(BetType.STRAIGHT)) {
+        for (BetZone zone : straightZones) {
             Tile tile = zone.getCoveredTiles().get(0);
             SHAPE_RENDERER.setColor(colorFor(generator.getColor(tile)));
             Rectangle r = zone.getHitArea().getBoundingRectangle();
@@ -315,15 +332,17 @@ public class BettingTable extends GameObject {
         }
         SHAPE_RENDERER.end();
 
+        drawStraightZoneNumbers(straightZones);
+
         SHAPE_RENDERER.begin(ShapeType.Line);
         SHAPE_RENDERER.setColor(Color.WHITE);
-        for (BetZone zone : layout.getZonesOfType(BetType.STRAIGHT)) {
+        for (BetZone zone : straightZones) {
             Rectangle r = zone.getHitArea().getBoundingRectangle();
             SHAPE_RENDERER.rect(r.x, r.y, r.width, r.height);
         }
 
         // Snap-point markers for every non-straight bet (split/corner/street/six-line/
-        // column/dozen/outside) — first-pass visual feedback until these get real art.
+        // column/dozen/outside)
         SHAPE_RENDERER.setColor(Color.LIGHT_GRAY);
         for (BetZone zone : layout.getBetZones()) {
             if (zone.getType() == BetType.STRAIGHT)
@@ -349,6 +368,39 @@ public class BettingTable extends GameObject {
         if (draggingChip != null) {
             draggingChip.draw(SPRITE_BATCH, textureFor(draggingChip.getDenomination()));
         }
+    }
+
+    /**
+     * Draws each straight zone's pocket number, shrunk and centered in its cell.
+     * FONT is shared with other renderers (e.g. Tile, which draws with it at the
+     * default scale/color) — every tweak made here is saved beforehand and
+     * restored afterward so it can't leak into whatever draws with FONT next.
+     */
+    private void drawStraightZoneNumbers(List<BetZone> straightZones) {
+        float originalScaleX = FONT.getScaleX();
+        float originalScaleY = FONT.getScaleY();
+        Color originalColor = FONT.getColor().cpy();
+
+        FONT.getData().setScale(NUMBER_FONT_SCALE, NUMBER_FONT_SCALE);
+        FONT.setColor(Color.WHITE);
+        // BitmapFont#draw's y is the TOP of the text
+        float halfTextHeight = FONT.getCapHeight() / 2f;
+
+        SPRITE_BATCH.begin();
+        for (BetZone zone : straightZones) {
+            Tile tile = zone.getCoveredTiles().get(0);
+            Rectangle r = zone.getHitArea().getBoundingRectangle();
+            FONT.draw(SPRITE_BATCH, labelFor(tile.getNumber()), r.x,
+                    r.y + r.height / 2f + halfTextHeight, r.width, Align.center, false);
+        }
+        SPRITE_BATCH.end();
+
+        FONT.getData().setScale(originalScaleX, originalScaleY);
+        FONT.setColor(originalColor);
+    }
+
+    private String labelFor(int number) {
+        return numberLabels.computeIfAbsent(number, String::valueOf);
     }
 
     private Color colorFor(PocketColor color) {
