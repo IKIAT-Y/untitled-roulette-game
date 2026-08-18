@@ -12,9 +12,9 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import io.wasabi.urg.managers.RendererManager;
 
 public abstract class TileType {
-    private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
-    private static final PolygonSpriteBatch POLY_BATCH = RENDERER_MANAGER.getPolygonSpriteBatch();
-    private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
+    protected  static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
+    protected static final PolygonSpriteBatch POLY_BATCH = RENDERER_MANAGER.getPolygonSpriteBatch();
+    protected static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
 
     public enum TileColour {
         BLACK, RED, GREEN
@@ -25,6 +25,8 @@ public abstract class TileType {
         put(TileColour.RED, 0xFF0000FF);
         put(TileColour.GREEN, 0x00AA00FF);
     }};
+
+    protected float betMultiplier = 1.0f; // multiplier for bets on this tile
 
     protected Texture texture;
     protected TileColour colour;
@@ -50,7 +52,14 @@ public abstract class TileType {
         POLY_BATCH.draw(region, 0, 0);
     }
 
+    public void onLanded() {
+
+    }
+
     public Texture getTexture() { return texture; }
     public PolygonRegion getRegion() { return region; }
     public TileColour getColour() { return colour; }
+
+    public void setBetMultiplier(float betMultiplier) { this.betMultiplier = betMultiplier; }
+    public float getBetMultiplier() { return betMultiplier; }
 }

@@ -39,8 +39,6 @@ public class Tile extends GameObject {
     private float size = 1; // multiplier
     private TileType type;
 
-    private float betMultiplier = 1.0f; // multiplier for bets on this tile
-
     private Vector2 position;
     private float degrees;
     private float rotation = 0.0f;
@@ -186,6 +184,10 @@ public class Tile extends GameObject {
         SPRITE_BATCH.end();
     }
 
+    public void onLanded() {
+        type.onLanded();
+    }
+
     public float getSize() { return size; }
     public PolygonRegion getRegion() { return type.getRegion(); }
     public int getNumber() { return number; }
@@ -211,8 +213,8 @@ public class Tile extends GameObject {
         update();
     }
 
-    public void setBetMultiplier(float betMultiplier) { this.betMultiplier = betMultiplier; }
-    public float getBetMultiplier() { return betMultiplier; }
+    public void setBetMultiplier(float betMultiplier) { type.setBetMultiplier(betMultiplier); }
+    public float getBetMultiplier() { return type.getBetMultiplier(); }
     public TileType.TileColour getColor() { return type.getColour(); }
     public void setColor(TileType.TileColour color) { type.setColour(color); }
 

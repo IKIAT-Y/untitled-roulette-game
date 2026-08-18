@@ -58,11 +58,11 @@ public class GameScreen implements Screen {
         float startAngleRad = 0f;
         float initialSpeed = new Random().nextFloat() * (1000f) + 5000f;
         float outerTrackRadius = 400f;
-        float innerWheelRadius = 300f;
+        float innerWheelRadius = 325f;
         Roulette.getInstance().getRunState().triggerCardEffects("beforeSpin");
         SoundManager.getInstance().playSound("spin1");
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
-        wheel.spin(3.0f, -10f);
+        wheel.spin(6.0f, -10f);
     }
 
     private void handleWheelClick() {
