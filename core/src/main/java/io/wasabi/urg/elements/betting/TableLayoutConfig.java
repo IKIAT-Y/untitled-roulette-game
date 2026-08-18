@@ -8,4 +8,21 @@ public final class TableLayoutConfig {
     public static final float CHIP_SNAP_RADIUS = 10f;
     public static final int DOZEN_GROUP_SIZE = 12; // rows per dozen block — scale or keep fixed, see notes
     public static final int COLUMN_GROUP_STRIDE = 3; // every 3rd pocket forms a "column" bet
+
+    // Hit-box sizing for the "line" style bets that live on cell borders rather
+    // than on a
+    // cell itself. These are first-pass values sized for readability, not visual
+    // polish —
+    // expect to retune once the table is actually on screen.
+    public static final float SPLIT_HIT_WIDTH = 10f; // width of the strip straddling a border
+    public static final float CORNER_HIT_SIZE = 12f; // side length of the square at a 4-way join
+    public static final float STREET_STRIP_HEIGHT = 12f; // strip hanging off the outer edge of a row
+    public static final float SIX_LINE_HIT_HEIGHT = 8f; // strip straddling a row/row border
+
+    public static final float COLUMN_STRIP_HEIGHT = 20f; // "2 to 1" boxes below the grid
+    public static final float DOZEN_STRIP_WIDTH = 24f; // dozen boxes to the side of the grid
+
+    public static final float OUTSIDE_BOX_WIDTH = 48f; // red/black/odd/even/high/low row
+    public static final float OUTSIDE_BOX_HEIGHT = 20f;
+    public static final float OUTSIDE_BOX_GAP = 4f;
 }
