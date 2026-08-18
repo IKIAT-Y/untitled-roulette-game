@@ -38,6 +38,9 @@ public class Tile extends GameObject {
     private int number;
     private float size = 1; // multiplier
 
+    private float betMultiplier = 1.0f; // multiplier for bets on this tile
+    private int color; // 0 for red, 1 for black, 2 for green
+
     private Vector2 position;
     private float degrees;
     private float rotation = 0.0f;
@@ -68,10 +71,15 @@ public class Tile extends GameObject {
 
         Pixmap pix = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
 
-        if (number % 2 == 0) {
+        if (number == 0) {
+            pix.setColor(0x00FF00FF);
+            this.color = 2; // red
+        } else if (number % 2 == 0) {
             pix.setColor(0xFF0000FF);
+            this.color = 0; // red
         } else {
             pix.setColor(0x000000FF);
+            this.color = 1; // black
         }
         pix.fill();
 
@@ -104,7 +112,7 @@ public class Tile extends GameObject {
 
     private void build() {
         BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyType.StaticBody;
+        bodyDef.type = BodyType.KinematicBody;
         body = this.world.createBody(bodyDef);
         body.setTransform(position, 0);
 
@@ -151,7 +159,7 @@ public class Tile extends GameObject {
         fontTransform.setToTrnRotRadScl(fontPos, fontRot + radians / 2 + MathUtils.PI / 2, new Vector2(0.4f, 0.4f));
         fontMatrix4.set(fontTransform);
 
-        // fontMatrix4.scale(0.5f, 0.5f, 1);
+        fontMatrix4.scale(2f, 2f, 1);
 
         for (int i = 0; i < segments; i++) {
             int v = i * 4;
@@ -246,4 +254,10 @@ public class Tile extends GameObject {
         this.size = size;
         update();
     }
+
+    public void setBetMultiplier(float betMultiplier) { this.betMultiplier = betMultiplier; }
+    public float getBetMultiplier() { return betMultiplier; }
+    public int getColor() { return color; }
+    public void setColor(int color) { this.color = color; }
+
 }
