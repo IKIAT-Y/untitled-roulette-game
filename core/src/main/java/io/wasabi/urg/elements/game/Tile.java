@@ -52,6 +52,7 @@ public class Tile extends GameObject {
 
     private Vector2 fontPos = new Vector2();
     private Matrix4 fontMatrix4 = new Matrix4();
+    private Matrix4 previousSpriteTransform = new Matrix4();
 
     private Body body; // for frets
     private Fixture fret;
@@ -186,8 +187,10 @@ public class Tile extends GameObject {
         POLY_BATCH.end();
 
         SPRITE_BATCH.begin();
+        previousSpriteTransform.set(SPRITE_BATCH.getTransformMatrix());
         SPRITE_BATCH.setTransformMatrix(fontMatrix4);
         FONT.draw(SPRITE_BATCH, Integer.toString(number), 0, 0, 16, Align.center, true);
+        SPRITE_BATCH.setTransformMatrix(previousSpriteTransform);
         SPRITE_BATCH.end();
     }
 
