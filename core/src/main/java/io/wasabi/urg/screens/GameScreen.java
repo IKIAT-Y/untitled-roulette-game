@@ -1,6 +1,7 @@
 package io.wasabi.urg.screens;
 
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
@@ -14,6 +15,7 @@ import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.managers.SoundManager;
 
 import java.util.Random;
 
@@ -54,7 +56,9 @@ public class GameScreen implements Screen {
         float innerWheelRadius = 150f;
         Roulette.getInstance().getRunState().triggerCardEffects("beforeSpin");
         wheel.spin();
+        SoundManager.getInstance().playSound("spin1");
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
+        wheel.spin(4.5f, -10f);
     }
 
     private void handleWheelClick() {
@@ -78,8 +82,7 @@ public class GameScreen implements Screen {
         shapeRenderer.setColor(1f, 1f, 1f, 1f);
 
         handleWheelClick();
-
-        wheel.render();
+        wheel.render(delta);
 
         ball.update(delta);
         ball.render();

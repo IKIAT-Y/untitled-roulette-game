@@ -1,18 +1,23 @@
 package io.wasabi.urg;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.managers.RoundManager;
+import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.screens.GameScreen;
 import io.wasabi.urg.state.RunState;
 
 public class Roulette extends Game {
     private static final Roulette INSTANCE = new Roulette();
     private final RunState runState = new RunState();
+    private final RoundManager roundManager = new RoundManager(runState);
+    private final SoundManager soundManager = SoundManager.getInstance();
 
     // Renderers
     private RendererManager rendererManager;
@@ -40,6 +45,8 @@ public class Roulette extends Game {
 
         FontManager.getInstance().initialize(this);
 
+        soundManager.initialize();
+
         // Card testing
         runState.addCard(new io.wasabi.urg.elements.card.ExtraChange());
 
@@ -63,7 +70,10 @@ public class Roulette extends Game {
         if (getScreen() != null) {
             getScreen().dispose();
         }
+        soundManager.dispose();
     }
 
     public RunState getRunState() { return runState; }
+    public Viewport getViewport() { return viewport; }
+    public RoundManager getRoundManager() { return roundManager; }
 }
