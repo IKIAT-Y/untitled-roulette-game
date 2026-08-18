@@ -29,4 +29,8 @@ public abstract class Card extends GameObject {
     public void roundEndEffect() {
         // Default implementation does nothing
     }
+
+    public void render() {
+        // Default implementation does nothing
+    }
 }

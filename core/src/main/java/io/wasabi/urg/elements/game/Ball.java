@@ -19,6 +19,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.state.RunState;
 
 public class Ball extends GameObject {
@@ -240,6 +241,7 @@ public class Ball extends GameObject {
             ball.setLinearVelocity(exitVelocity);
 
             state = State.BOUNCING;
+            SoundManager.getInstance().playSound("bounce1");
         }
     }
 
@@ -294,6 +296,7 @@ public class Ball extends GameObject {
         Tile tile = getLandedTile();
         if (tile != null) {
             System.out.println("Landed on tile: " + tile.getNumber());
+            System.out.println("Tile multiplier: " + tile.getBetMultiplier());
         }
 
         Roulette.getInstance().getRunState().setLastTile(tile);

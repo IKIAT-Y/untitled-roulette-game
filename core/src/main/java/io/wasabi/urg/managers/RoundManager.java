@@ -1,5 +1,6 @@
 package io.wasabi.urg.managers;
 
+import io.wasabi.urg.Roulette;
 import io.wasabi.urg.state.RunState;
 
 public class RoundManager {
@@ -79,6 +80,9 @@ public class RoundManager {
             return;
         }
 
+        // Reset tile multiplier for the next round
+        Roulette.getInstance().getScreen().getWheel().resetTileMultipliers();
+
         if (round == ROUNDS_PER_ACT) {
             act++;
             round = 1;
@@ -117,6 +121,7 @@ public class RoundManager {
 
     public RoundConfig getCurrentConfig() { return currentConfig; }
     public int getSpinsRemaining() { return spinsRemaining; }
+    public void setSpinsRemaining(int spinsRemaining) { this.spinsRemaining = spinsRemaining; }
     public int getAct() { return act; }
     public int getRound() { return round; }
     public boolean isGameOver() { return gameOver; }

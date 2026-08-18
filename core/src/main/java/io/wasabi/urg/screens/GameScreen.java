@@ -1,6 +1,7 @@
 package io.wasabi.urg.screens;
 
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
@@ -11,6 +12,8 @@ import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.managers.RoundManager;
+import io.wasabi.urg.managers.SoundManager;
 
 import java.util.Random;
 
@@ -37,16 +40,13 @@ public class GameScreen implements Screen {
         this.wheel = new Wheel(world, wheelCenter);
         this.ball = new Ball(world, 6f, wheelCenter);
 
-        // Wheel boundaries and frets for bouncing
-        //this.frets = new Frets(world, wheelCenter, 100f, 115f, 37, 1f);
-        //this.boundary = new WheelBoundary(world, wheelCenter, 100f, 150f);
-
         // Move this to launch method when the player presses the spin button
         float startAngleRad = 0f;
         float initialSpeed = new Random().nextFloat() * (1000f) + 1500f;
         float outerTrackRadius = 200f;
         float innerWheelRadius = 150f;
         Roulette.getInstance().getRunState().triggerCardEffects("beforeSpin");
+        SoundManager.getInstance().playSound("spin1");
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
         wheel.spin(4.5f, -10f);
     }
@@ -96,4 +96,6 @@ public class GameScreen implements Screen {
         wheel.dispose();
         world.dispose();
     }
+
+    public Wheel getWheel() {return wheel;}
 }
