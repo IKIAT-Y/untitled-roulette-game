@@ -2,6 +2,7 @@ package io.wasabi.urg.screens;
 
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
@@ -22,6 +23,7 @@ import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.RoundManager;
 import io.wasabi.urg.managers.SoundManager;
 
+import java.util.List;
 import java.util.Random;
 
 public class GameScreen implements Screen {
@@ -53,18 +55,14 @@ public class GameScreen implements Screen {
         this.wheel = new Wheel(world, wheelCenter);
         this.ball = new Ball(world, 6f, wheelCenter);
         spin();
-
-        // Wheel boundaries and frets for bouncing
-        //this.frets = new Frets(world, wheelCenter, 100f, 115f, 37, 1f);
-        //this.boundary = new WheelBoundary(world, wheelCenter, 100f, 150f);
     }
     
     private void spin() {
         // Move this to launch method when the player presses the spin button
         float startAngleRad = 0f;
-        float initialSpeed = new Random().nextFloat() * (1000f) + 1500f;
-        float outerTrackRadius = 200f;
-        float innerWheelRadius = 150f;
+        float initialSpeed = new Random().nextFloat() * (1000f) + 5000f;
+        float outerTrackRadius = 400f;
+        float innerWheelRadius = 300f;
         Roulette.getInstance().getRunState().triggerCardEffects("beforeSpin");
         wheel.spin();
         SoundManager.getInstance().playSound("spin1");
@@ -126,6 +124,23 @@ public class GameScreen implements Screen {
 
         ball.update(delta);
         ball.render();
+
+        SpriteBatch batch = RendererManager.getInstance().getSpriteBatch();
+        batch.begin();
+        batch.setTransformMatrix(new Matrix4().setToTranslation(0, 0, 0));
+
+        List<Card> cards = Roulette.getInstance().getRunState().getOwnedCards();
+        float worldWidth = game.getViewport().getWorldWidth();
+
+        for (int i = 0; i < cards.size(); i++) {
+            Card card = cards.get(i);
+            Vector2 slot = CardLayout.getSlotPosition(i, cards.size(), worldWidth);
+            card.setTargetPosition(slot.x, slot.y);
+            card.update(delta);
+            card.render();
+        }
+
+        batch.end();
         renderTicketCounter();
     }
 
@@ -136,12 +151,14 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
-
+        com.badlogic.gdx.Gdx.input.setInputProcessor(
+            new io.wasabi.urg.managers.CardInputHandler(game.getRunState(), game.getViewport())
+        );
     }
 
     @Override
     public void hide() {
-
+        com.badlogic.gdx.Gdx.input.setInputProcessor(null);
     }
 
     @Override

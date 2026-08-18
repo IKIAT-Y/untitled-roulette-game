@@ -144,7 +144,7 @@ public class Tile extends GameObject{
         fontTransform.setToTrnRotRadScl(fontPos, fontRot + radians / 2 + MathUtils.PI / 2, new Vector2(0.4f, 0.4f));
         fontMatrix4.set(fontTransform);
 
-        //fontMatrix4.scale(0.5f, 0.5f, 1);
+        fontMatrix4.scale(2f, 2f, 1);
 
         for (int i = 0; i < segments; i++) {
             int v = i * 4;

@@ -83,6 +83,9 @@ public class RoundManager {
         // Reset tile multiplier for the next round
         Roulette.getInstance().getScreen().getWheel().resetTileMultipliers();
 
+        // Reset tile multiplier for the next round
+        Roulette.getInstance().getScreen().getWheel().resetTileMultipliers();
+
         if (round == ROUNDS_PER_ACT) {
             act++;
             round = 1;

@@ -48,8 +48,8 @@ public class Wheel {
         speed = STARTING_SPEED;
 
         // Testing
-        radius = 80f;
-        tileSize = 25;
+        radius = 200f;
+        tileSize = 50;
 
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyType.KinematicBody;
