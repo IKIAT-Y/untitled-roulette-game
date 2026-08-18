@@ -20,10 +20,15 @@ public class Roulette extends Game {
     private Viewport viewport;
     private OrthographicCamera camera;
 
-    private Roulette() {}
+    private Roulette() {
+    }
 
     public static Roulette getInstance() {
         return INSTANCE;
+    }
+
+    public Viewport getViewport() {
+        return INSTANCE.viewport;
     }
 
     @Override
@@ -61,5 +66,7 @@ public class Roulette extends Game {
         }
     }
 
-    public RunState getRunState() { return runState; }
+    public RunState getRunState() {
+        return runState;
+    }
 }
