@@ -53,6 +53,7 @@ public class RoundManager {
         }
 
         spinsRemaining--;
+        runState.getLastTile().onLanded();
         runState.triggerCardEffects("afterSpin");
         printQuotaStatus();
 
@@ -114,7 +115,7 @@ public class RoundManager {
 // temporary way to check whether the quota has been reached or not, will be replaced with a proper UI later
     private void printQuotaStatus() {
         System.out.println(
-            "Act " + act 
+            "Act " + act
                 + "\nRound " + round
                 + "\nBoss round: " + currentConfig.isBossRound()
                 + "\nQuota: " + runState.getChips() + " / " + currentConfig.getQuota()
