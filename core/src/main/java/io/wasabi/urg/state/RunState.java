@@ -6,6 +6,7 @@ import java.util.List;
 import com.badlogic.gdx.utils.IntArray;
 
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.elements.betting.Bet;
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.game.Tile;
 
@@ -20,6 +21,9 @@ public final class RunState {
     private final List<Card> ownedCards = new ArrayList<>();
     private final List<GameObject> ownedCharms = new ArrayList<>();
     private final IntArray chipHistory = new IntArray();
+
+    // Must live here to persist across screens.
+    private final List<Bet> activeBets = new ArrayList<>();
 
     public int getChips() {
         return chips;
@@ -138,9 +142,47 @@ public final class RunState {
         }
     }
 
-    public void setLastTile(Tile tile) { this.lastTile = tile; }
+    public void setLastTile(Tile tile) {
+        this.lastTile = tile;
+    }
 
-    public Tile getLastTile() { return lastTile; }
+    public Tile getLastTile() {
+        return lastTile;
+    }
+
+    public void addBet(Bet bet) {
+        activeBets.add(bet);
+    }
+
+    public boolean removeBet(Bet bet) {
+        return activeBets.remove(bet);
+    }
+
+    public List<Bet> getActiveBets() {
+        return activeBets;
+    }
+
+    public void clearActiveBets() {
+        for (Bet bet : activeBets) {
+            addChips(bet.getAmount());
+        }
+        activeBets.clear();
+    }
+
+    public int resolveActiveBets() {
+        if (lastTile == null) {
+            return 0;
+        }
+
+        int totalPayout = 0;
+        for (Bet bet : activeBets) {
+            totalPayout += bet.payout(lastTile);
+        }
+
+        addChips(totalPayout);
+        activeBets.clear();
+        return totalPayout;
+    }
 
     public void triggerCardEffects(String effectType) {
         switch (effectType) {
