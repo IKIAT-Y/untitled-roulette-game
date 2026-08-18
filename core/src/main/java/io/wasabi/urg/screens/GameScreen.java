@@ -101,8 +101,9 @@ public class GameScreen implements Screen {
                 (Gdx.graphics.getWidth() - btnWidth) / 2f, 0,
                 btnWidth, btnHeight,
                 () -> {
+                    // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
+                    // sprite batch)
                     game.setScreen(new BettingScreen(game));
-                    this.dispose();
                 });
         updateBetButtonLayout();
     }
@@ -128,7 +129,6 @@ public class GameScreen implements Screen {
 
     @Override
     public void hide() {
-
     }
 
     @Override
@@ -147,6 +147,7 @@ public class GameScreen implements Screen {
         spriteBatch.dispose();
         ball.dispose();
         wheel.dispose();
+        betButtonTexture.dispose();
         world.dispose();
     }
 }
