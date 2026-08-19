@@ -32,6 +32,7 @@ public abstract class TileType {
     protected Texture texture;
     protected TileColour colour;
     protected PolygonRegion region;
+    protected float textureColor = Color.WHITE_FLOAT_BITS;
 
     public TileType() {
 
@@ -80,8 +81,8 @@ public abstract class TileType {
         for (int i = 0; i < regionVerticesLength; i += 2) {
             resultVerts[vertexIndex++] = vertices[i];
             resultVerts[vertexIndex++] = vertices[i + 1];
-            resultVerts[vertexIndex++] = Color.WHITE_FLOAT_BITS;
-            resultVerts[vertexIndex++] = u + uvWidth * (i / regionVerticesLength);
+            resultVerts[vertexIndex++] = textureColor;
+            resultVerts[vertexIndex++] = u + uvWidth * ((float) i / regionVerticesLength);
             resultVerts[vertexIndex++] = bottom ? v : v + uvHeight;
             bottom = !bottom;
         }

@@ -175,9 +175,13 @@ public class Tile extends GameObject {
     public void render() {
         POLY_BATCH.begin();
         type.drawTextures();
+        POLY_BATCH.end();
+
+        type.drawOverlay();
+
+        POLY_BATCH.begin();
         POLY_BATCH.draw(fretRegion, 0, 0);
         POLY_BATCH.end();
-        type.drawOverlay();
 
         SPRITE_BATCH.begin();
         SPRITE_BATCH.setTransformMatrix(fontMatrix4);
