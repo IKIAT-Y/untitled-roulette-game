@@ -44,7 +44,7 @@ public abstract class TileType {
         if (texture != null) texture.dispose();
 
         Pixmap pix = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        pix.setColor((int) tileColourMap.get(colour));
+        pix.setColor(tileColourMap.get(colour));
         pix.fill();
         texture = new Texture(pix);
         pix.dispose();
