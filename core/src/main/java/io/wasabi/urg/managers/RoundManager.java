@@ -60,16 +60,13 @@ public class RoundManager {
         System.out.println("Act: " + act + ", Round: " + round + ", Quota: " + currentConfig.getQuota() + ", Chips: " + runState.getChips() + ", Boss round: " + currentConfig.isBossRound());
         System.out.println("Spins remaining: " + spinsRemaining);
 
-        advance();
-        return;
-        /*
         if (runState.getChips() >= currentConfig.getQuota()) {
             System.out.println("winner");
             advance();
         } else if (spinsRemaining <= 0) {
             System.out.println("loser");
             gameOver();
-        }*/
+        }
     }
 
     public void advance() {
