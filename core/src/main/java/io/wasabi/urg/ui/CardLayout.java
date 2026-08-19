@@ -1,4 +1,4 @@
-package io.wasabi.urg.screens;
+package io.wasabi.urg.ui;
 
 import com.badlogic.gdx.math.Vector2;
 
@@ -8,8 +8,8 @@ public final class CardLayout {
     public static final float CARD_WIDTH = 96f;
     public static final float CARD_HEIGHT = 128f;
     public static final float CARD_SPACING = 24f;
-    public static final float HAND_Y = 50f; // shift upwards
-    public static final float HAND_X = 300f; // shifts to right
+    public static final float HAND_Y = 150f; // shift upwards
+    public static final float HAND_X = 320f; // shifts to right
 
     private CardLayout() {}
 

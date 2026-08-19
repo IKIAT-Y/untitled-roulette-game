@@ -65,7 +65,7 @@ public class Ball extends GameObject {
     private float dropSpeedThreshold = 400f;
 
     // Speed to enter SETTLE state
-    private float settleSpeedThreshold = 5f;
+    private float settleSpeedThreshold = 10f;
     private float settleTimeRequired = 0.5f;
     private float settleTimer = 0f;
 
@@ -261,6 +261,8 @@ public class Ball extends GameObject {
                 vel.x * (1f - dampingThisFrame),
                 vel.y * (1f - dampingThisFrame));
 
+        System.out.println("Bouncing speed: " + ball.getLinearVelocity().len());
+
         // When reaching a low enough speed switch to settle state
         float speed = ball.getLinearVelocity().len();
         if (speed <= settleSpeedThreshold) {
@@ -277,6 +279,8 @@ public class Ball extends GameObject {
         ball.setLinearVelocity(
                 vel.x * (1f - dampingThisFrame),
                 vel.y * (1f - dampingThisFrame));
+
+        System.out.println("Settling speed: " + ball.getLinearVelocity().len());
 
         // After a fixed amount of time assume fully settled
         settleTimer += Ball.FIXED_TIMESTEP;

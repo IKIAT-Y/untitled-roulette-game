@@ -1,13 +1,13 @@
 package io.wasabi.urg;
 
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.managers.*;
+import io.wasabi.urg.screens.BettingScreen;
 import io.wasabi.urg.screens.GameScreen;
 import io.wasabi.urg.state.RunState;
 
@@ -17,6 +17,7 @@ import java.util.List;
 public class Roulette extends Game {
     private static final Roulette INSTANCE = new Roulette();
     private GameScreen gameScreen;
+    private BettingScreen bettingScreen;
     private final RunState runState = new RunState();
     private final float MIN_WORLD_WIDTH = 1600f; // Minimum width of the game world
     private final float MIN_WORLD_HEIGHT = 900f; // Minimum height of the game world
@@ -60,6 +61,8 @@ public class Roulette extends Game {
 
         initializeCardPool();
 
+        runState.reset(100);
+
         // Card testing
         runState.addCard(getRandomCard());
         runState.addCard(getRandomCard());
@@ -67,6 +70,8 @@ public class Roulette extends Game {
         runState.addCard(getRandomCard());
 
         this.gameScreen = new GameScreen(this);
+        this.bettingScreen = new BettingScreen(this);
+
         this.setScreen(this.gameScreen);
 
         roundManager.startRound();
@@ -142,8 +147,8 @@ public class Roulette extends Game {
 
     @Override
     public void dispose() {
-        if (getScreen() != null) {
-            getScreen().dispose();
+        if (getGameScreen() != null) {
+            getGameScreen().dispose();
         }
         soundManager.dispose();
         TextureManager.getInstance().dispose();
@@ -165,10 +170,11 @@ public class Roulette extends Game {
         return MIN_WORLD_HEIGHT;
     }
 
-    @Override
-    public GameScreen getScreen() {
+    public GameScreen getGameScreen() {
         return gameScreen;
     }
+
+    public BettingScreen getBettingScreen() { return bettingScreen; }
 
     public RoundManager getRoundManager() {
         return roundManager;

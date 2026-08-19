@@ -6,14 +6,12 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.Texture;
 
 import io.wasabi.urg.Roulette;
@@ -23,14 +21,24 @@ import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
-import io.wasabi.urg.managers.RoundManager;
 import io.wasabi.urg.managers.SoundManager;
+import io.wasabi.urg.ui.CardLayout;
+import io.wasabi.urg.ui.RoundResult;
+import io.wasabi.urg.ui.Shop;
 
 import java.util.List;
 import java.util.Random;
 
 public class GameScreen implements Screen {
     private final Roulette game;
+
+    private enum GameState {
+        ROUND,
+        RESULT,
+        SHOP
+    }
+
+    private GameState gameState;
 
     // Renderers
     private final ShapeRenderer shapeRenderer;
@@ -46,13 +54,19 @@ public class GameScreen implements Screen {
     // Elements
     private Ball ball;
     private Wheel wheel;
+    private Vector2 wheelCenter = new Vector2(0f, 0);
+
+    // UI
+    private RoundResult roundResult;
+    private Shop shop;
+
+    // Betting
     private Texture betButtonTexture;
     private BetScreenButton betButton;
     private float baseWindowWidth;
     private float baseWindowHeight;
     private float baseButtonWidth;
     private float baseButtonHeight;
-    private Vector2 wheelCenter = new Vector2(-120f, 0);
 
     public GameScreen(final Roulette game) {
         this.game = game;
@@ -62,14 +76,17 @@ public class GameScreen implements Screen {
         this.ticketTexture = new Texture(Gdx.files.internal("ticket.png"));
         this.world = new World(new Vector2(0f, 0f), true);
 
+        this.gameState = GameState.ROUND;
+
         this.wheel = new Wheel(world, wheelCenter);
         this.ball = new Ball(world, 6f, wheelCenter);
 
-        // Wheel boundaries and frets for bouncing
-        // this.frets = new Frets(world, wheelCenter, 100f, 115f, 37, 1f);
-        // this.boundary = new WheelBoundary(world, wheelCenter, 100f, 150f);
+        this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
+        this.shop = new Shop(shapeRenderer, spriteBatch);
 
-        spin();
+        //enterResultScreen(0, 0, 0, 0, 0);
+        //enterShopScreen();
+        //spin();
     }
 
     private void spin() {
@@ -77,7 +94,7 @@ public class GameScreen implements Screen {
         float startAngleRad = 0f;
         float initialSpeed = new Random().nextFloat() * (1000f) + 5000f;
         float outerTrackRadius = 400f;
-        float innerWheelRadius = 300f;
+        float innerWheelRadius = 325f;
         Roulette.getInstance().getRunState().triggerCardEffects("beforeSpin");
         wheel.spin();
         SoundManager.getInstance().playSound("spin1");
@@ -95,6 +112,20 @@ public class GameScreen implements Screen {
 
         if (wheel.containsPoint(new Vector2(touch.x, touch.y))) {
             spin();
+        }
+    }
+
+    private void handleUIInput() {
+
+        if (gameState == GameState.RESULT) {
+            if (roundResult.handleInput()) {
+                Roulette.getInstance().getRoundManager().awardTickets();
+                enterShopScreen();
+            }
+        } else if (gameState == GameState.SHOP) {
+            if (shop.handleInput()) {
+                enterRoundScreen();
+            }
         }
     }
 
@@ -128,6 +159,27 @@ public class GameScreen implements Screen {
         spriteBatch.end();
     }
 
+    public void enterResultScreen(int chips, int quota, int baseReward, int unusedSpinBonus, int totalReward) {
+        this.gameState = GameState.RESULT;
+        wheel.shiftOutOfScreen();
+        roundResult.show(quota, chips, baseReward, unusedSpinBonus, totalReward);
+    }
+
+    private void enterShopScreen() {
+        gameState = GameState.SHOP;
+
+        roundResult.hide();
+        shop.show();
+    }
+
+    public void enterRoundScreen() {
+        gameState = GameState.ROUND;
+
+        shop.hide();
+
+        wheel.shiftIntoScreen();
+    }
+
     @Override
     public void render(float delta) {
         // TODO: game screen rendering
@@ -146,6 +198,14 @@ public class GameScreen implements Screen {
         updateBetButtonLayout();
         betButton.update();
         betButton.draw(spriteBatch);
+
+        roundResult.update(delta);
+        roundResult.render();
+
+        shop.update(delta);
+        shop.render();
+
+        handleUIInput();
 
         SpriteBatch batch = RendererManager.getInstance().getSpriteBatch();
         batch.begin();
@@ -189,7 +249,7 @@ public class GameScreen implements Screen {
                 () -> {
                     // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
                     // sprite batch)
-                    game.setScreen(new BettingScreen(game));
+                    game.setScreen(Roulette.getInstance().getBettingScreen());
                 });
         updateBetButtonLayout();
     }
