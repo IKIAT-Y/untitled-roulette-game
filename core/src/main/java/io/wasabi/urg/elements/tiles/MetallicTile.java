@@ -21,7 +21,8 @@ public class MetallicTile extends TileType {
     @Override
     public void setRegion(float[] vertices, short[] indices) {
         super.setRegion(vertices, indices);
-        metallicRegion = new PolygonRegion(new TextureRegion(metallicTexture), vertices, indices);
+        TextureRegion texRegion = new TextureRegion(metallicTexture);
+        metallicRegion = new PolygonRegion(texRegion, vertices, indices);
     }
 
     @Override

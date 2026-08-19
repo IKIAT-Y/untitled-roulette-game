@@ -2,6 +2,7 @@ package io.wasabi.urg.elements.tiles;
 
 import java.util.EnumMap;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.PolygonRegion;
@@ -17,7 +18,7 @@ public abstract class TileType {
     protected static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
 
     public enum TileColour {
-        BLACK, RED, GREEN
+        BLACK, RED, GREEN,
     }
 
     protected static EnumMap<TileColour, Integer> tileColourMap = new EnumMap<TileColour, Integer>(TileColour.class) {{
@@ -52,9 +53,44 @@ public abstract class TileType {
         POLY_BATCH.draw(region, 0, 0);
     }
 
+    /**
+     * Used to draw AFTER the polygon sprite batch has ended
+     * Used for overlays on the existing region textures.
+     */
+    public void drawOverlay() {
+
+    }
+
     public void onLanded() {
 
     }
+
+    protected  float[] textureWrapVertices(float[] vertices, TextureRegion texRegion) {
+        final int regionVerticesLength = vertices.length;
+        final int vertCount = regionVerticesLength / 2;
+
+        float u = texRegion.getU(), v = texRegion.getV();
+        float uvWidth = texRegion.getU2() - u;
+        float uvHeight = texRegion.getV2() - v;
+
+        float[] resultVerts = new float[vertCount * 5];
+        int vertexIndex = 0;
+
+        boolean bottom = false;
+        for (int i = 0; i < regionVerticesLength; i += 2) {
+            resultVerts[vertexIndex++] = vertices[i];
+            resultVerts[vertexIndex++] = vertices[i + 1];
+            resultVerts[vertexIndex++] = Color.WHITE_FLOAT_BITS;
+            resultVerts[vertexIndex++] = u + uvWidth * (i / regionVerticesLength);
+            resultVerts[vertexIndex++] = bottom ? v : v + uvHeight;
+            bottom = !bottom;
+        }
+        return resultVerts;
+    }
+
+    public boolean isRed() { return colour == TileColour.RED; }
+    public boolean isBlack() { return colour == TileColour.BLACK; }
+    public boolean isGreen() { return colour == TileColour.GREEN; }
 
     public Texture getTexture() { return texture; }
     public PolygonRegion getRegion() { return region; }

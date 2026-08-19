@@ -177,6 +177,7 @@ public class Tile extends GameObject {
         type.drawTextures();
         POLY_BATCH.draw(fretRegion, 0, 0);
         POLY_BATCH.end();
+        type.drawOverlay();
 
         SPRITE_BATCH.begin();
         SPRITE_BATCH.setTransformMatrix(fontMatrix4);
@@ -213,9 +214,9 @@ public class Tile extends GameObject {
         update();
     }
 
+    public TileType getType() { return type; }
     public void setBetMultiplier(float betMultiplier) { type.setBetMultiplier(betMultiplier); }
     public float getBetMultiplier() { return type.getBetMultiplier(); }
     public TileType.TileColour getColor() { return type.getColour(); }
     public void setColor(TileType.TileColour color) { type.setColour(color); }
-
 }

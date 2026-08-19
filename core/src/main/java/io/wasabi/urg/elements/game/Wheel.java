@@ -18,6 +18,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.tiles.DefaultTile;
 import io.wasabi.urg.elements.tiles.MetallicTile;
+import io.wasabi.urg.elements.tiles.StripedTile;
 import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.state.RunState;
@@ -63,7 +64,11 @@ public class Wheel {
             TileType type;
             if (i % 5 == 0) {
                 type = new MetallicTile();
+            } else if (i % 6 == 0) {
+                type = new StripedTile();
             } else type = new DefaultTile();
+
+
             if (i % 2 == 0) {
                 if (i == 0) {
                     type.setColour(TileType.TileColour.GREEN);
