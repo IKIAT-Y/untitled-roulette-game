@@ -52,6 +52,7 @@ public class GoldTile extends TileType {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFuncSeparate(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         mesh.render(POLY_BATCH.getShader(), GL20.GL_TRIANGLES);
+        Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
     @Override

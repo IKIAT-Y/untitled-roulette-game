@@ -1,6 +1,7 @@
 package io.wasabi.urg.managers;
 
 import io.wasabi.urg.Roulette;
+import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.state.RunState;
 
 public class RoundManager {
@@ -53,7 +54,10 @@ public class RoundManager {
         }
 
         spinsRemaining--;
-        runState.getLastTile().onLanded();
+        Tile lastTile = runState.getLastTile();
+        if (lastTile != null) {
+            lastTile.onLanded();
+        }
         runState.triggerCardEffects("afterSpin");
         printQuotaStatus();
 
