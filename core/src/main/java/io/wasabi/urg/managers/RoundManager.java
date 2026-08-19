@@ -60,28 +60,27 @@ public class RoundManager {
         System.out.println("Act: " + act + ", Round: " + round + ", Quota: " + currentConfig.getQuota() + ", Chips: " + runState.getChips() + ", Boss round: " + currentConfig.isBossRound());
         System.out.println("Spins remaining: " + spinsRemaining);
 
+        advance();
+        return;
+        /*
         if (runState.getChips() >= currentConfig.getQuota()) {
             System.out.println("winner");
             advance();
         } else if (spinsRemaining <= 0) {
             System.out.println("loser");
             gameOver();
-        }
+        }*/
     }
 
     public void advance() {
         runState.triggerCardEffects("roundEnd");
         runState.recordRoundBalance();
-        awardTickets();
 
         if (round == ROUNDS_PER_ACT && act == TOTAL_ACTS) {
             runComplete = true;
             System.out.println("Run complete: final quota reached.");
             return;
         }
-
-        // Reset tile multiplier for the next round
-        Roulette.getInstance().getScreen().getWheel().resetTileMultipliers();
 
         // Reset tile multiplier for the next round
         Roulette.getInstance().getScreen().getWheel().resetTileMultipliers();
@@ -93,7 +92,13 @@ public class RoundManager {
             round++;
         }
 
-        startRound();
+        Roulette.getInstance().getScreen().enterResultScreen(
+            runState.getChips(),
+            currentConfig.getQuota(),
+            BASE_TICKET_REWARD,
+            spinsRemaining*TICKETS_PER_UNUSED_SPIN,
+            BASE_TICKET_REWARD + (spinsRemaining*TICKETS_PER_UNUSED_SPIN)
+        );
     }
 
     public void gameOver() {
@@ -101,7 +106,7 @@ public class RoundManager {
         System.out.println("Game over: quota not reached.");
     }
     // Temporary fixed numbers we will have to change depending on how much we are planning to make the upgrades.
-    private void awardTickets() {
+    public void awardTickets() {
         int ticketsAwarded = BASE_TICKET_REWARD
             + (spinsRemaining * TICKETS_PER_UNUSED_SPIN);
         runState.addTickets(ticketsAwarded);
@@ -114,7 +119,7 @@ public class RoundManager {
 // temporary way to check whether the quota has been reached or not, will be replaced with a proper UI later
     private void printQuotaStatus() {
         System.out.println(
-            "Act " + act 
+            "Act " + act
                 + "\nRound " + round
                 + "\nBoss round: " + currentConfig.isBossRound()
                 + "\nQuota: " + runState.getChips() + " / " + currentConfig.getQuota()
