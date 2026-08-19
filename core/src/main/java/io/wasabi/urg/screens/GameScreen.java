@@ -99,6 +99,7 @@ public class GameScreen implements Screen {
         SoundManager.getInstance().playSound("spin1");
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
         wheel.spin(6.0f, -10f);
+        quotaTracker.onSpinStarted();
     }
 
     private void handleWheelClick() {

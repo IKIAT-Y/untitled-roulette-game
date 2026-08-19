@@ -80,7 +80,6 @@ public class RoundManager {
 
         // Reset tile multiplier for the next round
         Roulette.getInstance().getGameScreen().getWheel().resetTileMultipliers();
-
         if (round == ROUNDS_PER_ACT) {
             act++;
             round = 1;
@@ -110,6 +109,7 @@ public class RoundManager {
             "Quota complete: awarded " + ticketsAwarded
                 + " tickets. Total tickets: " + runState.getTickets()
         );
+        
     }
 
 // temporary way to check whether the quota has been reached or not, will be replaced with a proper UI later

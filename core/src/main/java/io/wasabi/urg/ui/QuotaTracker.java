@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Align;
 
+import io.wasabi.urg.elements.betting.Bet;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RoundManager;
 import io.wasabi.urg.state.RunState;
@@ -43,6 +44,7 @@ public final class QuotaTracker {
     private float displayedProgress;
     private float targetProgress;
     private int lastQuota = -1;
+    private boolean spinStarted = false;
 
     public QuotaTracker(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, RunState runState, RoundManager roundManager) {
         this.shapeRenderer = shapeRenderer;
@@ -53,8 +55,13 @@ public final class QuotaTracker {
 
     /** Advances the bar towards the player's current quota progress. */
     public void update(float delta) {
+        
         int quota = roundManager.getCurrentConfig().getQuota();
-        int chips = runState.getChips();
+        int chips = getAvailableChips();
+
+        if (spinStarted && runState.getActiveBets().isEmpty()) {
+        spinStarted = false;
+    }
 
         targetProgress = quota <= 0
                 ? 0f
@@ -76,6 +83,24 @@ public final class QuotaTracker {
             displayedProgress = 1f;
         }
     }
+
+    public void onSpinStarted() {
+    spinStarted = true;
+    }
+
+   private int getAvailableChips() {
+    int chips = runState.getChips();
+
+    if (spinStarted) {
+        for (Bet bet : runState.getActiveBets()) {
+            chips -= bet.getAmount();
+            
+        }
+    }
+
+    return Math.max(0, chips);
+    }
+
 
     public void render() {
         float screenWidth = Gdx.graphics.getWidth();
@@ -122,7 +147,7 @@ public final class QuotaTracker {
     }
 
     private void renderQuotaText(float screenWidth, float screenHeight) {
-        int chips = runState.getChips();
+        int chips = getAvailableChips();
         int quota = roundManager.getCurrentConfig().getQuota();
 
         int percentage = quota <= 0 ? 0 : Math.round((float) chips / quota * 100f);
