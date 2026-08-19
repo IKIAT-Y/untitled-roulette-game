@@ -13,18 +13,24 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.betting.BetScreenButton;
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.Wheel;
+import io.wasabi.urg.managers.CardInputHandler;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.CardLayout;
 import io.wasabi.urg.ui.RoundResult;
 import io.wasabi.urg.ui.Shop;
+
+import java.util.List;
+import java.util.Random;
 
 public class GameScreen implements Screen {
     private final Roulette game;
@@ -56,6 +62,9 @@ public class GameScreen implements Screen {
     // UI
     private RoundResult roundResult;
     private Shop shop;
+
+    // Handlers
+    private CardInputHandler cardInputHandler = new CardInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
 
     // Betting
     private Texture betButtonTexture;
@@ -229,6 +238,8 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
+        Gdx.input.setInputProcessor(cardInputHandler);
+
         betButtonTexture = new Texture(Gdx.files.internal("buttons/TEX_BUTTON_64x32_BetUp.png"));
 
         float btnWidth = betButtonTexture.getWidth();
@@ -267,8 +278,7 @@ public class GameScreen implements Screen {
 
         betButton.setSize(btnWidth, btnHeight);
         betButton.setPosition((screenWidth - btnWidth) / 2f, 0);
-        com.badlogic.gdx.Gdx.input.setInputProcessor(
-                new io.wasabi.urg.managers.CardInputHandler(game.getRunState(), game.getViewport()));
+        Gdx.input.setInputProcessor(cardInputHandler);
     }
 
     @Override
