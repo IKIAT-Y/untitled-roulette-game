@@ -185,15 +185,6 @@ public class Wheel {
         return point.dst2(position) <= (radius + tileSize) * (radius + tileSize);
     }
 
-    public void shiftIntoScreen() {
-        float targetY = 0;
-        tweenY = new Tween(1f, position.y, targetY, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
-    }
-
-    public boolean containsPoint(Vector2 point) {
-        return point.dst2(position) <= (radius + tileSize) * (radius + tileSize);
-    }
-
     /**
      * Spins the wheel for a set amount of time, with given initial speed.
      * @param duration The spin time

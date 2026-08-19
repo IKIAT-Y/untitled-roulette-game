@@ -3,6 +3,7 @@ package io.wasabi.urg.elements.card;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.TextureManager;
 import io.wasabi.urg.util.tweens.Tween;
@@ -49,6 +50,9 @@ public abstract class Card extends GameObject {
     public void beforeSpinEffect() {}
     public void afterSpinEffect() {}
     public void roundEndEffect() {}
+    public float getPayoutMultiplier(Tile winningTile, int totalStaked, int chipBalance) { return 1f; }
+    public int getEffectTriggerMultiplier() { return 1; }
+    public void afterCardEffects(String effectType) {}
 
     public void update(float delta) {
         if (dragging) return;

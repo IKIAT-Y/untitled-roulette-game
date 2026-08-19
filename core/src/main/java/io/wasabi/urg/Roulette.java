@@ -84,6 +84,20 @@ public class Roulette extends Game {
         commonCards.add(new io.wasabi.urg.elements.card.BlackCard());
         commonCards.add(new io.wasabi.urg.elements.card.GreenCard());
         commonCards.add(new io.wasabi.urg.elements.card.OddCard());
+        commonCards.add(new io.wasabi.urg.elements.card.Jackpot());
+        commonCards.add(new io.wasabi.urg.elements.card.GoldenTicket());
+        commonCards.add(new io.wasabi.urg.elements.card.OverweightSticker());
+
+        // Uncommon Cards
+        uncommonCards.add(new io.wasabi.urg.elements.card.AllIn());
+        uncommonCards.add(new io.wasabi.urg.elements.card.FourLeafClover());
+        uncommonCards.add(new io.wasabi.urg.elements.card.LuckyTalisman());
+        uncommonCards.add(new io.wasabi.urg.elements.card.Ouroboros());
+
+        // Rare Cards
+        rareCards.add(new io.wasabi.urg.elements.card.Infinite());
+        rareCards.add(new io.wasabi.urg.elements.card.MysteriousFragment());
+        rareCards.add(new io.wasabi.urg.elements.card.Oneshot());
     }
 
     public Card getRandomCard() {

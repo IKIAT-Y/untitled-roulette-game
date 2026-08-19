@@ -128,6 +128,7 @@ public class RoundManager {
     public void setSpinsRemaining(int spinsRemaining) { this.spinsRemaining = spinsRemaining; }
     public int getAct() { return act; }
     public int getRound() { return round; }
+    public int getOverallRoundNumber() { return ((act - 1) * ROUNDS_PER_ACT) + round; }
     public boolean isGameOver() { return gameOver; }
     public boolean isRunComplete() { return runComplete; }
 }

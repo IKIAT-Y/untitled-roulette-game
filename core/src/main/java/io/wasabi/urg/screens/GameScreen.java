@@ -174,6 +174,10 @@ public class GameScreen implements Screen {
         roundResult.show(quota, chips, baseReward, unusedSpinBonus, totalReward);
     }
 
+    public Ball getBall() {
+        return ball;
+    }
+
     private void enterShopScreen() {
         gameState = GameState.SHOP;
 

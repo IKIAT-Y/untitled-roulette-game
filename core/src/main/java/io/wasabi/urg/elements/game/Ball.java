@@ -60,6 +60,7 @@ public class Ball extends GameObject {
 
     private float decelerationFactor = 0.5f;
     private float dropDecelerationFactor = 0.2f;
+    private float weightMultiplier = 1f;
 
     // Speed to enter DROPPING state
     private float dropSpeedThreshold = 400f;
@@ -207,7 +208,7 @@ public class Ball extends GameObject {
         setPositionFromPolar(currentAngleRad, currentRadius);
 
         // Used power of delta because value is being multiplied
-        tangentialSpeed *= (float) Math.pow(decelerationFactor, delta);
+        tangentialSpeed *= (float) Math.pow(decelerationFactor, delta * weightMultiplier);
 
         // Switch state once it drops below a certain speed
         if (tangentialSpeed <= dropSpeedThreshold) {
@@ -219,12 +220,12 @@ public class Ball extends GameObject {
         // Same as SPINNING state but radius decrease over time
         float angularVelocity = tangentialSpeed / currentRadius;
         currentAngleRad += angularVelocity * delta;
-        currentRadius -= radialDropSpeed * delta;
+        currentRadius -= radialDropSpeed * weightMultiplier * delta;
 
         setPositionFromPolar(currentAngleRad, currentRadius);
 
         // Different deceleration factor to SPINNING state
-        tangentialSpeed *= (float) Math.pow(dropDecelerationFactor, delta);
+        tangentialSpeed *= (float) Math.pow(dropDecelerationFactor, delta * weightMultiplier);
 
         if (currentRadius <= innerWheelRadius - (2 * radius)) {
             // Here we calculate the velocity the ball would have
@@ -255,7 +256,8 @@ public class Ball extends GameObject {
 
         // Damp the linear velocity of the ball
         float bounceDampingPerSecond = 0.25f;
-        float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP);
+        float dampingThisFrame = 1f - (float) Math.pow(
+                1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP * weightMultiplier);
         Vector2 vel = ball.getLinearVelocity();
         ball.setLinearVelocity(
                 vel.x * (1f - dampingThisFrame),
@@ -302,7 +304,6 @@ public class Ball extends GameObject {
         }
 
         Roulette.getInstance().getRunState().setLastTile(tile);
-        Roulette.getInstance().getRunState().triggerCardEffects("afterSpin");
         Roulette.getInstance().getRunState().resolveActiveBets();
         Roulette.getInstance().getRoundManager().recordSpin();
     }
@@ -348,6 +349,10 @@ public class Ball extends GameObject {
 
     public Body getBody() {
         return ball;
+    }
+
+    public void setWeightMultiplier(float weightMultiplier) {
+        this.weightMultiplier = Math.max(1f, weightMultiplier);
     }
 
     @Override

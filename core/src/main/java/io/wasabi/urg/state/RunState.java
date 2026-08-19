@@ -221,35 +221,54 @@ public final class RunState {
             totalPayout += bet.payout(lastTile);
         }
 
+        float payoutMultiplier = lastTile.getBetMultiplier();
+        int triggerCount = getCardEffectTriggerCount();
+        for (int trigger = 0; trigger < triggerCount; trigger++) {
+            for (Card card : ownedCards) {
+                payoutMultiplier *= card.getPayoutMultiplier(lastTile, totalStaked, chips);
+            }
+        }
+        totalPayout = Math.round(totalPayout * payoutMultiplier);
+
         chips = chips - totalStaked + totalPayout;
         activeBets.clear();
         return totalPayout;
     }
 
     public void triggerCardEffects(String effectType) {
-        switch (effectType) {
-            case "roundStart":
-                for (Card card : ownedCards) {
-                    card.roundStartEffect();
+        int triggerCount = getCardEffectTriggerCount();
+
+        for (int trigger = 0; trigger < triggerCount; trigger++) {
+            for (Card card : ownedCards) {
+                switch (effectType) {
+                    case "roundStart":
+                        card.roundStartEffect();
+                        break;
+                    case "beforeSpin":
+                        card.beforeSpinEffect();
+                        break;
+                    case "afterSpin":
+                        card.afterSpinEffect();
+                        break;
+                    case "roundEnd":
+                        card.roundEndEffect();
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unknown effect type: " + effectType);
                 }
-                break;
-            case "beforeSpin":
-                for (Card card : ownedCards) {
-                    card.beforeSpinEffect();
-                }
-                break;
-            case "afterSpin":
-                for (Card card : ownedCards) {
-                    card.afterSpinEffect();
-                }
-                break;
-            case "roundEnd":
-                for (Card card : ownedCards) {
-                    card.roundEndEffect();
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown effect type: " + effectType);
+            }
         }
+
+        for (Card card : ownedCards) {
+            card.afterCardEffects(effectType);
+        }
+    }
+
+    private int getCardEffectTriggerCount() {
+        int triggerCount = 1;
+        for (Card card : ownedCards) {
+            triggerCount *= card.getEffectTriggerMultiplier();
+        }
+        return triggerCount;
     }
 }
