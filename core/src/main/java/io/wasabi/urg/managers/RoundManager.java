@@ -1,6 +1,7 @@
 package io.wasabi.urg.managers;
 
 import io.wasabi.urg.Roulette;
+import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.state.RunState;
 
 public class RoundManager {
@@ -53,6 +54,10 @@ public class RoundManager {
         }
 
         spinsRemaining--;
+        Tile lastTile = runState.getLastTile();
+        if (lastTile != null) {
+            lastTile.onLanded();
+        }
         runState.triggerCardEffects("afterSpin");
         printQuotaStatus();
 
@@ -72,20 +77,9 @@ public class RoundManager {
     public void advance() {
         runState.triggerCardEffects("roundEnd");
         runState.recordRoundBalance();
-        awardTickets();
-
-        if (round == ROUNDS_PER_ACT && act == TOTAL_ACTS) {
-            runComplete = true;
-            System.out.println("Run complete: final quota reached.");
-            return;
-        }
 
         // Reset tile multiplier for the next round
-        Roulette.getInstance().getScreen().getWheel().resetTileMultipliers();
-
-        // Reset tile multiplier for the next round
-        Roulette.getInstance().getScreen().getWheel().resetTileMultipliers();
-
+        Roulette.getInstance().getGameScreen().getWheel().resetTileMultipliers();
         if (round == ROUNDS_PER_ACT) {
             act++;
             round = 1;
@@ -93,7 +87,13 @@ public class RoundManager {
             round++;
         }
 
-        startRound();
+        Roulette.getInstance().getGameScreen().enterResultScreen(
+            runState.getChips(),
+            currentConfig.getQuota(),
+            BASE_TICKET_REWARD,
+            spinsRemaining*TICKETS_PER_UNUSED_SPIN,
+            BASE_TICKET_REWARD + (spinsRemaining*TICKETS_PER_UNUSED_SPIN)
+        );
     }
 
     public void gameOver() {
@@ -101,7 +101,7 @@ public class RoundManager {
         System.out.println("Game over: quota not reached.");
     }
     // Temporary fixed numbers we will have to change depending on how much we are planning to make the upgrades.
-    private void awardTickets() {
+    public void awardTickets() {
         int ticketsAwarded = BASE_TICKET_REWARD
             + (spinsRemaining * TICKETS_PER_UNUSED_SPIN);
         runState.addTickets(ticketsAwarded);
@@ -109,12 +109,13 @@ public class RoundManager {
             "Quota complete: awarded " + ticketsAwarded
                 + " tickets. Total tickets: " + runState.getTickets()
         );
+        
     }
 
 // temporary way to check whether the quota has been reached or not, will be replaced with a proper UI later
     private void printQuotaStatus() {
         System.out.println(
-            "Act " + act 
+            "Act " + act
                 + "\nRound " + round
                 + "\nBoss round: " + currentConfig.isBossRound()
                 + "\nQuota: " + runState.getChips() + " / " + currentConfig.getQuota()

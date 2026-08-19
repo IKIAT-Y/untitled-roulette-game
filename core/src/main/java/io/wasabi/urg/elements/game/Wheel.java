@@ -16,6 +16,8 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 
 import io.wasabi.urg.Roulette;
+import io.wasabi.urg.elements.tiles.DefaultTile;
+import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.util.tweens.Tween;
@@ -27,25 +29,26 @@ public class Wheel {
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
     private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
 
+    private static final int[] WHEEL_NUMBER_ORDER = new int[] {
+        0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26};
+
     private final World world;
 
     private Vector2 position = new Vector2();
     private float rotation; // in Degrees
     private float radius;
     private float tileSize;
-    private static final float STARTING_SPEED = 3.0f;
-    private float speed;
 
     private final Body body;
 
     private Tween wheelVelocityTween;
+    private Tween tweenY;
 
     private final List<Tile> tiles = RUN_STATE.getTiles();
 
     public Wheel(World world, Vector2 position) {
         this.world = world;
         this.position = position;
-        speed = STARTING_SPEED;
 
         // Testing
         radius = 200f;
@@ -56,15 +59,23 @@ public class Wheel {
         bodyDef.position.set(position);
         body = this.world.createBody(bodyDef);
 
-        for (int i = 0; i < 37; i++) {
-            Tile tile = new Tile(world, i, position, radius, tileSize);
-            //tile.setSize(0.5f + MathUtils.random.nextFloat());
+        for (int i = 0; i < WHEEL_NUMBER_ORDER.length; i++) {
+            TileType type = new DefaultTile();
+
+            if (i % 2 == 0) {
+                if (i == 0) {
+                    type.setColour(TileType.TileColour.GREEN);
+                } else {
+                    type.setColour(TileType.TileColour.BLACK);
+                }
+            } else {
+                type.setColour(TileType.TileColour.RED);
+            }
+            Tile tile = new Tile(world, type, WHEEL_NUMBER_ORDER[i], position, radius, tileSize);
             tiles.add(tile);
         }
 
-        addRing(radius, 0.3f, 0.5f, false);
-
-        body.setAngularVelocity(-10f);
+        addRing(radius, 5.0f, 0.5f, false);
 
         update();
     }
@@ -147,19 +158,40 @@ public class Wheel {
             tile.render();
         }
 
+        if (tweenY != null && !tweenY.isComplete()) {
+            this.position.y = tweenY.update(delta);
+        }
+
+        update();
+
         SHAPE_RENDERER.begin(ShapeType.Line);
         Gdx.gl.glLineWidth(2);
         SHAPE_RENDERER.circle(position.x, position.y, r1);
         SHAPE_RENDERER.circle(position.x, position.y, r2);
         SHAPE_RENDERER.end();
     }
-    
+
+    public void shiftOutOfScreen() {
+        float targetY = -1500;
+        tweenY = new Tween(1f, position.y, targetY, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
+    }
+
+    public void shiftIntoScreen() {
+        float targetY = 0;
+        tweenY = new Tween(1f, position.y, targetY, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
+    }
+
     public boolean containsPoint(Vector2 point) {
         return point.dst2(position) <= (radius + tileSize) * (radius + tileSize);
     }
 
-    public void spin() {
-        speed = STARTING_SPEED;
+    public void shiftIntoScreen() {
+        float targetY = 0;
+        tweenY = new Tween(1f, position.y, targetY, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
+    }
+
+    public boolean containsPoint(Vector2 point) {
+        return point.dst2(position) <= (radius + tileSize) * (radius + tileSize);
     }
 
     /**

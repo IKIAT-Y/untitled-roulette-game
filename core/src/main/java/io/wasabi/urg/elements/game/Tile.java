@@ -21,11 +21,11 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Align;
 
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 
-public class Tile extends GameObject{
-
+public class Tile extends GameObject {
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
     private static final PolygonSpriteBatch POLY_BATCH = RENDERER_MANAGER.getPolygonSpriteBatch();
     private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
@@ -33,13 +33,11 @@ public class Tile extends GameObject{
     private static final FontManager FONT_MANAGER = FontManager.getInstance();
     private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Placeholder");
 
-    private World world;
+    private final World world;
 
     private int number;
     private float size = 1; // multiplier
-
-    private float betMultiplier = 1.0f; // multiplier for bets on this tile
-    private int color; // 0 for red, 1 for black, 2 for green
+    private TileType type;
 
     private Vector2 position;
     private float degrees;
@@ -48,18 +46,17 @@ public class Tile extends GameObject{
     private float height;
     private float numHeight;
 
-    private Texture tex;
     private Texture fretTex;
-    private PolygonRegion region;
     private PolygonRegion fretRegion;
 
     private Vector2 fontPos = new Vector2();
     private Matrix4 fontMatrix4 = new Matrix4();
+    private Matrix4 previousSpriteTransform = new Matrix4();
 
     private Body body; // for frets
     private Fixture fret;
 
-    public Tile(World world, int number, Vector2 position, float radius, float height) {
+    public Tile(World world, TileType type, int number, Vector2 position, float radius, float height) {
         this.world = world;
 
         this.number = number;
@@ -68,21 +65,7 @@ public class Tile extends GameObject{
         this.height = height;
         this.numHeight = height;
 
-        Pixmap pix = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-
-        if (number == 0) {
-            pix.setColor(0x00FF00FF);
-            this.color = 2; // red
-        } else if (number % 2 == 0) {
-            pix.setColor(0xFF0000FF);
-            this.color = 0; // red
-        } else {
-            pix.setColor(0x000000FF);
-            this.color = 1; // black
-        }
-        pix.fill();
-
-        tex = new Texture(pix);
+        this.type = type;
 
         Pixmap fretPix = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         fretPix.setColor(0xFFFFFFFF);
@@ -102,13 +85,14 @@ public class Tile extends GameObject{
         PolygonShape fretShape = new PolygonShape();
         fretShape.setAsBox(
             height,
-            1,
+            2.0f,
             new Vector2(0, 0),
             0
         );
 
         FixtureDef fretFixture = new FixtureDef();
         fretFixture.shape = fretShape;
+        fretFixture.density = 1.0f;
         fretFixture.friction = 0.6f;
         fretFixture.restitution = 0.5f;
 
@@ -133,8 +117,7 @@ public class Tile extends GameObject{
 
         Vector2 fretPos = new Vector2(
                 x + (r1 + height) * MathUtils.cos(rot),
-                y + (r1 + height) * MathUtils.sin(rot)
-        );
+                y + (r1 + height) * MathUtils.sin(rot));
         body.setTransform(fretPos, rot);
 
         Affine2 fontTransform = new Affine2();
@@ -151,9 +134,9 @@ public class Tile extends GameObject{
             int ind = i * 2;
             int t = i * 6;
             vertices[v] = x + r1 * MathUtils.cos(rot);
-            vertices[v+1] = y + r1 * MathUtils.sin(rot);
-            vertices[v+2] = x + r2 * MathUtils.cos(rot);
-            vertices[v+3] = y + r2 * MathUtils.sin(rot);
+            vertices[v + 1] = y + r1 * MathUtils.sin(rot);
+            vertices[v + 2] = x + r2 * MathUtils.cos(rot);
+            vertices[v + 3] = y + r2 * MathUtils.sin(rot);
 
             if (i < segments - 1) {
                 tris[t] = (short) ind;
@@ -166,7 +149,7 @@ public class Tile extends GameObject{
 
             rot += radInc;
         }
-        region = new PolygonRegion(new TextureRegion(tex), vertices, tris);
+        type.setRegion(vertices, tris);
 
         PolygonShape shape = (PolygonShape) fret.getShape();
         int vertexCount = shape.getVertexCount();
@@ -181,8 +164,8 @@ public class Tile extends GameObject{
             fretVerts[i * 2 + 1] = tmp.y;
         }
         short[] fretIndices = {
-            0, 1, 2,
-            0, 2, 3,
+                0, 1, 2,
+                0, 2, 3,
         };
 
         fretRegion = new PolygonRegion(new TextureRegion(fretTex), fretVerts, fretIndices);
@@ -191,44 +174,59 @@ public class Tile extends GameObject{
     @Override
     public void render() {
         POLY_BATCH.begin();
-        POLY_BATCH.draw(region, 0, 0);
+        type.drawTextures();
+        POLY_BATCH.end();
+
+        type.drawOverlay();
+
+        POLY_BATCH.begin();
         POLY_BATCH.draw(fretRegion, 0, 0);
         POLY_BATCH.end();
 
         SPRITE_BATCH.begin();
+        previousSpriteTransform.set(SPRITE_BATCH.getTransformMatrix());
         SPRITE_BATCH.setTransformMatrix(fontMatrix4);
         FONT.draw(SPRITE_BATCH, Integer.toString(number), 0, 0, 16, Align.center, true);
+        SPRITE_BATCH.setTransformMatrix(previousSpriteTransform);
         SPRITE_BATCH.end();
     }
 
+    public void onLanded() {
+        type.onLanded();
+    }
+
     public float getSize() { return size; }
-    public PolygonRegion getRegion() { return region; }
+    public PolygonRegion getRegion() { return type.getRegion(); }
     public int getNumber() { return number; }
 
     public void setPosition(Vector2 position) {
         this.position = position;
         update();
     }
+
     public void setDegrees(float degrees) {
         this.degrees = degrees;
         update();
     }
+
     public void setRotation(float rotation) {
         this.rotation = rotation;
         update();
     }
+
     public void setRadius(float radius) {
         this.radius = radius;
         update();
     }
+
     public void setSize(float size) {
         this.size = size;
         update();
     }
 
-    public void setBetMultiplier(float betMultiplier) { this.betMultiplier = betMultiplier; }
-    public float getBetMultiplier() { return betMultiplier; }
-    public int getColor() { return color; }
-    public void setColor(int color) { this.color = color; }
-
+    public TileType getType() { return type; }
+    public void setBetMultiplier(float betMultiplier) { type.setBetMultiplier(betMultiplier); }
+    public float getBetMultiplier() { return type.getBetMultiplier(); }
+    public TileType.TileColour getColor() { return type.getColour(); }
+    public void setColor(TileType.TileColour color) { type.setColour(color); }
 }

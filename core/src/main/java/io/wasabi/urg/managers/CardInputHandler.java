@@ -6,7 +6,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.elements.card.Card;
-import io.wasabi.urg.screens.CardLayout;
+import io.wasabi.urg.ui.CardLayout;
 import io.wasabi.urg.state.RunState;
 
 import java.util.List;
