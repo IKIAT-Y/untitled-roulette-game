@@ -1,9 +1,11 @@
 package io.wasabi.urg.screens;
 
+import java.util.List;
+import java.util.Random;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
@@ -100,10 +102,9 @@ public class GameScreen implements Screen {
         float outerTrackRadius = 400f;
         float innerWheelRadius = 325f;
         Roulette.getInstance().getRunState().triggerCardEffects("beforeSpin");
-        wheel.spin();
         SoundManager.getInstance().playSound("spin1");
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
-        wheel.spin(4.5f, -10f);
+        wheel.spin(6.0f, -10f);
     }
 
     private void handleWheelClick() {

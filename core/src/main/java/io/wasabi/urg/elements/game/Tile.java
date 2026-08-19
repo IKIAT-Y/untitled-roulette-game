@@ -21,11 +21,11 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Align;
 
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 
 public class Tile extends GameObject {
-
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
     private static final PolygonSpriteBatch POLY_BATCH = RENDERER_MANAGER.getPolygonSpriteBatch();
     private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
@@ -33,13 +33,11 @@ public class Tile extends GameObject {
     private static final FontManager FONT_MANAGER = FontManager.getInstance();
     private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Placeholder");
 
-    private World world;
+    private final World world;
 
     private int number;
     private float size = 1; // multiplier
-
-    private float betMultiplier = 1.0f; // multiplier for bets on this tile
-    private int color; // 0 for red, 1 for black, 2 for green
+    private TileType type;
 
     private Vector2 position;
     private float degrees;
@@ -48,9 +46,7 @@ public class Tile extends GameObject {
     private float height;
     private float numHeight;
 
-    private Texture tex;
     private Texture fretTex;
-    private PolygonRegion region;
     private PolygonRegion fretRegion;
 
     private Vector2 fontPos = new Vector2();
@@ -60,7 +56,7 @@ public class Tile extends GameObject {
     private Body body; // for frets
     private Fixture fret;
 
-    public Tile(World world, int number, Vector2 position, float radius, float height) {
+    public Tile(World world, TileType type, int number, Vector2 position, float radius, float height) {
         this.world = world;
 
         this.number = number;
@@ -69,43 +65,13 @@ public class Tile extends GameObject {
         this.height = height;
         this.numHeight = height;
 
-        Pixmap pix = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-
-        if (number == 0) {
-            pix.setColor(0x00FF00FF);
-            this.color = 2; // red
-        } else if (number % 2 == 0) {
-            pix.setColor(0xFF0000FF);
-            this.color = 0; // red
-        } else {
-            pix.setColor(0x000000FF);
-            this.color = 1; // black
-        }
-        pix.fill();
-
-        tex = new Texture(pix);
+        this.type = type;
 
         Pixmap fretPix = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         fretPix.setColor(0xFFFFFFFF);
         fretPix.fill();
         fretTex = new Texture(fretPix);
 
-        build();
-        update();
-    }
-
-    /**
-     * Re-creates this tile's fret body/fixture in a different Box2D world. Tiles
-     * persist across screen transitions (see RunState.tiles and Wheel's "create
-     * tiles if they don't exist yet" reuse guard) so their identity survives for
-     * betting purposes, but each GameScreen owns its own disposable World — the
-     * fret {@link #body}/{@link #fret} created in a previous World is destroyed
-     * along with it (see GameScreen#dispose), so any tile being reused in a fresh
-     * World needs its physics rebuilt here or the wheel's collision segments
-     * silently stop existing.
-     */
-    public void attachToWorld(World world) {
-        this.world = world;
         build();
         update();
     }
@@ -118,13 +84,15 @@ public class Tile extends GameObject {
 
         PolygonShape fretShape = new PolygonShape();
         fretShape.setAsBox(
-                height,
-                1,
-                new Vector2(0, 0),
-                0);
+            height,
+            2.0f,
+            new Vector2(0, 0),
+            0
+        );
 
         FixtureDef fretFixture = new FixtureDef();
         fretFixture.shape = fretShape;
+        fretFixture.density = 1.0f;
         fretFixture.friction = 0.6f;
         fretFixture.restitution = 0.5f;
 
@@ -181,7 +149,7 @@ public class Tile extends GameObject {
 
             rot += radInc;
         }
-        region = new PolygonRegion(new TextureRegion(tex), vertices, tris);
+        type.setRegion(vertices, tris);
 
         PolygonShape shape = (PolygonShape) fret.getShape();
         int vertexCount = shape.getVertexCount();
@@ -206,7 +174,12 @@ public class Tile extends GameObject {
     @Override
     public void render() {
         POLY_BATCH.begin();
-        POLY_BATCH.draw(region, 0, 0);
+        type.drawTextures();
+        POLY_BATCH.end();
+
+        type.drawOverlay();
+
+        POLY_BATCH.begin();
         POLY_BATCH.draw(fretRegion, 0, 0);
         POLY_BATCH.end();
 
@@ -218,17 +191,13 @@ public class Tile extends GameObject {
         SPRITE_BATCH.end();
     }
 
-    public float getSize() {
-        return size;
+    public void onLanded() {
+        type.onLanded();
     }
 
-    public PolygonRegion getRegion() {
-        return region;
-    }
-
-    public int getNumber() {
-        return number;
-    }
+    public float getSize() { return size; }
+    public PolygonRegion getRegion() { return type.getRegion(); }
+    public int getNumber() { return number; }
 
     public void setPosition(Vector2 position) {
         this.position = position;
@@ -255,9 +224,9 @@ public class Tile extends GameObject {
         update();
     }
 
-    public void setBetMultiplier(float betMultiplier) { this.betMultiplier = betMultiplier; }
-    public float getBetMultiplier() { return betMultiplier; }
-    public int getColor() { return color; }
-    public void setColor(int color) { this.color = color; }
-
+    public TileType getType() { return type; }
+    public void setBetMultiplier(float betMultiplier) { type.setBetMultiplier(betMultiplier); }
+    public float getBetMultiplier() { return type.getBetMultiplier(); }
+    public TileType.TileColour getColor() { return type.getColour(); }
+    public void setColor(TileType.TileColour color) { type.setColour(color); }
 }
