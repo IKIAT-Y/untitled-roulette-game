@@ -51,6 +51,7 @@ public class Tile extends GameObject {
 
     private Vector2 fontPos = new Vector2();
     private Matrix4 fontMatrix4 = new Matrix4();
+    private Matrix4 previousSpriteTransform = new Matrix4();
 
     private Body body; // for frets
     private Fixture fret;
@@ -116,8 +117,7 @@ public class Tile extends GameObject {
 
         Vector2 fretPos = new Vector2(
                 x + (r1 + height) * MathUtils.cos(rot),
-                y + (r1 + height) * MathUtils.sin(rot)
-        );
+                y + (r1 + height) * MathUtils.sin(rot));
         body.setTransform(fretPos, rot);
 
         Affine2 fontTransform = new Affine2();
@@ -134,9 +134,9 @@ public class Tile extends GameObject {
             int ind = i * 2;
             int t = i * 6;
             vertices[v] = x + r1 * MathUtils.cos(rot);
-            vertices[v+1] = y + r1 * MathUtils.sin(rot);
-            vertices[v+2] = x + r2 * MathUtils.cos(rot);
-            vertices[v+3] = y + r2 * MathUtils.sin(rot);
+            vertices[v + 1] = y + r1 * MathUtils.sin(rot);
+            vertices[v + 2] = x + r2 * MathUtils.cos(rot);
+            vertices[v + 3] = y + r2 * MathUtils.sin(rot);
 
             if (i < segments - 1) {
                 tris[t] = (short) ind;
@@ -164,8 +164,8 @@ public class Tile extends GameObject {
             fretVerts[i * 2 + 1] = tmp.y;
         }
         short[] fretIndices = {
-            0, 1, 2,
-            0, 2, 3,
+                0, 1, 2,
+                0, 2, 3,
         };
 
         fretRegion = new PolygonRegion(new TextureRegion(fretTex), fretVerts, fretIndices);
@@ -184,8 +184,10 @@ public class Tile extends GameObject {
         POLY_BATCH.end();
 
         SPRITE_BATCH.begin();
+        previousSpriteTransform.set(SPRITE_BATCH.getTransformMatrix());
         SPRITE_BATCH.setTransformMatrix(fontMatrix4);
         FONT.draw(SPRITE_BATCH, Integer.toString(number), 0, 0, 16, Align.center, true);
+        SPRITE_BATCH.setTransformMatrix(previousSpriteTransform);
         SPRITE_BATCH.end();
     }
 
@@ -201,18 +203,22 @@ public class Tile extends GameObject {
         this.position = position;
         update();
     }
+
     public void setDegrees(float degrees) {
         this.degrees = degrees;
         update();
     }
+
     public void setRotation(float rotation) {
         this.rotation = rotation;
         update();
     }
+
     public void setRadius(float radius) {
         this.radius = radius;
         update();
     }
+
     public void setSize(float size) {
         this.size = size;
         update();

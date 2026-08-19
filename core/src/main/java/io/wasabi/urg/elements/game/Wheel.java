@@ -42,6 +42,7 @@ public class Wheel {
     private final Body body;
 
     private Tween wheelVelocityTween;
+    private Tween tweenY;
 
     private final List<Tile> tiles = RUN_STATE.getTiles();
 
@@ -157,11 +158,27 @@ public class Wheel {
             tile.render();
         }
 
+        if (tweenY != null && !tweenY.isComplete()) {
+            this.position.y = tweenY.update(delta);
+        }
+
+        update();
+
         SHAPE_RENDERER.begin(ShapeType.Line);
         Gdx.gl.glLineWidth(2);
         SHAPE_RENDERER.circle(position.x, position.y, r1);
         SHAPE_RENDERER.circle(position.x, position.y, r2);
         SHAPE_RENDERER.end();
+    }
+
+    public void shiftOutOfScreen() {
+        float targetY = -1500;
+        tweenY = new Tween(1f, position.y, targetY, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
+    }
+
+    public void shiftIntoScreen() {
+        float targetY = 0;
+        tweenY = new Tween(1f, position.y, targetY, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
     }
 
     public boolean containsPoint(Vector2 point) {

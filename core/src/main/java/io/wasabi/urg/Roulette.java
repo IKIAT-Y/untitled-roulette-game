@@ -1,13 +1,13 @@
 package io.wasabi.urg;
 
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.managers.*;
+import io.wasabi.urg.screens.BettingScreen;
 import io.wasabi.urg.screens.GameScreen;
 import io.wasabi.urg.state.RunState;
 
@@ -17,7 +17,10 @@ import java.util.List;
 public class Roulette extends Game {
     private static final Roulette INSTANCE = new Roulette();
     private GameScreen gameScreen;
+    private BettingScreen bettingScreen;
     private final RunState runState = new RunState();
+    private final float MIN_WORLD_WIDTH = 1600f; // Minimum width of the game world
+    private final float MIN_WORLD_HEIGHT = 900f; // Minimum height of the game world
     private final RoundManager roundManager = new RoundManager(runState);
     private final SoundManager soundManager = SoundManager.getInstance();
 
@@ -31,7 +34,8 @@ public class Roulette extends Game {
     private Viewport viewport;
     private OrthographicCamera camera;
 
-    private Roulette() {}
+    private Roulette() {
+    }
 
     public static Roulette getInstance() {
         return INSTANCE;
@@ -44,9 +48,8 @@ public class Roulette extends Game {
     @Override
     public void create() {
         camera = new OrthographicCamera();
-        int VIEWPORT_WIDTH = 1600;
-        int VIEWPORT_HEIGHT = 900;
-        viewport = new ExtendViewport(VIEWPORT_WIDTH, VIEWPORT_HEIGHT, camera); // change this depending on actual game size at launch (?)
+        viewport = new ExtendViewport(MIN_WORLD_WIDTH, MIN_WORLD_HEIGHT, camera); // change this depending on actual
+                                                                                  // game size at launch (?)
 
         rendererManager = RendererManager.getInstance();
         rendererManager.initialize(this);
@@ -58,6 +61,8 @@ public class Roulette extends Game {
 
         initializeCardPool();
 
+        runState.reset(100);
+
         // Card testing
         runState.addCard(getRandomCard());
         runState.addCard(getRandomCard());
@@ -65,6 +70,8 @@ public class Roulette extends Game {
         runState.addCard(getRandomCard());
 
         this.gameScreen = new GameScreen(this);
+        this.bettingScreen = new BettingScreen(this);
+
         this.setScreen(this.gameScreen);
 
         roundManager.startRound();
@@ -140,16 +147,36 @@ public class Roulette extends Game {
 
     @Override
     public void dispose() {
-        if (getScreen() != null) {
-            getScreen().dispose();
+        if (getGameScreen() != null) {
+            getGameScreen().dispose();
         }
         soundManager.dispose();
         TextureManager.getInstance().dispose();
     }
 
-    @Override
-    public GameScreen getScreen() { return gameScreen; }
-    public RunState getRunState() { return runState; }
-    public Viewport getViewport() { return viewport; }
-    public RoundManager getRoundManager() { return roundManager; }
+    public RunState getRunState() {
+        return runState;
+    }
+
+    public Viewport getViewport() {
+        return viewport;
+    }
+
+    public float getWorldWidth() {
+        return MIN_WORLD_WIDTH;
+    }
+
+    public float getWorldHeight() {
+        return MIN_WORLD_HEIGHT;
+    }
+
+    public GameScreen getGameScreen() {
+        return gameScreen;
+    }
+
+    public BettingScreen getBettingScreen() { return bettingScreen; }
+
+    public RoundManager getRoundManager() {
+        return roundManager;
+    }
 }
