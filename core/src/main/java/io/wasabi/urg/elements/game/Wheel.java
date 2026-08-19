@@ -56,10 +56,22 @@ public class Wheel {
         bodyDef.position.set(position);
         body = this.world.createBody(bodyDef);
 
-        for (int i = 0; i < 37; i++) {
-            Tile tile = new Tile(world, i, position, radius, tileSize);
-            //tile.setSize(0.5f + MathUtils.random.nextFloat());
-            tiles.add(tile);
+        // Create tiles if they don't exist yet
+
+        if (tiles.isEmpty()) {
+            for (int i = 0; i < 37; i++) {
+                Tile tile = new Tile(world, i, position, radius, tileSize);
+                // tile.setSize(0.5f + MathUtils.random.nextFloat());
+                tiles.add(tile);
+            }
+        } else {
+            // Tiles persist across screens (RunState.tiles), but each GameScreen creates
+            // its own disposable Box2D World — the fret bodies these tiles built in the
+            // previous World were destroyed along with it, so they need rebuilding here
+            // or the wheel ends up with no collision segments between pockets.
+            for (Tile tile : tiles) {
+                tile.attachToWorld(world);
+            }
         }
 
         addRing(radius, 0.3f, 0.5f, false);

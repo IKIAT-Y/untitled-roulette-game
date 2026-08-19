@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 
 import io.wasabi.urg.Roulette;
@@ -36,7 +37,12 @@ public class FontManager {
 
         // Initialize fonts
         for (Map.Entry<String, String> entry : fontPaths.entrySet()) {
-            fonts.put(entry.getKey(), new BitmapFont(Gdx.files.internal(entry.getValue())));
+            BitmapFont font = new BitmapFont(Gdx.files.internal(entry.getValue()));
+            // Linear filtering keeps glyphs readable when a caller scales this font
+            // down (e.g. BettingTable shrinks it to fit inside a pocket cell) — set
+            // once here rather than repeatedly by every draw call that uses it.
+            font.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
+            fonts.put(entry.getKey(), font);
         }
     }
 
