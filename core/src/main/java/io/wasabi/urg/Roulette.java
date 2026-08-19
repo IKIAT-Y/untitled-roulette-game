@@ -1,18 +1,24 @@
 package io.wasabi.urg;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.elements.card.Card;
-import io.wasabi.urg.managers.*;
+import io.wasabi.urg.elements.charm.BlackCharm;
+import io.wasabi.urg.elements.charm.RedCharm;
+import io.wasabi.urg.managers.FontManager;
+import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.managers.RoundManager;
+import io.wasabi.urg.managers.SoundManager;
+import io.wasabi.urg.managers.TextureManager;
 import io.wasabi.urg.screens.BettingScreen;
 import io.wasabi.urg.screens.GameScreen;
 import io.wasabi.urg.state.RunState;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Roulette extends Game {
     private static final Roulette INSTANCE = new Roulette();
@@ -68,6 +74,10 @@ public class Roulette extends Game {
         runState.addCard(getRandomCard());
         runState.addCard(getRandomCard());
         runState.addCard(getRandomCard());
+
+        // Charm testing
+        runState.addCharm(new BlackCharm());
+        runState.addCharm(new RedCharm());
 
         this.gameScreen = new GameScreen(this);
         this.bettingScreen = new BettingScreen(this);

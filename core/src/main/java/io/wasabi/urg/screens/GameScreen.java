@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -13,24 +14,22 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.betting.BetScreenButton;
 import io.wasabi.urg.elements.card.Card;
+import io.wasabi.urg.elements.charm.AbstractCharm;
 import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.managers.CardInputHandler;
+import io.wasabi.urg.managers.CharmInputHandler;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.CardLayout;
+import io.wasabi.urg.ui.CharmLayout;
 import io.wasabi.urg.ui.RoundResult;
 import io.wasabi.urg.ui.Shop;
-
-import java.util.List;
-import java.util.Random;
 
 public class GameScreen implements Screen {
     private final Roulette game;
@@ -65,7 +64,8 @@ public class GameScreen implements Screen {
 
     // Handlers
     private CardInputHandler cardInputHandler = new CardInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
-
+    private CharmInputHandler charmInputHandler = new CharmInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
+    
     // Betting
     private Texture betButtonTexture;
     private BetScreenButton betButton;
@@ -227,6 +227,18 @@ public class GameScreen implements Screen {
             card.render();
         }
 
+        // TEST CHARM
+
+         List<AbstractCharm> charms = Roulette.getInstance().getRunState().getOwnedCharms();
+
+        for (int i = 0; i < charms.size(); i++) {
+            AbstractCharm c = charms.get(i);
+            Vector2 slot = CharmLayout.getSlotPosition(i, charms.size(), worldWidth);
+            c.setTargetPosition(slot.x, slot.y);
+            c.update(delta);
+            c.render();
+        }
+
         batch.end();
         renderTicketCounter();
     }
@@ -238,8 +250,6 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
-        Gdx.input.setInputProcessor(cardInputHandler);
-
         betButtonTexture = new Texture(Gdx.files.internal("buttons/TEX_BUTTON_64x32_BetUp.png"));
 
         float btnWidth = betButtonTexture.getWidth();
@@ -278,7 +288,7 @@ public class GameScreen implements Screen {
 
         betButton.setSize(btnWidth, btnHeight);
         betButton.setPosition((screenWidth - btnWidth) / 2f, 0);
-        Gdx.input.setInputProcessor(cardInputHandler);
+        Gdx.input.setInputProcessor(new InputMultiplexer(cardInputHandler, charmInputHandler));
     }
 
     @Override
