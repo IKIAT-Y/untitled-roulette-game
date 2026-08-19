@@ -57,7 +57,7 @@ public class RoundResult {
     }
 
     public void hide() {
-        tween = new Tween(1f, y, OFFSCREEN_Y, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
+        tween = new Tween(1f, y, OFFSCREEN_Y, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
     }
 
     public boolean isHidden() {

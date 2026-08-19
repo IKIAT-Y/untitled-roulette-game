@@ -175,7 +175,7 @@ public class Wheel {
 
     public void shiftOutOfScreen() {
         float targetY = -1500;
-        tweenY = new Tween(1f, position.y, targetY, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
+        tweenY = new Tween(1f, position.y, targetY, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
     }
 
     public void shiftIntoScreen() {
