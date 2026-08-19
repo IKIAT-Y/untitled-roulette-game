@@ -1,6 +1,9 @@
 package io.wasabi.urg.screens;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
@@ -12,6 +15,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 
 import io.wasabi.urg.Roulette;
+import io.wasabi.urg.elements.betting.BetScreenButton;
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.Wheel;
@@ -39,6 +43,7 @@ public class GameScreen implements Screen {
     // Renderers
     private final ShapeRenderer shapeRenderer;
     private final SpriteBatch spriteBatch;
+
     private final Texture ticketTexture;
     // Matrices for UI rendering
     private final Matrix4 uiProjection = new Matrix4();
@@ -55,10 +60,20 @@ public class GameScreen implements Screen {
     private RoundResult roundResult;
     private Shop shop;
 
+    // Betting
+    private Texture betButtonTexture;
+    private BetScreenButton betButton;
+    private float baseWindowWidth;
+    private float baseWindowHeight;
+    private float baseButtonWidth;
+    private float baseButtonHeight;
+    private Vector2 wheelCenter = new Vector2(-120f, 0);
+
     public GameScreen(final Roulette game) {
         this.game = game;
         this.shapeRenderer = RendererManager.getInstance().getShapeRenderer();
         this.spriteBatch = RendererManager.getInstance().getSpriteBatch();
+
         this.ticketTexture = new Texture(Gdx.files.internal("ticket.png"));
         this.world = new World(new Vector2(0f, 0f), true);
 
@@ -125,10 +140,10 @@ public class GameScreen implements Screen {
         float screenHeight = Gdx.graphics.getHeight();
 
         float x = screenWidth - iconSize - padding;
-        //placeholder y
+        // placeholder y
         float y = padding - 50f;
 
-        uiProjection.setToOrtho2D(0,0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        uiProjection.setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         spriteBatch.setProjectionMatrix(uiProjection);
         uiTransform.idt();
@@ -171,13 +186,19 @@ public class GameScreen implements Screen {
         // TODO: game screen rendering
         // includes the roulette wheel & the ui
         ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
-        shapeRenderer.setColor(1f, 1f, 1f, 1f);
 
+        // ShapeRenderer renders
+        shapeRenderer.setColor(1f, 1f, 1f, 1f);
         handleWheelClick();
         wheel.render(delta);
 
         ball.update(delta);
         ball.render();
+
+        // SpriteBatch renders
+        updateBetButtonLayout();
+        betButton.update();
+        betButton.draw(spriteBatch);
 
         roundResult.update(delta);
         roundResult.render();
@@ -208,14 +229,51 @@ public class GameScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-
+        updateBetButtonLayout();
     }
 
     @Override
     public void show() {
+        betButtonTexture = new Texture(Gdx.files.internal("buttons/TEX_BUTTON_64x32_BetUp.png"));
+
+        float btnWidth = betButtonTexture.getWidth();
+        float btnHeight = betButtonTexture.getHeight();
+        baseWindowWidth = game.getWorldWidth();
+        baseWindowHeight = game.getWorldHeight();
+        baseButtonWidth = btnWidth;
+        baseButtonHeight = btnHeight;
+
+        betButton = new BetScreenButton(
+                betButtonTexture,
+                (game.getWorldWidth() - btnWidth) / 2f, 0,
+                btnWidth, btnHeight,
+                () -> {
+                    // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
+                    // sprite batch)
+                    game.setScreen(new BettingScreen(game));
+                });
+        updateBetButtonLayout();
+    }
+
+    private void updateBetButtonLayout() {
+        if (betButton == null || betButtonTexture == null) {
+            return;
+        }
+
+        float screenWidth = Gdx.graphics.getWidth();
+        float screenHeight = Gdx.graphics.getHeight();
+
+        float widthScale = screenWidth / Math.max(1f, baseWindowWidth) * 4f;
+        float heightScale = screenHeight / Math.max(1f, baseWindowHeight) * 4f;
+        float scale = Math.max(0.5f, Math.min(2.5f, Math.min(widthScale, heightScale)));
+
+        float btnWidth = baseButtonWidth * scale;
+        float btnHeight = baseButtonHeight * scale;
+
+        betButton.setSize(btnWidth, btnHeight);
+        betButton.setPosition((screenWidth - btnWidth) / 2f, 0);
         com.badlogic.gdx.Gdx.input.setInputProcessor(
-            new io.wasabi.urg.managers.CardInputHandler(game.getRunState(), game.getViewport())
-        );
+                new io.wasabi.urg.managers.CardInputHandler(game.getRunState(), game.getViewport()));
     }
 
     @Override
@@ -224,23 +282,27 @@ public class GameScreen implements Screen {
     }
 
     @Override
-	public void pause() {
+    public void pause() {
 
-	}
+    }
 
-	@Override
-	public void resume() {
+    @Override
+    public void resume() {
 
-	}
+    }
 
     @Override
     public void dispose() {
         shapeRenderer.dispose();
+        spriteBatch.dispose();
         ball.dispose();
         wheel.dispose();
+        betButtonTexture.dispose();
         world.dispose();
         ticketTexture.dispose();
     }
 
-    public Wheel getWheel() {return wheel;}
+    public Wheel getWheel() {
+        return wheel;
+    }
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import com.badlogic.gdx.utils.IntArray;
 
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.elements.betting.Bet;
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.game.Tile;
 
@@ -22,6 +23,8 @@ public final class RunState {
     private final List<GameObject> ownedCharms = new ArrayList<>();
     private final IntArray chipHistory = new IntArray();
 
+    // Must live here to persist across screens.
+    private final List<Bet> activeBets = new ArrayList<>();
 
     public int getChips() {
         return chips;
@@ -169,9 +172,59 @@ public final class RunState {
         }
     }
 
-    public void setLastTile(Tile tile) { this.lastTile = tile; }
+    public void setLastTile(Tile tile) {
+        this.lastTile = tile;
+    }
 
-    public Tile getLastTile() { return lastTile; }
+    public Tile getLastTile() {
+        return lastTile;
+    }
+
+    public void addBet(Bet bet) {
+        activeBets.add(bet);
+    }
+
+    public boolean removeBet(Bet bet) {
+        return activeBets.remove(bet);
+    }
+
+    public List<Bet> getActiveBets() {
+        return activeBets;
+    }
+
+    /**
+     * Drops every pending bet without touching {@link #chips} — placing a bet never
+     * deducts chips (see {@link io.wasabi.urg.elements.game.BettingTable#placeBet}),
+     * so there's nothing to refund here.
+     */
+    public void clearActiveBets() {
+        activeBets.clear();
+    }
+
+    /**
+     * Settles every pending bet against the winning tile. This is the ONE place
+     * chips actually change hands for a bet: stakes are reserved-but-not-deducted
+     * while betting is open (see
+     * {@link io.wasabi.urg.elements.game.BettingTable#placeBet}), so every stake is
+     * subtracted here in bulk before winners' payouts (which already include their
+     * returned stake — see {@link Bet#payout}) are added back.
+     */
+    public int resolveActiveBets() {
+        if (lastTile == null) {
+            return 0;
+        }
+
+        int totalStaked = 0;
+        int totalPayout = 0;
+        for (Bet bet : activeBets) {
+            totalStaked += bet.getAmount();
+            totalPayout += bet.payout(lastTile);
+        }
+
+        chips = chips - totalStaked + totalPayout;
+        activeBets.clear();
+        return totalPayout;
+    }
 
     public void triggerCardEffects(String effectType) {
         switch (effectType) {

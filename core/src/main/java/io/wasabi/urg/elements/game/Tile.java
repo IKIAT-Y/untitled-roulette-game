@@ -24,7 +24,7 @@ import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 
-public class Tile extends GameObject{
+public class Tile extends GameObject {
 
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
     private static final PolygonSpriteBatch POLY_BATCH = RENDERER_MANAGER.getPolygonSpriteBatch();
@@ -55,6 +55,7 @@ public class Tile extends GameObject{
 
     private Vector2 fontPos = new Vector2();
     private Matrix4 fontMatrix4 = new Matrix4();
+    private Matrix4 previousSpriteTransform = new Matrix4();
 
     private Body body; // for frets
     private Fixture fret;
@@ -93,6 +94,22 @@ public class Tile extends GameObject{
         update();
     }
 
+    /**
+     * Re-creates this tile's fret body/fixture in a different Box2D world. Tiles
+     * persist across screen transitions (see RunState.tiles and Wheel's "create
+     * tiles if they don't exist yet" reuse guard) so their identity survives for
+     * betting purposes, but each GameScreen owns its own disposable World — the
+     * fret {@link #body}/{@link #fret} created in a previous World is destroyed
+     * along with it (see GameScreen#dispose), so any tile being reused in a fresh
+     * World needs its physics rebuilt here or the wheel's collision segments
+     * silently stop existing.
+     */
+    public void attachToWorld(World world) {
+        this.world = world;
+        build();
+        update();
+    }
+
     private void build() {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyType.KinematicBody;
@@ -101,11 +118,10 @@ public class Tile extends GameObject{
 
         PolygonShape fretShape = new PolygonShape();
         fretShape.setAsBox(
-            height,
-            1,
-            new Vector2(0, 0),
-            0
-        );
+                height,
+                1,
+                new Vector2(0, 0),
+                0);
 
         FixtureDef fretFixture = new FixtureDef();
         fretFixture.shape = fretShape;
@@ -133,8 +149,7 @@ public class Tile extends GameObject{
 
         Vector2 fretPos = new Vector2(
                 x + (r1 + height) * MathUtils.cos(rot),
-                y + (r1 + height) * MathUtils.sin(rot)
-        );
+                y + (r1 + height) * MathUtils.sin(rot));
         body.setTransform(fretPos, rot);
 
         Affine2 fontTransform = new Affine2();
@@ -151,9 +166,9 @@ public class Tile extends GameObject{
             int ind = i * 2;
             int t = i * 6;
             vertices[v] = x + r1 * MathUtils.cos(rot);
-            vertices[v+1] = y + r1 * MathUtils.sin(rot);
-            vertices[v+2] = x + r2 * MathUtils.cos(rot);
-            vertices[v+3] = y + r2 * MathUtils.sin(rot);
+            vertices[v + 1] = y + r1 * MathUtils.sin(rot);
+            vertices[v + 2] = x + r2 * MathUtils.cos(rot);
+            vertices[v + 3] = y + r2 * MathUtils.sin(rot);
 
             if (i < segments - 1) {
                 tris[t] = (short) ind;
@@ -181,8 +196,8 @@ public class Tile extends GameObject{
             fretVerts[i * 2 + 1] = tmp.y;
         }
         short[] fretIndices = {
-            0, 1, 2,
-            0, 2, 3,
+                0, 1, 2,
+                0, 2, 3,
         };
 
         fretRegion = new PolygonRegion(new TextureRegion(fretTex), fretVerts, fretIndices);
@@ -196,31 +211,45 @@ public class Tile extends GameObject{
         POLY_BATCH.end();
 
         SPRITE_BATCH.begin();
+        previousSpriteTransform.set(SPRITE_BATCH.getTransformMatrix());
         SPRITE_BATCH.setTransformMatrix(fontMatrix4);
         FONT.draw(SPRITE_BATCH, Integer.toString(number), 0, 0, 16, Align.center, true);
+        SPRITE_BATCH.setTransformMatrix(previousSpriteTransform);
         SPRITE_BATCH.end();
     }
 
-    public float getSize() { return size; }
-    public PolygonRegion getRegion() { return region; }
-    public int getNumber() { return number; }
+    public float getSize() {
+        return size;
+    }
+
+    public PolygonRegion getRegion() {
+        return region;
+    }
+
+    public int getNumber() {
+        return number;
+    }
 
     public void setPosition(Vector2 position) {
         this.position = position;
         update();
     }
+
     public void setDegrees(float degrees) {
         this.degrees = degrees;
         update();
     }
+
     public void setRotation(float rotation) {
         this.rotation = rotation;
         update();
     }
+
     public void setRadius(float radius) {
         this.radius = radius;
         update();
     }
+
     public void setSize(float size) {
         this.size = size;
         update();
