@@ -73,14 +73,8 @@ public class RoundManager {
         runState.triggerCardEffects("roundEnd");
         runState.recordRoundBalance();
 
-        if (round == ROUNDS_PER_ACT && act == TOTAL_ACTS) {
-            runComplete = true;
-            System.out.println("Run complete: final quota reached.");
-            return;
-        }
-
         // Reset tile multiplier for the next round
-        Roulette.getInstance().getScreen().getWheel().resetTileMultipliers();
+        Roulette.getInstance().getGameScreen().getWheel().resetTileMultipliers();
 
         if (round == ROUNDS_PER_ACT) {
             act++;
@@ -89,7 +83,7 @@ public class RoundManager {
             round++;
         }
 
-        Roulette.getInstance().getScreen().enterResultScreen(
+        Roulette.getInstance().getGameScreen().enterResultScreen(
             runState.getChips(),
             currentConfig.getQuota(),
             BASE_TICKET_REWARD,
