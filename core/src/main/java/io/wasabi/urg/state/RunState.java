@@ -14,7 +14,7 @@ import io.wasabi.urg.elements.game.Tile;
 public final class RunState {
     private int chips;
     private int score;
-    private int tickets = 67;
+    private int tickets;
 
     private Tile lastTile = null; // The last tile the player landed on, used for certain card effects.
 

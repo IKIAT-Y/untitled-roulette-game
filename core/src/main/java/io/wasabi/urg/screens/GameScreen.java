@@ -24,6 +24,7 @@ import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.CardLayout;
 import io.wasabi.urg.ui.RoundResult;
+import io.wasabi.urg.ui.QuotaTracker;
 import io.wasabi.urg.ui.Shop;
 
 public class GameScreen implements Screen {
@@ -56,6 +57,7 @@ public class GameScreen implements Screen {
     // UI
     private RoundResult roundResult;
     private Shop shop;
+    private QuotaTracker quotaTracker;
 
     // Betting
     private Texture betButtonTexture;
@@ -80,6 +82,7 @@ public class GameScreen implements Screen {
 
         this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
         this.shop = new Shop(shapeRenderer, spriteBatch);
+        this.quotaTracker = new QuotaTracker(shapeRenderer, spriteBatch, game.getRunState(), game.getRoundManager());
 
         //enterResultScreen(0, 0, 0, 0, 0);
         //enterShopScreen();
@@ -173,6 +176,7 @@ public class GameScreen implements Screen {
 
         shop.hide();
 
+        Roulette.getInstance().getRoundManager().startRound();
         wheel.shiftIntoScreen();
     }
 
@@ -203,6 +207,8 @@ public class GameScreen implements Screen {
 
         handleUIInput();
 
+        quotaTracker.update(delta);
+
         SpriteBatch batch = RendererManager.getInstance().getSpriteBatch();
         batch.begin();
         batch.setTransformMatrix(new Matrix4().setToTranslation(0, 0, 0));
@@ -219,6 +225,10 @@ public class GameScreen implements Screen {
         }
 
         batch.end();
+
+        if (gameState == GameState.ROUND) {
+            quotaTracker.render();
+        }
         renderTicketCounter();
     }
 
