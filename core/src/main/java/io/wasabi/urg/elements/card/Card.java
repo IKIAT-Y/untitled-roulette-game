@@ -1,7 +1,7 @@
 package io.wasabi.urg.elements.card;
 
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.TextureManager;
@@ -42,7 +42,7 @@ public abstract class Card extends GameObject {
      * So use the class name of the card as the texture file name (without the .png extension).
      */
     private void loadSprite() {
-        this.sprite = TextureManager.getInstance().getCardTexture(getClass().getSimpleName());
+        this.sprite = TextureManager.getInstance().getTexture(getClass().getSimpleName(), "card");
     }
 
     public void roundStartEffect() {}
