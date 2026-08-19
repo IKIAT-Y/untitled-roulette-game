@@ -60,6 +60,8 @@ public class Roulette extends Game {
 
         initializeCardPool();
 
+        runState.reset(100);
+
         // Card testing
         runState.addCard(getRandomCard());
         runState.addCard(getRandomCard());

@@ -67,7 +67,6 @@ public class GameScreen implements Screen {
     private float baseWindowHeight;
     private float baseButtonWidth;
     private float baseButtonHeight;
-    private Vector2 wheelCenter = new Vector2(-120f, 0);
 
     public GameScreen(final Roulette game) {
         this.game = game;
