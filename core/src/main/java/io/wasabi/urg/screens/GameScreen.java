@@ -14,6 +14,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.betting.BetScreenButton;
@@ -29,7 +31,11 @@ import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.CardLayout;
 import io.wasabi.urg.ui.CharmLayout;
 import io.wasabi.urg.ui.RoundResult;
+import io.wasabi.urg.ui.QuotaTracker;
 import io.wasabi.urg.ui.Shop;
+
+import java.util.List;
+import java.util.Random;
 
 public class GameScreen implements Screen {
     private final Roulette game;
@@ -61,6 +67,10 @@ public class GameScreen implements Screen {
     // UI
     private RoundResult roundResult;
     private Shop shop;
+    private QuotaTracker quotaTracker;
+
+    // Handlers
+    private CardInputHandler cardInputHandler = new CardInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
 
     // Handlers
     private CardInputHandler cardInputHandler = new CardInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
@@ -89,6 +99,7 @@ public class GameScreen implements Screen {
 
         this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
         this.shop = new Shop(shapeRenderer, spriteBatch);
+        this.quotaTracker = new QuotaTracker(shapeRenderer, spriteBatch, game.getRunState(), game.getRoundManager());
 
         //enterResultScreen(0, 0, 0, 0, 0);
         //enterShopScreen();
@@ -105,6 +116,7 @@ public class GameScreen implements Screen {
         SoundManager.getInstance().playSound("spin1");
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
         wheel.spin(6.0f, -10f);
+        quotaTracker.onSpinStarted();
     }
 
     private void handleWheelClick() {
@@ -182,6 +194,7 @@ public class GameScreen implements Screen {
 
         shop.hide();
 
+        Roulette.getInstance().getRoundManager().startRound();
         wheel.shiftIntoScreen();
     }
 
@@ -212,6 +225,8 @@ public class GameScreen implements Screen {
 
         handleUIInput();
 
+        quotaTracker.update(delta);
+
         SpriteBatch batch = RendererManager.getInstance().getSpriteBatch();
         batch.begin();
         batch.setTransformMatrix(new Matrix4().setToTranslation(0, 0, 0));
@@ -240,6 +255,10 @@ public class GameScreen implements Screen {
         }
 
         batch.end();
+
+        if (gameState == GameState.ROUND) {
+            quotaTracker.render();
+        }
         renderTicketCounter();
     }
 
@@ -250,6 +269,8 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
+        Gdx.input.setInputProcessor(cardInputHandler);
+
         betButtonTexture = new Texture(Gdx.files.internal("buttons/TEX_BUTTON_64x32_BetUp.png"));
 
         float btnWidth = betButtonTexture.getWidth();
