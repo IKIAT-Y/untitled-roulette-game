@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.managers.FontManager;
@@ -23,6 +24,7 @@ public class Tooltip {
     private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
 
     private static final Roulette GAME = Roulette.getInstance();
+    private static final Viewport VIEWPORT = GAME.getViewport();
 
     private static final Texture TEXTURE = new Texture(Gdx.files.internal("ui/CorneredPatch.png"));
 
@@ -62,6 +64,7 @@ public class Tooltip {
     }
 
     private boolean visible = false;
+    private boolean inScreen = false;
     private float x, y;
     private float anchorX, anchorY;
     private float width, height;
@@ -95,6 +98,22 @@ public class Tooltip {
     public void setPosition(float x, float y) {
         this.x = x;
         this.y = y;
+        checkIfOnScreen();
+    }
+
+    public void setAnchorPoints(float x, float y, boolean skipCheck) {
+        this.anchorX = x;
+        this.anchorY = y;
+        if (!skipCheck) { checkIfOnScreen(); }
+    }
+
+    private void checkIfOnScreen() {
+        float cX = x - width * anchorX;
+        float cY = y - height * anchorY;
+
+        float worldWidth = VIEWPORT.getWorldWidth();
+        float worldHeight = VIEWPORT.getWorldHeight();
+        inScreen = (cX + width < 0) || (cX > worldWidth) || (cY - height < 0) || (cY > worldHeight);
     }
 
     public void setTitle(String text) {
@@ -161,6 +180,7 @@ public class Tooltip {
 
             float cX = x - width * anchorX;
             float cY = y - height * anchorY;
+
             float patchX = cX + innerPadding;
             float patchTextX = cX + innerPadding + fontPaddingX;
             // drop shadow
@@ -203,4 +223,6 @@ public class Tooltip {
             SPRITE_BATCH.end();
         }
     }
+
+    public boolean isOnScreen() { return inScreen; }
 }

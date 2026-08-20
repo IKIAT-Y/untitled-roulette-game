@@ -24,7 +24,7 @@ public abstract class Card extends GameObject {
     }};
 
     protected Rarity cardRarity;
-    protected Tooltip tooltip = new Tooltip(0, 0.5f, true);
+    protected Tooltip tooltip = new Tooltip(0.5f, 1, true);
     private Texture sprite;
     private float x, y;
     private float width, height;
@@ -62,17 +62,22 @@ public abstract class Card extends GameObject {
     public void afterSpinEffect() {}
     public void roundEndEffect() {}
 
+    @Override
     public void update(float delta) {
         if (dragging) return;
 
+        boolean updated = false;
         if (tweenX != null && !tweenX.isComplete()) {
+            updated = true;
             x = tweenX.update(delta);
         }
         if (tweenY != null && !tweenY.isComplete()) {
+            updated = true;
             y = tweenY.update(delta);
         }
-
-        updateTooltipPosition();
+        if (updated) {
+            updateTooltipPosition();
+        }
     }
 
     @Override
@@ -120,6 +125,6 @@ public abstract class Card extends GameObject {
     }
 
     public void updateTooltipPosition() {
-        tooltip.setPosition(x + width + 5, y + height / 2);
+        tooltip.setPosition(x + width / 2, y - 5);
     }
 }

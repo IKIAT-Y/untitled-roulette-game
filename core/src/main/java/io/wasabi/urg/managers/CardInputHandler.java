@@ -33,6 +33,7 @@ public class CardInputHandler extends InputAdapter {
             if (card.contains(world.x, world.y)) {
                 draggedCard = card;
                 draggedCard.setDragging(true);
+                draggedCard.getTooltip().hide();
                 dragOffset.set(world.x - card.getX(), world.y - card.getY());
                 return true;
             }
@@ -81,6 +82,7 @@ public class CardInputHandler extends InputAdapter {
         if (draggedCard == null) return false;
 
         draggedCard.setDragging(false);
+        draggedCard.getTooltip().show();
         draggedCard = null;
         return true;
     }
