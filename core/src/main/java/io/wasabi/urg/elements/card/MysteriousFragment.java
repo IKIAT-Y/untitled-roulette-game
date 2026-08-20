@@ -7,46 +7,24 @@ import com.badlogic.gdx.math.MathUtils;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.game.Tile;
+import io.wasabi.urg.elements.tiles.VoidTile;
 
 public class MysteriousFragment extends Card {
-    private final List<Tile> voidTiles = new ArrayList<>();
-    private int activeRound = -1;
-
-    public MysteriousFragment() { super(Rarity.RARE); }
+    public MysteriousFragment() {
+        super(Rarity.RARE);
+        tooltip.setTitle("Mysterious Fragment");
+        tooltip.setDescription(
+                "At round start, turn a random tile [PURPLE]VOID[BLACK]. "
+                        + "Void tiles give [RED]3x [BLACK]payout and are destroyed when landed on");
+    }
 
     @Override
     public void roundStartEffect() {
-        int roundNumber = Roulette.getInstance().getRoundManager().getOverallRoundNumber();
-        if (roundNumber != activeRound) {
-            activeRound = roundNumber;
-            voidTiles.clear();
-        }
-
         List<Tile> tiles = new ArrayList<>(Roulette.getInstance().getRunState().getTiles());
-        tiles.removeAll(voidTiles);
+        tiles.removeIf(tile -> tile.getType() instanceof VoidTile);
         if (!tiles.isEmpty()) {
             Tile voidTile = tiles.get(MathUtils.random(tiles.size() - 1));
-            voidTile.setBetMultiplier(voidTile.getBetMultiplier() * 3f);
-            voidTile.addIndicator(Tile.Indicator.VOID);
-            voidTiles.add(voidTile);
+            voidTile.setType(new VoidTile(voidTile.getType(), voidTile));
         }
-    }
-
-    @Override
-    public void afterSpinEffect() {
-        Tile landedTile = Roulette.getInstance().getRunState().getLastTile();
-        if (voidTiles.remove(landedTile)) {
-            landedTile.removeIndicator(Tile.Indicator.VOID);
-            Roulette.getInstance().getRunState().removeTile(landedTile);
-        }
-    }
-
-    @Override
-    public void roundEndEffect() {
-        for (Tile voidTile : voidTiles) {
-            voidTile.setBetMultiplier(voidTile.getBetMultiplier() / 3f);
-            voidTile.removeIndicator(Tile.Indicator.VOID);
-        }
-        voidTiles.clear();
     }
 }

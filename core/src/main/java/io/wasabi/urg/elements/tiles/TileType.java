@@ -75,6 +75,11 @@ public abstract class TileType {
 
     }
 
+    /** Draws tile-type-specific outlines after the base tile has rendered. */
+    public void drawOutline() {
+
+    }
+
     public void onLanded() {
 
     }
