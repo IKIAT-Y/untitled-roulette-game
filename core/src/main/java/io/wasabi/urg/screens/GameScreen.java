@@ -241,7 +241,6 @@ public class GameScreen implements Screen {
             quotaTracker.render();
             renderDebugWinButton();
         }
-        renderTicketCounter();
     }
 
     @Override

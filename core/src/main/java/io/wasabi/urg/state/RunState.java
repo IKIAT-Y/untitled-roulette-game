@@ -289,42 +289,6 @@ public final class RunState {
     }
 
     public void triggerEffects(String effectType) {
-        switch (effectType) {
-            case "roundStart":
-                for (Card card : ownedCards) {
-                    card.roundStartEffect();
-                }
-                if (boss != null) {
-                    boss.roundStartEffect();
-                }
-                break;
-            case "beforeSpin":
-                for (Card card : ownedCards) {
-                    card.beforeSpinEffect();
-                }
-                if (boss != null) {
-                    boss.beforeSpinEffect();
-                }
-                break;
-            case "afterSpin":
-                for (Card card : ownedCards) {
-                    card.afterSpinEffect();
-                }
-                if (boss != null) {
-                    boss.afterSpinEffect();
-                }
-                break;
-            case "roundEnd":
-                for (Card card : ownedCards) {
-                    card.roundEndEffect();
-                }
-                if (boss != null) {
-                    boss.roundEndEffect();
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown effect type: " + effectType);
-    public void triggerCardEffects(String effectType) {
         int triggerCount = getCardEffectTriggerCount();
 
         for (int trigger = 0; trigger < triggerCount; trigger++) {
@@ -332,15 +296,27 @@ public final class RunState {
                 switch (effectType) {
                     case "roundStart":
                         card.roundStartEffect();
+                        if (boss != null) {
+                            boss.roundStartEffect();
+                        }
                         break;
                     case "beforeSpin":
                         card.beforeSpinEffect();
+                        if (boss != null) {
+                            boss.beforeSpinEffect();
+                        }
                         break;
                     case "afterSpin":
                         card.afterSpinEffect();
+                        if (boss != null) {
+                            boss.afterSpinEffect();
+                        }
                         break;
                     case "roundEnd":
                         card.roundEndEffect();
+                        if (boss != null) {
+                            boss.roundEndEffect();
+                        }
                         break;
                     default:
                         throw new IllegalArgumentException("Unknown effect type: " + effectType);

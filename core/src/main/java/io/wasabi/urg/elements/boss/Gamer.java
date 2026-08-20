@@ -27,8 +27,7 @@ public class Gamer extends Boss {
             TileType type = new NullTile();
 
             type.setColour(TileType.TileColour.GREEN);
-            Tile tile = new Tile(Roulette.getInstance().getGameScreen().getWorld(), type, -1, Vector2.Zero, 200f, 50f);
-
+            Tile tile = new Tile(Roulette.getInstance().getGameScreen().getWorld(), type, Vector2.Zero, 200f, 50f);
             int randomIndex = random.nextInt(tiles.size() + 1);
             tiles.add(randomIndex, tile);
 
