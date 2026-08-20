@@ -16,7 +16,7 @@ public class NullTile extends TileType {
 
     public NullTile() {
         super();
-        this.betMultiplier = 1.5f;
+        this.betMultiplier = 0f;
 
         nullTexture = new Texture(Gdx.files.internal("tiles/NullTile.png"));
         nullTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.Repeat);
@@ -49,11 +49,11 @@ public class NullTile extends TileType {
 
     @Override
     public boolean isRed() {
-        return true;
+        return false;
     }
 
     @Override
     public boolean isBlack() {
-        return true;
+        return false;
     }
 }
