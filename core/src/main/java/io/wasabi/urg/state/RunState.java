@@ -144,8 +144,9 @@ public final class RunState {
         return ownedCards;
     }
 
+    // charms allow duplicates
     public void addCharm(AbstractCharm charm) {
-        addUnique(ownedCharms, charm);
+        ownedCharms.add(charm);
     }
 
     public void reorderCharm(AbstractCharm charm, int newIndex) {

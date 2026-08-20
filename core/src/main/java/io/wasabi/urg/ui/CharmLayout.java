@@ -4,10 +4,10 @@ import com.badlogic.gdx.math.Vector2;
 
 /** Computes fixed card-slot positions for the player's cards, laid out in a centered row. */
 public final class CharmLayout {
-    public static final int MAX_HAND_SIZE = 4;
-    public static final float CARD_WIDTH = 128f;
-    public static final float CARD_HEIGHT = 128f;
-    public static final float CARD_SPACING = 24f;
+    public static final int MAX_HAND_SIZE = 5;
+    public static final float CARD_WIDTH = 64;
+    public static final float CARD_HEIGHT = 64;
+    public static final float CARD_SPACING = 34f;
     public static final float HAND_Y = 75f; // place charms underneath the cards
     public static final float HAND_X = 320f; // shifts to right
 

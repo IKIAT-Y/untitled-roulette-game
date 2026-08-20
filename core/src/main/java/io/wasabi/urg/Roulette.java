@@ -7,8 +7,8 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.elements.charm.BlackCharm;
 import io.wasabi.urg.elements.charm.RedCharm;
-import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.CardPool;
+import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.RoundManager;
 import io.wasabi.urg.managers.SoundManager;
@@ -70,6 +70,9 @@ public class Roulette extends Game {
         runState.addCard(cardPool.getRandomCard());
 
         // Charm testing
+        runState.addCharm(new BlackCharm());
+        runState.addCharm(new BlackCharm());
+        runState.addCharm(new BlackCharm());
         runState.addCharm(new BlackCharm());
         runState.addCharm(new RedCharm());
 
