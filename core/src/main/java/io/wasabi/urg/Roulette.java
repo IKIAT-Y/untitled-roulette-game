@@ -71,9 +71,6 @@ public class Roulette extends Game {
 
         // Card testing
         runState.addCard(getRandomCard());
-        runState.addCard(getRandomCard());
-        runState.addCard(getRandomCard());
-        runState.addCard(getRandomCard());
 
         // Charm testing
         runState.addCharm(new BlackCharm());
@@ -119,9 +116,14 @@ public class Roulette extends Game {
             return getRareCard();
         } else if (roll < 0.3 && !uncommonCards.isEmpty()) {
             return getUncommonCard();
-        } else {
+        } else if (!commonCards.isEmpty()) {
             return getCommonCard();
+        } else if (!uncommonCards.isEmpty()) {
+            return getUncommonCard();
+        } else if (!rareCards.isEmpty()) {
+            return getRareCard();
         }
+        return null;
     }
 
     public Card getCommonCard() {
@@ -155,6 +157,31 @@ public class Roulette extends Game {
         Card card = rareCards.get(index);
         rareCards.remove(index);
         return card;
+    }
+
+    public void returnCardToPool(Card card) {
+        if (card == null) {
+            return;
+        }
+
+        List<Card> pool;
+        switch (card.getRarity()) {
+            case COMMON:
+                pool = commonCards;
+                break;
+            case UNCOMMON:
+                pool = uncommonCards;
+                break;
+            case RARE:
+                pool = rareCards;
+                break;
+            default:
+                throw new IllegalStateException("Unknown card rarity");
+        }
+
+        if (!pool.contains(card)) {
+            pool.add(card);
+        }
     }
 
     @Override

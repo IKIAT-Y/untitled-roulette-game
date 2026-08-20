@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.World;
@@ -76,6 +77,7 @@ public class GameScreen implements Screen {
     private float baseWindowHeight;
     private float baseButtonWidth;
     private float baseButtonHeight;
+    private final Rectangle debugWinButton = new Rectangle();
 
     public GameScreen(final Roulette game) {
         this.game = game;
@@ -91,7 +93,8 @@ public class GameScreen implements Screen {
         this.ball = new Ball(world, 6f, wheelCenter);
 
         this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
-        this.shop = new Shop(shapeRenderer, spriteBatch);
+        this.shop = new Shop(shapeRenderer, spriteBatch, game.getViewport());
+        this.inputMultiplexer.addProcessor(0, shop);
         this.quotaTracker = new QuotaTracker(shapeRenderer, spriteBatch, game.getRunState(), game.getRoundManager());
 
         //enterResultScreen(0, 0, 0, 0, 0);
@@ -113,7 +116,9 @@ public class GameScreen implements Screen {
     }
 
     private void handleWheelClick() {
-        if (!Gdx.input.justTouched() || ball.getState() != Ball.State.STOPPED) {
+        if (gameState != GameState.ROUND
+                || !Gdx.input.justTouched()
+                || ball.getState() != Ball.State.STOPPED) {
             return;
         }
 
@@ -221,6 +226,7 @@ public class GameScreen implements Screen {
         shop.render();
 
         handleUIInput();
+        handleDebugWinInput();
 
         quotaTracker.update(delta);
 
@@ -255,6 +261,7 @@ public class GameScreen implements Screen {
 
         if (gameState == GameState.ROUND) {
             quotaTracker.render();
+            renderDebugWinButton();
         }
         renderTicketCounter();
     }
@@ -306,6 +313,56 @@ public class GameScreen implements Screen {
 
         betButton.setSize(btnWidth, btnHeight);
         betButton.setPosition((screenWidth - btnWidth) / 2f, 0);
+    }
+
+    private void handleDebugWinInput() {
+        if (gameState != GameState.ROUND || !Gdx.input.justTouched()) {
+            return;
+        }
+
+        float touchX = Gdx.input.getX();
+        float touchY = Gdx.graphics.getHeight() - Gdx.input.getY();
+        if (!debugWinButton.contains(touchX, touchY)) {
+            return;
+        }
+
+        int quota = game.getRoundManager().getCurrentConfig().getQuota();
+        int missingChips = quota - game.getRunState().getChips();
+        if (missingChips > 0) {
+            game.getRunState().addChips(missingChips);
+        }
+        game.getRoundManager().advance();
+    }
+
+    private void renderDebugWinButton() {
+        float buttonWidth = 250f;
+        float buttonHeight = 55f;
+        float buttonX = 20f;
+        float buttonY = 75f;
+        debugWinButton.set(buttonX, buttonY, buttonWidth, buttonHeight);
+
+        Matrix4 previousShapeProjection = new Matrix4(shapeRenderer.getProjectionMatrix());
+        Matrix4 previousSpriteProjection = new Matrix4(spriteBatch.getProjectionMatrix());
+        Matrix4 previousSpriteTransform = new Matrix4(spriteBatch.getTransformMatrix());
+        Matrix4 screenProjection = new Matrix4().setToOrtho2D(
+                0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+        shapeRenderer.setProjectionMatrix(screenProjection);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0.65f, 0.25f, 0.25f, 1f);
+        shapeRenderer.rect(buttonX, buttonY, buttonWidth, buttonHeight);
+        shapeRenderer.end();
+
+        spriteBatch.setProjectionMatrix(screenProjection);
+        spriteBatch.setTransformMatrix(new Matrix4().idt());
+        spriteBatch.begin();
+        FontManager.getInstance().getFontByName("Placeholder")
+                .draw(spriteBatch, "DEBUG WIN", buttonX + 42f, buttonY + 35f);
+        spriteBatch.end();
+
+        shapeRenderer.setProjectionMatrix(previousShapeProjection);
+        spriteBatch.setProjectionMatrix(previousSpriteProjection);
+        spriteBatch.setTransformMatrix(previousSpriteTransform);
     }
 
     @Override

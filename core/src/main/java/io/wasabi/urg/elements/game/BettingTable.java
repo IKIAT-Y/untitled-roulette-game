@@ -167,6 +167,11 @@ public class BettingTable extends GameObject {
 
     @Override
     public void update(float delta) {
+        // Settlement clears logical bets in RunState. Remove their matching chip
+        // visuals so an old chip cannot look like a live bet on the next spin.
+        placedChips.removeIf(chip -> chip.getBet() != null
+                && !activeBets.contains(chip.getBet()));
+
         // Cheap change-detection placeholder until the roguelike layer has a proper
         // "pockets changed" event to push. Fine at the tile counts this game deals
         // with.

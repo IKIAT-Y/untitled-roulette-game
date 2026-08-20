@@ -11,4 +11,9 @@ public class OverweightSticker extends Card {
     public void roundStartEffect() {
         Roulette.getInstance().getGameScreen().getBall().setWeightMultiplier(WEIGHT_MULTIPLIER);
     }
+
+    @Override
+    public void removedEffect() {
+        Roulette.getInstance().getGameScreen().getBall().setWeightMultiplier(1f);
+    }
 }
