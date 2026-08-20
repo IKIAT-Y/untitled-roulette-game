@@ -6,8 +6,8 @@ public class Oneshot extends Card {
     public Oneshot() { super(Rarity.RARE); }
 
     @Override
-    public int getEffectTriggerMultiplier() {
-        return 2;
+    public int getAdditionalEffectTriggers() {
+        return 1;
     }
 
     @Override

@@ -160,6 +160,16 @@ public class Shop extends InputAdapter {
         if (!visible || draggedCard == null) return false;
         Vector2 world = screenToWorld(screenX, screenY);
         draggedCard.setPosition(world.x - dragOffset.x, world.y - dragOffset.y);
+
+        if (!draggingOffer) {
+            List<Card> ownedCards = runState.getOwnedCards();
+            int currentIndex = ownedCards.indexOf(draggedCard);
+            int closestIndex = CardLayout.getClosestIndex(
+                    draggedCard.getX(), ownedCards.size(), viewport.getWorldWidth());
+            if (closestIndex != currentIndex) {
+                runState.reorderCard(draggedCard, closestIndex);
+            }
+        }
         return true;
     }
 
@@ -211,7 +221,7 @@ public class Shop extends InputAdapter {
     private void sell(Card card) {
         if (runState.removeCard(card)) {
             runState.addTickets(card.getSellPrice());
-            Roulette.getInstance().returnCardToPool(card);
+            Roulette.getInstance().getCardPool().returnCard(card);
         }
     }
 
@@ -221,17 +231,17 @@ public class Shop extends InputAdapter {
         offers.clear();
         drawOffers();
         for (Card card : previousOffers) {
-            Roulette.getInstance().returnCardToPool(card);
+            Roulette.getInstance().getCardPool().returnCard(card);
         }
     }
 
     private void drawOffers() {
         int attempts = 0;
         while (offers.size() < OFFER_COUNT && attempts++ < 30) {
-            Card card = Roulette.getInstance().getRandomCard();
+            Card card = Roulette.getInstance().getCardPool().getRandomCard();
             if (card == null) break;
             if (runState.ownsCardType(card)) {
-                Roulette.getInstance().returnCardToPool(card);
+                Roulette.getInstance().getCardPool().returnCard(card);
                 continue;
             }
             offers.add(card);
@@ -239,7 +249,7 @@ public class Shop extends InputAdapter {
     }
 
     private void returnOffersToPool() {
-        for (Card card : offers) Roulette.getInstance().returnCardToPool(card);
+        for (Card card : offers) Roulette.getInstance().getCardPool().returnCard(card);
         offers.clear();
     }
 

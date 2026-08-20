@@ -297,10 +297,12 @@ public final class RunState {
     }
 
     private int getCardEffectTriggerCount() {
-        int triggerCount = 1;
+        int additionalTriggers = 0;
+        int triggerMultiplier = 1;
         for (Card card : ownedCards) {
-            triggerCount *= card.getEffectTriggerMultiplier();
+            additionalTriggers += card.getAdditionalEffectTriggers();
+            triggerMultiplier *= card.getEffectTriggerMultiplier();
         }
-        return triggerCount;
+        return (1 + additionalTriggers) * triggerMultiplier;
     }
 }

@@ -1,17 +1,14 @@
 package io.wasabi.urg;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.charm.BlackCharm;
 import io.wasabi.urg.elements.charm.RedCharm;
 import io.wasabi.urg.managers.FontManager;
+import io.wasabi.urg.managers.CardPool;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.RoundManager;
 import io.wasabi.urg.managers.SoundManager;
@@ -30,9 +27,7 @@ public class Roulette extends Game {
     private final RoundManager roundManager = new RoundManager(runState);
     private final SoundManager soundManager = SoundManager.getInstance();
 
-    private List<Card> commonCards = new ArrayList<>();
-    private List<Card> uncommonCards = new ArrayList<>();
-    private List<Card> rareCards = new ArrayList<>();
+    private CardPool cardPool;
 
     // Renderers
     private RendererManager rendererManager;
@@ -65,12 +60,12 @@ public class Roulette extends Game {
         soundManager.initialize();
         TextureManager.getInstance().initialize();
 
-        initializeCardPool();
+        cardPool = new CardPool();
 
         runState.reset(100);
 
         // Card testing
-        runState.addCard(getRandomCard());
+        runState.addCard(cardPool.getRandomCard());
 
         // Charm testing
         runState.addCharm(new BlackCharm());
@@ -82,106 +77,6 @@ public class Roulette extends Game {
         this.setScreen(this.gameScreen);
 
         roundManager.startRound();
-    }
-
-    private void initializeCardPool() {
-        // Common Cards
-        commonCards.add(new io.wasabi.urg.elements.card.ExtraChange());
-        commonCards.add(new io.wasabi.urg.elements.card.ExtraCredit());
-        commonCards.add(new io.wasabi.urg.elements.card.BlackCard());
-        commonCards.add(new io.wasabi.urg.elements.card.GreenCard());
-        commonCards.add(new io.wasabi.urg.elements.card.OddCard());
-        commonCards.add(new io.wasabi.urg.elements.card.Jackpot());
-        commonCards.add(new io.wasabi.urg.elements.card.GoldenTicket());
-        commonCards.add(new io.wasabi.urg.elements.card.OverweightSticker());
-
-        // Uncommon Cards
-        uncommonCards.add(new io.wasabi.urg.elements.card.AllIn());
-        uncommonCards.add(new io.wasabi.urg.elements.card.FourLeafClover());
-        uncommonCards.add(new io.wasabi.urg.elements.card.LuckyTalisman());
-        uncommonCards.add(new io.wasabi.urg.elements.card.Ouroboros());
-
-        // Rare Cards
-        rareCards.add(new io.wasabi.urg.elements.card.Infinite());
-        rareCards.add(new io.wasabi.urg.elements.card.MysteriousFragment());
-        rareCards.add(new io.wasabi.urg.elements.card.Oneshot());
-    }
-
-    public Card getRandomCard() {
-        // 5% chance for rare 25% chance for uncommon 70% chance for common
-        // Moves down in rarity if the pool is empty for that rarity
-        double roll = Math.random();
-
-        if (roll < 0.05 && !rareCards.isEmpty()) {
-            return getRareCard();
-        } else if (roll < 0.3 && !uncommonCards.isEmpty()) {
-            return getUncommonCard();
-        } else if (!commonCards.isEmpty()) {
-            return getCommonCard();
-        } else if (!uncommonCards.isEmpty()) {
-            return getUncommonCard();
-        } else if (!rareCards.isEmpty()) {
-            return getRareCard();
-        }
-        return null;
-    }
-
-    public Card getCommonCard() {
-        if (commonCards.isEmpty()) {
-            return null; // might need to add more error handling
-        }
-        int index = (int) (Math.random() * commonCards.size());
-
-        Card card = commonCards.get(index);
-        commonCards.remove(index);
-        return card;
-    }
-
-    public Card getUncommonCard() {
-        if (uncommonCards.isEmpty()) {
-            return null;
-        }
-        int index = (int) (Math.random() * uncommonCards.size());
-
-        Card card = uncommonCards.get(index);
-        uncommonCards.remove(index);
-        return card;
-    }
-
-    public Card getRareCard() {
-        if (rareCards.isEmpty()) {
-            return null;
-        }
-        int index = (int) (Math.random() * rareCards.size());
-
-        Card card = rareCards.get(index);
-        rareCards.remove(index);
-        return card;
-    }
-
-    public void returnCardToPool(Card card) {
-        if (card == null) {
-            return;
-        }
-
-        List<Card> pool;
-        switch (card.getRarity()) {
-            case COMMON:
-                pool = commonCards;
-                break;
-            case UNCOMMON:
-                pool = uncommonCards;
-                break;
-            case RARE:
-                pool = rareCards;
-                break;
-            default:
-                throw new IllegalStateException("Unknown card rarity");
-        }
-
-        if (!pool.contains(card)) {
-            pool.add(card);
-        }
     }
 
     @Override
@@ -229,5 +124,9 @@ public class Roulette extends Game {
 
     public RoundManager getRoundManager() {
         return roundManager;
+    }
+
+    public CardPool getCardPool() {
+        return cardPool;
     }
 }
