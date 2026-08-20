@@ -17,6 +17,7 @@ public class RoundManager {
     private static final int TOTAL_ACTS = 3;
     private static final int BASE_TICKET_REWARD = 20;
     private static final int TICKETS_PER_UNUSED_SPIN = 2;
+    private static final int STARTING_CHIPS = 100;
 
     private int act = 1;
     private int round = 1;
@@ -34,7 +35,17 @@ public class RoundManager {
         initializeBossPool();
     }
 
+    public void reset() {
+        act = 1;
+        round = 1;
+        spinsRemaining = SPINS_PER_ROUND;
+        gameOver = false;
+        runComplete = false;
+    }
+
     private void initializeBossPool() {
+        act1Bosses.clear();
+
         // Act 1
         act1Bosses.add(new Bartender());
         act1Bosses.add(new Gamer());
@@ -84,6 +95,8 @@ public class RoundManager {
         } else {
             runState.setBoss(null);
         }
+
+        runState.setChips(STARTING_CHIPS);
         runState.triggerEffects("roundStart");
         printQuotaStatus();
     }
@@ -108,7 +121,7 @@ public class RoundManager {
         if (runState.getChips() >= currentConfig.getQuota()) {
             System.out.println("winner");
             advance();
-        } else if (spinsRemaining <= 0) {
+        } else if (spinsRemaining <= 0 || runState.getChips() == 0) {
             System.out.println("loser");
             gameOver();
         }
@@ -139,6 +152,9 @@ public class RoundManager {
     public void gameOver() {
         gameOver = true;
         System.out.println("Game over: quota not reached.");
+        if (Roulette.getInstance().getGameScreen() != null) {
+            Roulette.getInstance().getGameScreen().showGameOver();
+        }
     }
     // Temporary fixed numbers we will have to change depending on how much we are planning to make the upgrades.
     public void awardTickets() {
