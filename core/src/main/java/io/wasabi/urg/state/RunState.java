@@ -7,6 +7,7 @@ import com.badlogic.gdx.utils.IntArray;
 
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.elements.betting.Bet;
+import io.wasabi.urg.elements.boss.Boss;
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.charm.AbstractCharm;
 import io.wasabi.urg.elements.game.Tile;
@@ -23,6 +24,8 @@ public final class RunState {
     private final List<Card> ownedCards = new ArrayList<>();
     private final List<AbstractCharm> ownedCharms = new ArrayList<>();
     private final IntArray chipHistory = new IntArray();
+
+    private Boss boss = null; // The current boss for the run, if any.
 
     // Must live here to persist across screens.
     private final List<Bet> activeBets = new ArrayList<>();
@@ -236,26 +239,46 @@ public final class RunState {
         return totalPayout;
     }
 
-    public void triggerCardEffects(String effectType) {
+    public void setBoss(Boss boss) {
+        this.boss = boss;
+    }
+
+    public Boss getBoss() {
+        return boss;
+    }
+
+    public void triggerEffects(String effectType) {
         switch (effectType) {
             case "roundStart":
                 for (Card card : ownedCards) {
                     card.roundStartEffect();
+                }
+                if (boss != null) {
+                    boss.roundStartEffect();
                 }
                 break;
             case "beforeSpin":
                 for (Card card : ownedCards) {
                     card.beforeSpinEffect();
                 }
+                if (boss != null) {
+                    boss.beforeSpinEffect();
+                }
                 break;
             case "afterSpin":
                 for (Card card : ownedCards) {
                     card.afterSpinEffect();
                 }
+                if (boss != null) {
+                    boss.afterSpinEffect();
+                }
                 break;
             case "roundEnd":
                 for (Card card : ownedCards) {
                     card.roundEndEffect();
+                }
+                if (boss != null) {
+                    boss.roundEndEffect();
                 }
                 break;
             default:

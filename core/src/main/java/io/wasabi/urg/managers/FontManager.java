@@ -19,6 +19,7 @@ public class FontManager {
     // Fonts
     private Map<String, String> fontPaths = new HashMap<String, String>() {{
         put("Placeholder", "fonts/placeholder.fnt");
+        put("Terminus64PXBold", "fonts/terminus64pxBold.fnt");
     }};
 
     private Map<String, BitmapFont> fonts = new HashMap<>();

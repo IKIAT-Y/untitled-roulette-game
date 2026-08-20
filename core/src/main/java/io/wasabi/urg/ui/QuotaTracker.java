@@ -12,12 +12,13 @@ import io.wasabi.urg.elements.betting.Bet;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RoundManager;
 import io.wasabi.urg.state.RunState;
+import io.wasabi.urg.util.tweens.Tween;
 
 /** Displays the current round quota and animates the vertical quota progress bar. */
 public final class QuotaTracker {
-    private static final float BAR_X = 42f;
+    private static float BAR_X = 22f;
     private static final float BAR_Y = 62f;
-    private static final float BAR_WIDTH = 78f;
+    private static final float BAR_WIDTH = 40f;
     private static final float BAR_HEIGHT_PADDING = 124f;
     private static final float BAR_BORDER = 12f;
     private static final float TEXT_X_OFFSET = 35f;
@@ -29,6 +30,7 @@ public final class QuotaTracker {
     private static final float BLUE_R = 0.20f;
     private static final float BLUE_G = 0.60f;
     private static final float BLUE_B = 0.85f;
+    private static final float OFFSCREEN_X = -778f;
 
     private final ShapeRenderer shapeRenderer;
     private final SpriteBatch spriteBatch;
@@ -46,6 +48,8 @@ public final class QuotaTracker {
     private int lastQuota = -1;
     private boolean spinStarted = false;
 
+    private Tween tween;
+
     public QuotaTracker(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, RunState runState, RoundManager roundManager) {
         this.shapeRenderer = shapeRenderer;
         this.spriteBatch = spriteBatch;
@@ -55,7 +59,7 @@ public final class QuotaTracker {
 
     /** Advances the bar towards the player's current quota progress. */
     public void update(float delta) {
-        
+
         int quota = roundManager.getCurrentConfig().getQuota();
         int chips = getAvailableChips();
 
@@ -82,6 +86,10 @@ public final class QuotaTracker {
         if (targetProgress >= 1f && displayedProgress > 0.999f) {
             displayedProgress = 1f;
         }
+
+        if (tween != null && !tween.isComplete()) {
+            BAR_X = tween.update(delta);
+        }
     }
 
     public void onSpinStarted() {
@@ -94,7 +102,7 @@ public final class QuotaTracker {
     if (spinStarted) {
         for (Bet bet : runState.getActiveBets()) {
             chips -= bet.getAmount();
-            
+
         }
     }
 
@@ -173,7 +181,7 @@ public final class QuotaTracker {
         font.draw(spriteBatch, "$" + chips + " / $" + quota, textX, textY - 38f);
 
         // Percentage uses exactly the same blue as the progress bar.
-        font.setColor(BLUE_R, BLUE_G, BLUE_B, 1f); 
+        font.setColor(BLUE_R, BLUE_G, BLUE_B, 1f);
         font.draw(spriteBatch, percentage + "%", textX, textY - 76f);
 
         spriteBatch.end();
@@ -182,5 +190,7 @@ public final class QuotaTracker {
         font.getData().setScale(oldScaleX, oldScaleY);
         font.setColor(1f, 1f, 1f, 1f);
     }
-   
+
+    public void hide() { tween = new Tween(1f, BAR_X, OFFSCREEN_X, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN); }
+    public void show() { tween = new Tween(1f, BAR_X, 22f, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT); }
 }

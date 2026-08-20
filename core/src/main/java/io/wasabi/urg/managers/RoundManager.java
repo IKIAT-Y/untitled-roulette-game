@@ -1,8 +1,14 @@
 package io.wasabi.urg.managers;
 
 import io.wasabi.urg.Roulette;
+import io.wasabi.urg.elements.boss.Bartender;
+import io.wasabi.urg.elements.boss.Boss;
+import io.wasabi.urg.elements.boss.Gamer;
 import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.state.RunState;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RoundManager {
     // Change as needed
@@ -20,9 +26,36 @@ public class RoundManager {
     private boolean runComplete;
     private final RunState runState;
 
+    private final List<Boss> act1Bosses = new ArrayList<Boss>();
+
     public RoundManager(RunState runState) {
         this.runState = runState;
         this.currentConfig = buildConfig();
+        initializeBossPool();
+    }
+
+    private void initializeBossPool() {
+        // Act 1
+        act1Bosses.add(new Bartender());
+        act1Bosses.add(new Gamer());
+    }
+
+    private Boss selectRandomBossForAct(int act) {
+        List<Boss> bossPool;
+        if (act == 1) {
+            bossPool = act1Bosses;
+        } else {
+            bossPool = new ArrayList<>();
+        }
+
+        if (!bossPool.isEmpty()) {
+            int randomIndex = (int) (Math.random() * bossPool.size());
+            Boss selectedBoss = bossPool.get(randomIndex);
+            bossPool.remove(randomIndex);
+            return selectedBoss;
+        } else {
+            return null;
+        }
     }
 
     private RoundConfig buildConfig() {
@@ -44,7 +77,14 @@ public class RoundManager {
 
         spinsRemaining = SPINS_PER_ROUND;
         currentConfig = buildConfig();
-        runState.triggerCardEffects("roundStart");
+
+        if (currentConfig.isBossRound()) {
+            Boss boss = selectRandomBossForAct(act);
+            runState.setBoss(boss);
+        } else {
+            runState.setBoss(null);
+        }
+        runState.triggerEffects("roundStart");
         printQuotaStatus();
     }
 
@@ -58,7 +98,7 @@ public class RoundManager {
         if (lastTile != null) {
             lastTile.onLanded();
         }
-        runState.triggerCardEffects("afterSpin");
+        runState.triggerEffects("afterSpin");
         printQuotaStatus();
 
         // Temp Debug for checking quota and spins remaining
@@ -75,7 +115,7 @@ public class RoundManager {
     }
 
     public void advance() {
-        runState.triggerCardEffects("roundEnd");
+        runState.triggerEffects("roundEnd");
         runState.recordRoundBalance();
 
         // Reset tile multiplier for the next round
@@ -109,7 +149,7 @@ public class RoundManager {
             "Quota complete: awarded " + ticketsAwarded
                 + " tickets. Total tickets: " + runState.getTickets()
         );
-        
+
     }
 
 // temporary way to check whether the quota has been reached or not, will be replaced with a proper UI later
@@ -127,6 +167,8 @@ public class RoundManager {
     public int getSpinsRemaining() { return spinsRemaining; }
     public void setSpinsRemaining(int spinsRemaining) { this.spinsRemaining = spinsRemaining; }
     public int getAct() { return act; }
+    public void setAct(int act) { this.act = act; }
+    public void setRound(int round) { this.round = round; }
     public int getRound() { return round; }
     public boolean isGameOver() { return gameOver; }
     public boolean isRunComplete() { return runComplete; }

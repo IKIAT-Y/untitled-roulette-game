@@ -67,7 +67,7 @@ public class Roulette extends Game {
 
         initializeCardPool();
 
-        runState.reset(100);
+        runState.reset(10000);
 
         // Card testing
         runState.addCard(getRandomCard());
@@ -83,6 +83,8 @@ public class Roulette extends Game {
         this.bettingScreen = new BettingScreen(this);
 
         this.setScreen(this.gameScreen);
+
+        roundManager.setRound(5);
 
         roundManager.startRound();
     }
