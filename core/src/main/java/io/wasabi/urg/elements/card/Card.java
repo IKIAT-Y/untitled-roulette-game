@@ -1,10 +1,14 @@
 package io.wasabi.urg.elements.card;
 
+import java.util.EnumMap;
+
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.TextureManager;
+import io.wasabi.urg.ui.Tooltip;
 import io.wasabi.urg.util.tweens.Tween;
 
 public abstract class Card extends GameObject {
@@ -13,7 +17,14 @@ public abstract class Card extends GameObject {
         COMMON, UNCOMMON, RARE
     }
 
+    private EnumMap<Rarity, Integer> rarityColours = new EnumMap<Rarity, Integer>(Rarity.class) {{
+        put(Rarity.COMMON, 0x007aabFF);
+        put(Rarity.UNCOMMON, 0x00a629FF);
+        put(Rarity.RARE, 0xa61300FF);
+    }};
+
     protected Rarity cardRarity;
+    protected Tooltip tooltip = new Tooltip(100, 90, true);
     private Texture sprite;
     private float x, y;
     private float width, height;
@@ -33,6 +44,7 @@ public abstract class Card extends GameObject {
         this.width = 96;
         this.height = 128;
 
+        tooltip.addType(rarity.toString(), Color.WHITE, new Color(rarityColours.get(rarity)));
         loadSprite();
     }
 
@@ -59,6 +71,8 @@ public abstract class Card extends GameObject {
         if (tweenY != null && !tweenY.isComplete()) {
             y = tweenY.update(delta);
         }
+
+        updateTooltipPosition();
     }
 
     @Override
@@ -87,10 +101,14 @@ public abstract class Card extends GameObject {
 
     public float getX() { return x; }
     public float getY() { return y; }
-    public void setPosition(float x, float y) { this.x = x; this.y = y; }
+    public void setPosition(float x, float y) {
+        this.x = x; this.y = y;
+        updateTooltipPosition();
+    }
     public float getWidth() { return width; }
     public float getHeight() { return height; }
     public boolean isDragging() { return dragging; }
+    public Tooltip getTooltip() { return tooltip; }
 
     public void setDragging(boolean dragging) {
         boolean wasDragging = this.dragging;
@@ -99,5 +117,9 @@ public abstract class Card extends GameObject {
         if (wasDragging && !dragging) {
             hasTarget = false;
         }
+    }
+
+    public void updateTooltipPosition() {
+        tooltip.setPosition(x + width + 5, y + height / 2);
     }
 }

@@ -1,15 +1,15 @@
 package io.wasabi.urg.managers;
 
+import java.util.List;
+
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.elements.card.Card;
-import io.wasabi.urg.ui.CardLayout;
 import io.wasabi.urg.state.RunState;
-
-import java.util.List;
+import io.wasabi.urg.ui.CardLayout;
 
 public class CardInputHandler extends InputAdapter {
     private final RunState runState;
@@ -35,6 +35,23 @@ public class CardInputHandler extends InputAdapter {
                 draggedCard.setDragging(true);
                 dragOffset.set(world.x - card.getX(), world.y - card.getY());
                 return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        Vector2 world = screenToWorld(screenX, screenY);
+
+        List<Card> cards = runState.getOwnedCards();
+        for (int i = cards.size() - 1; i >= 0; i--) {
+            Card card = cards.get(i);
+            if (card.contains(world.x, world.y)) {
+                card.getTooltip().show();
+                return true;
+            } else {
+                card.getTooltip().hide();
             }
         }
         return false;
