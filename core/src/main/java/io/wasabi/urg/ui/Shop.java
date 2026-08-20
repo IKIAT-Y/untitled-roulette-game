@@ -62,14 +62,14 @@ public class Shop extends InputAdapter {
         drawOffers();
         visible = true;
         continueRequested = false;
-        y = OFFSCREEN_Y;
+        //y = OFFSCREEN_Y;
         tween = new Tween(1f, OFFSCREEN_Y, 0f, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
     }
 
     public void hide() {
         returnOffersToPool();
         draggedCard = null;
-        y = 0f;
+        //y = 0f;
         tween = new Tween(1f, y, OFFSCREEN_Y, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
     }
 

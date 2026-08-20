@@ -75,6 +75,17 @@ public class Tile extends GameObject {
         update();
     }
 
+    public void dispose() {
+        if (fretTex != null) {
+            fretTex.dispose();
+            fretTex = null;
+        }
+        if (body != null) {
+            world.destroyBody(body);
+            body = null;
+        }
+    }
+
     private void build() {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyType.KinematicBody;

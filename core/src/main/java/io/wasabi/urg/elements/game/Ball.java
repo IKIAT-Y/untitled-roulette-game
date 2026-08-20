@@ -21,6 +21,7 @@ import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.state.RunState;
+import io.wasabi.urg.util.tweens.Tween;
 
 public class Ball extends GameObject {
 
@@ -44,30 +45,23 @@ public class Ball extends GameObject {
 
     // Used to track when to switch states
     private final Vector2 wheelCenter;
-    private float outerTrackRadius;
     private float innerWheelRadius;
+    private float outerTrackRadius;
 
     // Used for fixed spinning in SPINNING AND DROPPING states
     private float currentAngleRad = 0f;
     private float currentRadius = 0f;
 
-    // How fast the ball moves radially inward during DROPPING
-    private float radialDropSpeed = 250f;
-
     // Used during Spin state
     private State state = State.STOPPED;
     private float tangentialSpeed = 0f;
 
-    private float decelerationFactor = 0.5f;
-    private float dropDecelerationFactor = 0.2f;
-
-    // Speed to enter DROPPING state
-    private float dropSpeedThreshold = 400f;
-
-    // Speed to enter SETTLE state
-    private float settleSpeedThreshold = 10f;
-    private float settleTimeRequired = 0.5f;
+    private Tween dropTween;
     private float settleTimer = 0f;
+    private float lowSpeedTimer = 0f;
+
+    // Visibility
+    private boolean visible = false;
 
     // Used to cap the frame time between frames so a huge lag spike doesn't kill
     // the physics
@@ -199,45 +193,66 @@ public class Ball extends GameObject {
         ball.setTransform(pos, 0f);
     }
 
+    private void applyTangentialDamping() {
+        Vector2 radialDir = new Vector2(wheelCenter).sub(ball.getPosition()).nor();
+        Vector2 tangentDir = new Vector2(-radialDir.y, radialDir.x);
+
+        Vector2 vel = ball.getLinearVelocity();
+        float radialComp = vel.dot(radialDir);
+        float tangentComp = vel.dot(tangentDir);
+
+        float tangentialDampingPerSecond = 0.6f;
+        float dampingThisFrame = 1f - (float) Math.pow(1f - tangentialDampingPerSecond, FIXED_TIMESTEP);
+        tangentComp *= (1f - dampingThisFrame);
+
+        Vector2 newVel = radialDir.scl(radialComp).add(tangentDir.scl(tangentComp));
+        ball.setLinearVelocity(newVel);
+    }
+
     private void updateSpinning(float delta) {
-        // Angular velocity from the current tangential speed and radius.
         float angularVelocity = tangentialSpeed / currentRadius;
         currentAngleRad += angularVelocity * delta;
 
         setPositionFromPolar(currentAngleRad, currentRadius);
 
-        // Used power of delta because value is being multiplied
+        float decelerationFactor = 0.5f;
         tangentialSpeed *= (float) Math.pow(decelerationFactor, delta);
 
-        // Switch state once it drops below a certain speed
+        // Speed to enter DROPPING state
+        float dropSpeedThreshold = 400f;
         if (tangentialSpeed <= dropSpeedThreshold) {
+            float targetRadius = innerWheelRadius - (2 * radius);
+            // tune this — how long the drop takes
+            float dropDuration = 0.6f;
+            dropTween = new Tween(dropDuration, currentRadius, targetRadius,
+                Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
             state = State.DROPPING;
         }
     }
 
     private void updateDropping(float delta) {
-        // Same as SPINNING state but radius decrease over time
         float angularVelocity = tangentialSpeed / currentRadius;
         currentAngleRad += angularVelocity * delta;
-        currentRadius -= radialDropSpeed * delta;
+
+        float previousRadius = currentRadius;
+        currentRadius = dropTween.update(delta);
+        // derived each frame, used for exit velocity
+        float dropRadialSpeed = (previousRadius - currentRadius) / delta; // inward = positive
 
         setPositionFromPolar(currentAngleRad, currentRadius);
 
-        // Different deceleration factor to SPINNING state
+        float dropDecelerationFactor = 0.2f;
         tangentialSpeed *= (float) Math.pow(dropDecelerationFactor, delta);
 
-        if (currentRadius <= innerWheelRadius - (2 * radius)) {
-            // Here we calculate the velocity the ball would have
-            // at this position and give it the ball before switching
-            // to using Box2D for bouncing physics
+        if (dropTween.isComplete() || currentRadius <= innerWheelRadius - (2 * radius)) {
             Vector2 tangentDir = new Vector2(
-                    -(float) Math.sin(currentAngleRad),
-                    (float) Math.cos(currentAngleRad));
+                -(float) Math.sin(currentAngleRad),
+                (float) Math.cos(currentAngleRad));
             Vector2 radialOutDir = new Vector2(
-                    (float) Math.cos(currentAngleRad),
-                    (float) Math.sin(currentAngleRad));
+                (float) Math.cos(currentAngleRad),
+                (float) Math.sin(currentAngleRad));
             Vector2 exitVelocity = tangentDir.scl(tangentialSpeed)
-                    .add(radialOutDir.scl(-radialDropSpeed));
+                .add(radialOutDir.scl(-dropRadialSpeed));
             ball.setLinearVelocity(exitVelocity);
 
             state = State.BOUNCING;
@@ -249,41 +264,60 @@ public class Ball extends GameObject {
         Vector2 toCenter = new Vector2(wheelCenter).sub(ball.getPosition());
         Vector2 radialInward = toCenter.cpy().nor();
 
-        // Apply inwards force to simulate gravity from slope
-        float bowlPullMag = ball.getMass() * 1000f;
+        float bowlPullMag = ball.getMass() * 700f;
         ball.applyForceToCenter(radialInward.scl(bowlPullMag), true);
 
-        // Damp the linear velocity of the ball
         float bounceDampingPerSecond = 0.25f;
         float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP);
         Vector2 vel = ball.getLinearVelocity();
         ball.setLinearVelocity(
-                vel.x * (1f - dampingThisFrame),
-                vel.y * (1f - dampingThisFrame));
+            vel.x * (1f - dampingThisFrame),
+            vel.y * (1f - dampingThisFrame));
 
-        System.out.println("Bouncing speed: " + ball.getLinearVelocity().len());
+        applyTangentialDamping();
 
-        // When reaching a low enough speed switch to settle state
         float speed = ball.getLinearVelocity().len();
+
+        // Speed to enter SETTLE state
+        float settleSpeedThreshold = 50f;
         if (speed <= settleSpeedThreshold) {
-            settleTimer = 0f;
-            state = State.SETTLING;
+            lowSpeedTimer += FIXED_TIMESTEP;
+
+            // must stay slow this long before settling
+            float lowSpeedTimeRequired = 0.5f;
+            if (lowSpeedTimer >= lowSpeedTimeRequired) {
+                settleTimer = 0f;
+                state = State.SETTLING;
+            }
+        } else {
+            lowSpeedTimer = 0f;
         }
     }
 
     private void updateSettling() {
-        // While settling apply large damping to put it to a complete stop
+        float speed = ball.getLinearVelocity().len();
+
+        // Got knocked again (e.g. rolled off a fret) — go back to real bounce physics
+        // speed that means "still actually bouncing"
+        float bounceResumeThreshold = 60f;
+        if (speed > bounceResumeThreshold) {
+            lowSpeedTimer = 0f;
+            state = State.BOUNCING;
+            return;
+        }
+
         float bounceDampingPerSecond = 0.99f;
         float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP);
+
+        applyTangentialDamping();
+
         Vector2 vel = ball.getLinearVelocity();
         ball.setLinearVelocity(
-                vel.x * (1f - dampingThisFrame),
-                vel.y * (1f - dampingThisFrame));
+            vel.x * (1f - dampingThisFrame),
+            vel.y * (1f - dampingThisFrame));
 
-        System.out.println("Settling speed: " + ball.getLinearVelocity().len());
-
-        // After a fixed amount of time assume fully settled
         settleTimer += Ball.FIXED_TIMESTEP;
+        float settleTimeRequired = 0.5f;
         if (settleTimer >= settleTimeRequired) {
             finalizeStop();
         }
@@ -352,13 +386,17 @@ public class Ball extends GameObject {
 
     @Override
     public void render() {
-        SHAPE_RENDERER.begin(ShapeType.Filled);
-        SHAPE_RENDERER.circle(
+        if (visible) {
+            SHAPE_RENDERER.begin(ShapeType.Filled);
+            SHAPE_RENDERER.circle(
                 ball.getPosition().x,
                 ball.getPosition().y,
                 radius);
-        SHAPE_RENDERER.end();
+            SHAPE_RENDERER.end();
+        }
     }
+
+    public void setVisible(boolean visible) { this.visible = visible; }
 
     @Override
     public void dispose() {

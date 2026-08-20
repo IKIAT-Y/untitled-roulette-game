@@ -37,6 +37,11 @@ public final class RunState {
         return chips;
     }
 
+    public void setChips(int chips) {
+        requireNonNegative(chips, "chips");
+        this.chips = chips;
+    }
+
     public void addChips(int amount) {
         requireNonNegative(amount, "amount");
         chips += amount;
@@ -187,7 +192,10 @@ public final class RunState {
         chips = startingChips;
         score = 0;
         tickets = 0;
-        tiles.clear();
+        lastTile = null;
+        activeTooltip = null;
+        boss = null;
+        activeBets.clear();
         ownedCards.clear();
         ownedCharms.clear();
         chipHistory.clear();
