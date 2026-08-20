@@ -24,6 +24,7 @@ import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.ui.Tooltip;
 
 public class Tile extends GameObject {
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
@@ -35,7 +36,6 @@ public class Tile extends GameObject {
 
     private final World world;
 
-    private int number;
     private float size = 1; // multiplier
     private TileType type;
 
@@ -56,10 +56,9 @@ public class Tile extends GameObject {
     private Body body; // for frets
     private Fixture fret;
 
-    public Tile(World world, TileType type, int number, Vector2 position, float radius, float height) {
+    public Tile(World world, TileType type, Vector2 position, float radius, float height) {
         this.world = world;
 
-        this.number = number;
         this.position = position;
         this.radius = radius;
         this.height = height;
@@ -127,6 +126,10 @@ public class Tile extends GameObject {
         fontTransform.setToTrnRotRadScl(fontPos, fontRot + radians / 2 + MathUtils.PI / 2, new Vector2(0.4f, 0.4f));
         fontMatrix4.set(fontTransform);
 
+        type.getTooltip().setPosition(
+                x + (r1 + height + 50) * MathUtils.cos(rot + radians / 2),
+                y + (r1 + height + 50) * MathUtils.sin(rot + radians / 2));
+
         fontMatrix4.scale(2f, 2f, 1);
 
         for (int i = 0; i < segments; i++) {
@@ -186,7 +189,7 @@ public class Tile extends GameObject {
         SPRITE_BATCH.begin();
         previousSpriteTransform.set(SPRITE_BATCH.getTransformMatrix());
         SPRITE_BATCH.setTransformMatrix(fontMatrix4);
-        FONT.draw(SPRITE_BATCH, Integer.toString(number), 0, 0, 16, Align.center, true);
+        FONT.draw(SPRITE_BATCH, Integer.toString(type.getNumber()), 0, 0, 16, Align.center, true);
         SPRITE_BATCH.setTransformMatrix(previousSpriteTransform);
         SPRITE_BATCH.end();
     }
@@ -195,9 +198,13 @@ public class Tile extends GameObject {
         type.onLanded();
     }
 
+    public Tooltip getTooltip() {
+        return type.getTooltip();
+    }
+
     public float getSize() { return size; }
     public PolygonRegion getRegion() { return type.getRegion(); }
-    public int getNumber() { return number; }
+    public int getNumber() { return type.getNumber(); }
 
     public void setPosition(Vector2 position) {
         this.position = position;

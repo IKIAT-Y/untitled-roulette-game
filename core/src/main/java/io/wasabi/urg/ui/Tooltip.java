@@ -64,7 +64,6 @@ public class Tooltip {
     }
 
     private boolean visible = false;
-    private boolean inScreen = false;
     private float x, y;
     private float anchorX, anchorY;
     private float width, height;
@@ -83,37 +82,30 @@ public class Tooltip {
     private Line description = new Line(font_12px, "");
     private List<Line> types = new ArrayList<>();
 
-    // visual properties
-    private boolean titleHasBackground = true;
+    // visual changes
+    private boolean descVisible = true;
 
-    public Tooltip(float anchorX, float anchorY, boolean titleHasBackground) {
+    public Tooltip(float anchorX, float anchorY) {
         patch = new NinePatch(TEXTURE, 10, 10, 10, 10);
         //tex.dispose();
 
         this.anchorX = anchorX;
         this.anchorY = anchorY;
-        this.titleHasBackground = titleHasBackground;
     }
 
     public void setPosition(float x, float y) {
         this.x = x;
         this.y = y;
-        checkIfOnScreen();
+    }
+
+    public void setDescriptionVisible(boolean bool) {
+        descVisible = bool;
+        updateSizes();
     }
 
     public void setAnchorPoints(float x, float y, boolean skipCheck) {
         this.anchorX = x;
         this.anchorY = y;
-        if (!skipCheck) { checkIfOnScreen(); }
-    }
-
-    private void checkIfOnScreen() {
-        float cX = x - width * anchorX;
-        float cY = y - height * anchorY;
-
-        float worldWidth = VIEWPORT.getWorldWidth();
-        float worldHeight = VIEWPORT.getWorldHeight();
-        inScreen = (cX + width < 0) || (cX > worldWidth) || (cY - height < 0) || (cY > worldHeight);
     }
 
     public void setTitle(String text) {
@@ -146,9 +138,12 @@ public class Tooltip {
     private void updateSizes() {
         GlyphLayout titleLayout = title.update(width, false);
         width = titleLayout.width + fontPaddingX * 2 + innerPadding * 2 + padding * 2;
+        height = titleLayout.height + fontPaddingY * 2 + innerPadding * 2 + padding * 2;
 
-        GlyphLayout descriptionLayout = description.update(titleLayout.width, true);
-        height = titleLayout.height + descriptionLayout.height + fontPaddingY * 4 + innerPadding * 2 + padding * 2 + elementPadding;
+        if (descVisible) {
+            GlyphLayout descriptionLayout = description.update(titleLayout.width, true);
+            height += descriptionLayout.height + fontPaddingY * 2 + elementPadding;
+        }
 
         for (Line line : types) {
             height += elementPadding;
@@ -181,8 +176,8 @@ public class Tooltip {
             float cX = x - width * anchorX;
             float cY = y - height * anchorY;
 
-            float patchX = cX + innerPadding;
-            float patchTextX = cX + innerPadding + fontPaddingX;
+            float patchX = cX + innerPadding + padding;
+            float patchTextX = cX + innerPadding + fontPaddingX + padding;
             // drop shadow
             SPRITE_BATCH.setColor(0.10f, 0.10f, 0.13f, 1f);
             patch.draw(SPRITE_BATCH, cX, cY - padding, width, height);
@@ -195,19 +190,23 @@ public class Tooltip {
             SPRITE_BATCH.setColor(0.10f, 0.10f, 0.13f, 1f);
             patch.draw(SPRITE_BATCH, cX + padding, cY + padding, width - padding * 2, height - padding * 2);
 
-            float innerWidth = width - innerPadding * 2;
+            float innerWidth = width - innerPadding * 2 - padding * 2;
             float lineHeight = title.getLineHeight() + fontPaddingY * 2;
             float titleY = cY + height - lineHeight - innerPadding;
             // title
             SPRITE_BATCH.setColor(1, 1, 1, 1);
-            if (titleHasBackground) { patch.draw(SPRITE_BATCH, patchX, titleY, innerWidth, lineHeight); }
+            patch.draw(SPRITE_BATCH, patchX, titleY, innerWidth, lineHeight);
             title.draw(patchTextX, titleY, innerWidth - fontPaddingX * 2, lineHeight);
 
             // description
             float descHeight = description.getLayout().height + fontPaddingY * 2;
             float descY = titleY - descHeight - elementPadding;
-            patch.draw(SPRITE_BATCH, patchX, descY, innerWidth, descHeight);
-            description.draw(patchTextX, descY, innerWidth - fontPaddingX * 2, descHeight);
+            if (descVisible) {
+                patch.draw(SPRITE_BATCH, patchX, descY, innerWidth, descHeight);
+                description.draw(patchTextX, descY, innerWidth - fontPaddingX * 2, descHeight);
+            } else {
+                descY = titleY - elementPadding;
+            }
 
             float typesY = descY;
             for (Line line : types) {
@@ -223,6 +222,4 @@ public class Tooltip {
             SPRITE_BATCH.end();
         }
     }
-
-    public boolean isOnScreen() { return inScreen; }
 }

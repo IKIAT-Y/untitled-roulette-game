@@ -71,7 +71,8 @@ public class Wheel {
             } else {
                 type.setColour(TileType.TileColour.RED);
             }
-            Tile tile = new Tile(world, type, WHEEL_NUMBER_ORDER[i], position, radius, tileSize);
+            type.setNumber(WHEEL_NUMBER_ORDER[i]);
+            Tile tile = new Tile(world, type, position, radius, tileSize);
             tiles.add(tile);
         }
 

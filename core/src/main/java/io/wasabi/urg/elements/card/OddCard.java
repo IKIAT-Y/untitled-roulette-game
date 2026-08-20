@@ -5,7 +5,7 @@ import java.util.List;
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.game.Tile;
 
-public class OddCard extends Card{
+public class OddCard extends Card {
 
     public OddCard() {
         super(Rarity.COMMON);

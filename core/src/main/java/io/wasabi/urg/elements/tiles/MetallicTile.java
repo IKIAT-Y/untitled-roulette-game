@@ -1,6 +1,7 @@
 package io.wasabi.urg.elements.tiles;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.PolygonRegion;
@@ -13,6 +14,9 @@ public class MetallicTile extends TileType {
     public MetallicTile() {
         super();
         this.betMultiplier = 1.5f;
+        tooltip.setDescriptionVisible(true);
+        tooltip.setDescription("Gain [RED]1.5x [BLACK]winnings from this tile");
+        tooltip.addType("METALLIC", Color.WHITE, new Color(0x999999FF));
 
         metallicTexture = new Texture(Gdx.files.internal("tiles/MetallicTile.png"));
         metallicTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.Repeat);

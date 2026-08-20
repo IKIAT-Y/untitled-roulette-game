@@ -24,7 +24,7 @@ public abstract class Card extends GameObject {
     }};
 
     protected Rarity cardRarity;
-    protected Tooltip tooltip = new Tooltip(0.5f, 1, true);
+    protected Tooltip tooltip = new Tooltip(0.5f, 1);
     private Texture sprite;
     private float x, y;
     private float width, height;
