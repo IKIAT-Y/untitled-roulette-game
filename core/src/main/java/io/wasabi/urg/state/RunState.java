@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.IntArray;
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.elements.betting.Bet;
 import io.wasabi.urg.elements.card.Card;
+import io.wasabi.urg.elements.charm.AbstractCharm;
 import io.wasabi.urg.elements.game.Tile;
 
 /** Stores the player's progress and inventory for the current run. */
@@ -20,7 +21,7 @@ public final class RunState {
 
     private final List<Tile> tiles = new ArrayList<>();
     private final List<Card> ownedCards = new ArrayList<>();
-    private final List<GameObject> ownedCharms = new ArrayList<>();
+    private final List<AbstractCharm> ownedCharms = new ArrayList<>();
     private final IntArray chipHistory = new IntArray();
 
     // Must live here to persist across screens.
@@ -116,8 +117,17 @@ public final class RunState {
         return ownedCards;
     }
 
-    public void addCharm(GameObject charm) {
+    public void addCharm(AbstractCharm charm) {
         addUnique(ownedCharms, charm);
+    }
+
+    public void reorderCharm(AbstractCharm charm, int newIndex) {
+        if (!ownedCharms.contains(charm)) {
+            return;
+        }
+        ownedCharms.remove(charm);
+        newIndex = Math.max(0, Math.min(newIndex, ownedCharms.size()));
+        ownedCharms.add(newIndex, charm);
     }
 
     public boolean removeCharm(GameObject charm) {
@@ -131,7 +141,7 @@ public final class RunState {
         return ownedCharms.contains(charm);
     }
 
-    public List<GameObject> getOwnedCharms() {
+    public List<AbstractCharm> getOwnedCharms() {
         return ownedCharms;
     }
 
