@@ -135,6 +135,11 @@ public class Tooltip {
         updateSizes();
     }
 
+    public void removeType(String text) {
+        types.removeIf(line -> line.text.equals(text));
+        updateSizes();
+    }
+
     private void updateSizes() {
         GlyphLayout titleLayout = title.update(width, false);
         width = titleLayout.width + fontPaddingX * 2 + innerPadding * 2 + padding * 2;
