@@ -14,6 +14,7 @@ import io.wasabi.urg.elements.card.GreenCard;
 import io.wasabi.urg.elements.card.Infinite;
 import io.wasabi.urg.elements.card.Jackpot;
 import io.wasabi.urg.elements.card.LuckyTalisman;
+import io.wasabi.urg.elements.card.MysteriousFragment;
 import io.wasabi.urg.elements.card.OddCard;
 import io.wasabi.urg.elements.card.Oneshot;
 import io.wasabi.urg.elements.card.Ouroboros;
@@ -39,6 +40,7 @@ public final class CardPool {
         uncommonCards.add(new Ouroboros());
 
         rareCards.add(new Infinite());
+        rareCards.add(new MysteriousFragment());
         rareCards.add(new Oneshot());
     }
 

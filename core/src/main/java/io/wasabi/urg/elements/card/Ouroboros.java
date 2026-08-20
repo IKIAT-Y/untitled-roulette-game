@@ -15,9 +15,20 @@ public class Ouroboros extends Card {
 
     @Override
     public void afterSpinEffect() {
+        if (boostedTile != null) {
+            boostedTile.removeIndicator(Tile.Indicator.OUROBOROS);
+        }
         boostedTile = Roulette.getInstance().getRunState().getLastTile();
+        if (boostedTile != null) {
+            boostedTile.addIndicator(Tile.Indicator.OUROBOROS);
+        }
     }
 
     @Override
-    public void roundEndEffect() { boostedTile = null; }
+    public void roundEndEffect() {
+        if (boostedTile != null) {
+            boostedTile.removeIndicator(Tile.Indicator.OUROBOROS);
+            boostedTile = null;
+        }
+    }
 }

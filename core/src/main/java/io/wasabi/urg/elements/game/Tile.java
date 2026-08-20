@@ -1,5 +1,10 @@
 package io.wasabi.urg.elements.game;
 
+import java.util.EnumSet;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -7,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.PolygonRegion;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Affine2;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
@@ -26,9 +32,20 @@ import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 
 public class Tile extends GameObject {
+    public enum Indicator {
+        GOLD,
+        VOID,
+        OUROBOROS
+    }
+
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
     private static final PolygonSpriteBatch POLY_BATCH = RENDERER_MANAGER.getPolygonSpriteBatch();
     private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
+    private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
+    // RGBA values use 0-1 ranges: red, green, blue, alpha.
+    private static final Color GOLD_OVERLAY_COLOR = new Color(255f / 255f, 215f / 255f, 0f, 1f);
+    private static final Color VOID_RIM_COLOR = new Color(0.65f, 0.15f, 0.9f, 1f);
+    private static final Color OUROBOROS_ARROW_COLOR = new Color(0.1f, 0.9f, 1f, 1f);
 
     private static final FontManager FONT_MANAGER = FontManager.getInstance();
     private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Placeholder");
@@ -55,6 +72,7 @@ public class Tile extends GameObject {
 
     private Body body; // for frets
     private Fixture fret;
+    private final EnumSet<Indicator> indicators = EnumSet.noneOf(Indicator.class);
 
     public Tile(World world, TileType type, int number, Vector2 position, float radius, float height) {
         this.world = world;
@@ -179,9 +197,13 @@ public class Tile extends GameObject {
 
         type.drawOverlay();
 
+        renderIndicatorEffects();
+
         POLY_BATCH.begin();
         POLY_BATCH.draw(fretRegion, 0, 0);
         POLY_BATCH.end();
+
+        renderIndicatorOutlines();
 
         SPRITE_BATCH.begin();
         previousSpriteTransform.set(SPRITE_BATCH.getTransformMatrix());
@@ -189,6 +211,98 @@ public class Tile extends GameObject {
         FONT.draw(SPRITE_BATCH, Integer.toString(number), 0, 0, 16, Align.center, true);
         SPRITE_BATCH.setTransformMatrix(previousSpriteTransform);
         SPRITE_BATCH.end();
+    }
+
+    private void renderIndicatorEffects() {
+        PolygonRegion region = type.getRegion();
+        if (region == null) {
+            return;
+        }
+
+        float[] vertices = region.getVertices();
+        if (indicators.contains(Indicator.GOLD)) {
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            SHAPE_RENDERER.begin(ShapeRenderer.ShapeType.Filled);
+            SHAPE_RENDERER.setColor(GOLD_OVERLAY_COLOR);
+            for (int i = 0; i + 7 < vertices.length; i += 4) {
+                float middleAX = (vertices[i] + vertices[i + 2]) / 2f;
+                float middleAY = (vertices[i + 1] + vertices[i + 3]) / 2f;
+                float middleBX = (vertices[i + 4] + vertices[i + 6]) / 2f;
+                float middleBY = (vertices[i + 5] + vertices[i + 7]) / 2f;
+                SHAPE_RENDERER.triangle(
+                        middleAX, middleAY,
+                        vertices[i + 2], vertices[i + 3],
+                        vertices[i + 6], vertices[i + 7]);
+                SHAPE_RENDERER.triangle(
+                        middleAX, middleAY,
+                        vertices[i + 6], vertices[i + 7],
+                        middleBX, middleBY);
+            }
+            SHAPE_RENDERER.end();
+            Gdx.gl.glDisable(GL20.GL_BLEND);
+        }
+
+    }
+
+    private void renderIndicatorOutlines() {
+        PolygonRegion region = type.getRegion();
+        if (region == null) {
+            return;
+        }
+
+        float[] vertices = region.getVertices();
+        if (indicators.contains(Indicator.VOID) || indicators.contains(Indicator.OUROBOROS)) {
+            Gdx.gl.glLineWidth(7f);
+            SHAPE_RENDERER.begin(ShapeRenderer.ShapeType.Line);
+
+            if (indicators.contains(Indicator.VOID)) {
+                SHAPE_RENDERER.setColor(VOID_RIM_COLOR);
+                for (int i = 0; i + 7 < vertices.length; i += 4) {
+                    float middleAX = (vertices[i] + vertices[i + 2]) / 2f;
+                    float middleAY = (vertices[i + 1] + vertices[i + 3]) / 2f;
+                    float middleBX = (vertices[i + 4] + vertices[i + 6]) / 2f;
+                    float middleBY = (vertices[i + 5] + vertices[i + 7]) / 2f;
+                    SHAPE_RENDERER.line(
+                            vertices[i + 2], vertices[i + 3],
+                            vertices[i + 6], vertices[i + 7]);
+                    SHAPE_RENDERER.line(middleAX, middleAY, middleBX, middleBY);
+                }
+
+                int lastOuter = vertices.length - 2;
+                float firstMiddleX = (vertices[0] + vertices[2]) / 2f;
+                float firstMiddleY = (vertices[1] + vertices[3]) / 2f;
+                float lastMiddleX = (vertices[vertices.length - 4] + vertices[lastOuter]) / 2f;
+                float lastMiddleY = (vertices[vertices.length - 3] + vertices[lastOuter + 1]) / 2f;
+                SHAPE_RENDERER.line(firstMiddleX, firstMiddleY, vertices[2], vertices[3]);
+                SHAPE_RENDERER.line(lastMiddleX, lastMiddleY,
+                        vertices[lastOuter], vertices[lastOuter + 1]);
+            }
+
+            if (indicators.contains(Indicator.OUROBOROS)) {
+                drawOuroborosArrow(vertices);
+            }
+
+            SHAPE_RENDERER.end();
+            Gdx.gl.glLineWidth(1f);
+        }
+    }
+
+    private void drawOuroborosArrow(float[] vertices) {
+        int lastOuter = vertices.length - 2;
+        Vector2 outerMiddle = new Vector2(
+                (vertices[2] + vertices[lastOuter]) / 2f,
+                (vertices[3] + vertices[lastOuter + 1]) / 2f);
+        Vector2 outward = new Vector2(outerMiddle).sub(position).nor();
+        Vector2 tip = new Vector2(outerMiddle).mulAdd(outward, 3f);
+        Vector2 tail = new Vector2(tip).mulAdd(outward, 34f);
+        Vector2 arrowBase = new Vector2(tip).mulAdd(outward, 12f);
+        Vector2 perpendicular = new Vector2(-outward.y, outward.x).scl(7f);
+
+        SHAPE_RENDERER.setColor(OUROBOROS_ARROW_COLOR);
+        SHAPE_RENDERER.line(tail, tip);
+        SHAPE_RENDERER.line(tip, new Vector2(arrowBase).add(perpendicular));
+        SHAPE_RENDERER.line(tip, new Vector2(arrowBase).sub(perpendicular));
     }
 
     public void onLanded() {
@@ -229,4 +343,6 @@ public class Tile extends GameObject {
     public float getBetMultiplier() { return type.getBetMultiplier(); }
     public TileType.TileColour getColor() { return type.getColour(); }
     public void setColor(TileType.TileColour color) { type.setColour(color); }
+    public void addIndicator(Indicator indicator) { indicators.add(indicator); }
+    public void removeIndicator(Indicator indicator) { indicators.remove(indicator); }
 }

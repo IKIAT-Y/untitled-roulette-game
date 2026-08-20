@@ -19,6 +19,9 @@ public class GoldenTicket extends Card {
         int roundNumber = Roulette.getInstance().getRoundManager().getOverallRoundNumber();
         if (roundNumber != activeRound) {
             activeRound = roundNumber;
+            for (Tile tile : enchantedTiles) {
+                tile.removeIndicator(Tile.Indicator.GOLD);
+            }
             enchantedTiles.clear();
         }
 
@@ -26,6 +29,9 @@ public class GoldenTicket extends Card {
         tiles.removeAll(enchantedTiles);
         Collections.shuffle(tiles);
         enchantedTiles.addAll(tiles.subList(0, Math.min(ENCHANTED_TILE_COUNT, tiles.size())));
+        for (Tile tile : enchantedTiles) {
+            tile.addIndicator(Tile.Indicator.GOLD);
+        }
     }
 
     @Override
@@ -33,5 +39,13 @@ public class GoldenTicket extends Card {
         if (enchantedTiles.contains(Roulette.getInstance().getRunState().getLastTile())) {
             Roulette.getInstance().getRunState().addTickets(4);
         }
+    }
+
+    @Override
+    public void roundEndEffect() {
+        for (Tile tile : enchantedTiles) {
+            tile.removeIndicator(Tile.Indicator.GOLD);
+        }
+        enchantedTiles.clear();
     }
 }

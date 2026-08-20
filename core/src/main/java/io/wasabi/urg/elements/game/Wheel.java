@@ -165,6 +165,7 @@ public class Wheel {
         update();
 
         SHAPE_RENDERER.begin(ShapeType.Line);
+        SHAPE_RENDERER.setColor(1f, 1f, 1f, 1f);
         Gdx.gl.glLineWidth(2);
         SHAPE_RENDERER.circle(position.x, position.y, r1);
         SHAPE_RENDERER.circle(position.x, position.y, r2);

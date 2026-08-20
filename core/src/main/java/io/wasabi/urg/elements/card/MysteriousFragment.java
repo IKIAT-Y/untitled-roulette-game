@@ -27,6 +27,7 @@ public class MysteriousFragment extends Card {
         if (!tiles.isEmpty()) {
             Tile voidTile = tiles.get(MathUtils.random(tiles.size() - 1));
             voidTile.setBetMultiplier(voidTile.getBetMultiplier() * 3f);
+            voidTile.addIndicator(Tile.Indicator.VOID);
             voidTiles.add(voidTile);
         }
     }
@@ -35,6 +36,7 @@ public class MysteriousFragment extends Card {
     public void afterSpinEffect() {
         Tile landedTile = Roulette.getInstance().getRunState().getLastTile();
         if (voidTiles.remove(landedTile)) {
+            landedTile.removeIndicator(Tile.Indicator.VOID);
             Roulette.getInstance().getRunState().removeTile(landedTile);
         }
     }
@@ -43,6 +45,7 @@ public class MysteriousFragment extends Card {
     public void roundEndEffect() {
         for (Tile voidTile : voidTiles) {
             voidTile.setBetMultiplier(voidTile.getBetMultiplier() / 3f);
+            voidTile.removeIndicator(Tile.Indicator.VOID);
         }
         voidTiles.clear();
     }
