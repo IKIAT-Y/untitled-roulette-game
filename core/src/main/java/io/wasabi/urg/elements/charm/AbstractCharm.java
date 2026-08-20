@@ -1,6 +1,5 @@
 package io.wasabi.urg.elements.charm;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 
 import io.wasabi.urg.elements.GameObject;
@@ -12,6 +11,7 @@ import io.wasabi.urg.util.tweens.Tween;
 public class AbstractCharm extends GameObject{
 
     private Texture texture;
+    private Texture outlineTexture;
     private float x, y;
     private float width, height;
     private boolean dragging = false;
@@ -42,6 +42,8 @@ public class AbstractCharm extends GameObject{
      */
     private void loadSprite() {
         this.texture = TextureManager.getInstance().getTexture(getClass().getSimpleName(), "charm");
+
+        this.outlineTexture = TextureManager.getInstance().getTexture("CharmOutline", "charm");
     }
 
     public void roundStartEffect() {}
@@ -79,17 +81,7 @@ public class AbstractCharm extends GameObject{
     // Method to render outline
     // called when charm is over wheel
     public void renderOutline() {
-        com.badlogic.gdx.graphics.g2d.SpriteBatch batch = RendererManager.getInstance().getSpriteBatch();
-        Color previousColor = batch.getColor();
-        batch.setColor(Color.WHITE);
-        for (int offsetX = -2; offsetX <= 2; offsetX++) {
-            for (int offsetY = -2; offsetY <= 2; offsetY++) {
-                if (offsetX != 0 || offsetY != 0) {
-                    batch.draw(texture, x + offsetX, y + offsetY, width, height);
-                }
-            }
-        }
-        batch.setColor(previousColor);
+        RendererManager.getInstance().getSpriteBatch().draw(outlineTexture, x, y, width, height);
     }
 
     public boolean contains(float worldX, float worldY) {
