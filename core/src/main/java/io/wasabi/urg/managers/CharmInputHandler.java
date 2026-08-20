@@ -8,19 +8,23 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.elements.charm.AbstractCharm;
+import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.ui.CharmLayout;
 
 public class CharmInputHandler extends InputAdapter {
     private final RunState runState;
     private final Viewport viewport;
+    private final Wheel wheel;
 
     private AbstractCharm draggedCharm;
     private final Vector2 dragOffset = new Vector2();
+    private boolean hoveringWheel;
 
-    public CharmInputHandler(RunState runState, Viewport viewport) {
+    public CharmInputHandler(RunState runState, Viewport viewport, Wheel wheel) {
         this.runState = runState;
         this.viewport = viewport;
+        this.wheel = wheel;
     }
 
     @Override
@@ -46,6 +50,7 @@ public class CharmInputHandler extends InputAdapter {
 
         Vector2 world = screenToWorld(screenX, screenY);
         draggedCharm.setPosition(world.x - dragOffset.x, world.y - dragOffset.y);
+        hoveringWheel = wheel.containsPoint(world);
 
         // Reorder the hand live so other cards shift to make space
         List<AbstractCharm> charms = runState.getOwnedCharms();
@@ -63,9 +68,20 @@ public class CharmInputHandler extends InputAdapter {
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         if (draggedCharm == null) return false;
 
-        draggedCharm.setDragging(false);
+        AbstractCharm charm = draggedCharm;
+        Vector2 world = screenToWorld(screenX, screenY);
+        charm.setDragging(false);
         draggedCharm = null;
+        hoveringWheel = false;
+
+        if (wheel.containsPoint(world) && runState.removeCharm(charm)) {
+            charm.activate();
+        }
         return true;
+    }
+
+    public boolean isHoveringWheel(AbstractCharm charm) {
+        return draggedCharm == charm && hoveringWheel;
     }
 
     private Vector2 screenToWorld(int screenX, int screenY) {

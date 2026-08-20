@@ -12,7 +12,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 
@@ -28,7 +27,13 @@ import io.wasabi.urg.managers.CharmInputHandler;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
-import io.wasabi.urg.ui.*;
+import io.wasabi.urg.ui.CardLayout;
+import io.wasabi.urg.ui.CharmLayout;
+import io.wasabi.urg.ui.QuotaTracker;
+import io.wasabi.urg.ui.RoundInfoPanel;
+import io.wasabi.urg.ui.RoundResult;
+import io.wasabi.urg.ui.Shop;
+import io.wasabi.urg.ui.Tooltip;
 
 
 public class GameScreen implements Screen {
@@ -64,9 +69,9 @@ public class GameScreen implements Screen {
     private RoundInfoPanel roundInfoPanel;
 
     // Handlers
-    private CardInputHandler cardInputHandler = new CardInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
-    private CharmInputHandler charmInputHandler = new CharmInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
-    private InputMultiplexer inputMultiplexer = new InputMultiplexer(cardInputHandler, charmInputHandler);
+    private CardInputHandler cardInputHandler;
+    private CharmInputHandler charmInputHandler;
+    private InputMultiplexer inputMultiplexer;
 
     // Betting
     private Texture betButtonTexture;
@@ -88,6 +93,9 @@ public class GameScreen implements Screen {
 
         this.wheel = new Wheel(world, wheelCenter, this::spin);
         this.ball = new Ball(world, 6f, wheelCenter);
+        this.cardInputHandler = new CardInputHandler(game.getRunState(), game.getViewport());
+        this.charmInputHandler = new CharmInputHandler(game.getRunState(), game.getViewport(), wheel);
+        this.inputMultiplexer = new InputMultiplexer(cardInputHandler, charmInputHandler);
 
         this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
         this.shop = new Shop(shapeRenderer, spriteBatch, game.getViewport());
@@ -231,6 +239,9 @@ public class GameScreen implements Screen {
             Vector2 slot = CharmLayout.getSlotPosition(i, charms.size(), worldWidth);
             c.setTargetPosition(slot.x, slot.y);
             c.update(delta);
+            if (charmInputHandler.isHoveringWheel(c)) {
+                c.renderOutline();
+            }
             c.render();
         }
 

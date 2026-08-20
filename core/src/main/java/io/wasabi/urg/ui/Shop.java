@@ -153,7 +153,7 @@ public class Shop extends InputAdapter {
                 return true;
             }
         }
-        return true;
+        return false;
     }
 
     @Override
