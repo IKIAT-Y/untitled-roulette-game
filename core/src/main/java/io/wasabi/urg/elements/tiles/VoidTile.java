@@ -50,21 +50,14 @@ public class VoidTile extends TileType {
         renderer.begin(ShapeRenderer.ShapeType.Line);
         renderer.setColor(RIM_COLOR);
         for (int i = 0; i + 7 < vertices.length; i += 4) {
-            float middleAX = (vertices[i] + vertices[i + 2]) / 2f;
-            float middleAY = (vertices[i + 1] + vertices[i + 3]) / 2f;
-            float middleBX = (vertices[i + 4] + vertices[i + 6]) / 2f;
-            float middleBY = (vertices[i + 5] + vertices[i + 7]) / 2f;
+            renderer.line(vertices[i], vertices[i + 1], vertices[i + 4], vertices[i + 5]);
             renderer.line(vertices[i + 2], vertices[i + 3], vertices[i + 6], vertices[i + 7]);
-            renderer.line(middleAX, middleAY, middleBX, middleBY);
         }
 
         int lastOuter = vertices.length - 2;
-        float firstMiddleX = (vertices[0] + vertices[2]) / 2f;
-        float firstMiddleY = (vertices[1] + vertices[3]) / 2f;
-        float lastMiddleX = (vertices[vertices.length - 4] + vertices[lastOuter]) / 2f;
-        float lastMiddleY = (vertices[vertices.length - 3] + vertices[lastOuter + 1]) / 2f;
-        renderer.line(firstMiddleX, firstMiddleY, vertices[2], vertices[3]);
-        renderer.line(lastMiddleX, lastMiddleY, vertices[lastOuter], vertices[lastOuter + 1]);
+        renderer.line(vertices[0], vertices[1], vertices[2], vertices[3]);
+        renderer.line(vertices[vertices.length - 4], vertices[vertices.length - 3],
+                vertices[lastOuter], vertices[lastOuter + 1]);
         renderer.end();
         Gdx.gl.glLineWidth(1f);
     }

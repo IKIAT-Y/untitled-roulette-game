@@ -20,9 +20,7 @@ import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Align;
 
-import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
-import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
@@ -189,9 +187,6 @@ public class Tile extends GameObject {
         POLY_BATCH.end();
 
         type.drawOutline();
-        for (Card card : Roulette.getInstance().getRunState().getOwnedCards()) {
-            card.drawTileOutline(this);
-        }
 
         SPRITE_BATCH.begin();
         previousSpriteTransform.set(SPRITE_BATCH.getTransformMatrix());

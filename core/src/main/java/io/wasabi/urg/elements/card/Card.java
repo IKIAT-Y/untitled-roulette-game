@@ -74,7 +74,6 @@ public abstract class Card extends GameObject {
     public int getEffectTriggerMultiplier() { return 1; }
     public void afterCardEffects(String effectType) {}
     public void removedEffect() {}
-    public void drawTileOutline(Tile tile) {}
 
     @Override
     public void update(float delta) {

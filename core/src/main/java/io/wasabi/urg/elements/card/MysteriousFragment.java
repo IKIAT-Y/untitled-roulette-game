@@ -27,13 +27,4 @@ public class MysteriousFragment extends Card {
             voidTile.setType(new VoidTile(voidTile.getType(), voidTile));
         }
     }
-
-    @Override
-    public void roundEndEffect() {
-        for (Tile tile : Roulette.getInstance().getRunState().getTiles()) {
-            if (tile.getType() instanceof VoidTile) {
-                tile.setType(((VoidTile) tile.getType()).getOriginalType());
-            }
-        }
-    }
 }
