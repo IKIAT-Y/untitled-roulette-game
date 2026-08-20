@@ -21,6 +21,7 @@ import io.wasabi.urg.elements.betting.BetScreenButton;
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.charm.AbstractCharm;
 import io.wasabi.urg.elements.game.Ball;
+import io.wasabi.urg.elements.game.SpinButton;
 import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.managers.CardInputHandler;
 import io.wasabi.urg.managers.CharmInputHandler;
@@ -28,6 +29,7 @@ import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.*;
+
 
 public class GameScreen implements Screen {
     private final Roulette game;
@@ -84,7 +86,7 @@ public class GameScreen implements Screen {
 
         this.gameState = GameState.ROUND;
 
-        this.wheel = new Wheel(world, wheelCenter);
+        this.wheel = new Wheel(world, wheelCenter, this::spin);
         this.ball = new Ball(world, 6f, wheelCenter);
 
         this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
@@ -109,21 +111,6 @@ public class GameScreen implements Screen {
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
         wheel.spin(6.0f, -10f);
         quotaTracker.onSpinStarted();
-    }
-
-    private void handleWheelClick() {
-        if (gameState != GameState.ROUND
-                || !Gdx.input.justTouched()
-                || ball.getState() != Ball.State.STOPPED) {
-            return;
-        }
-
-        Vector3 touch = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0f);
-        game.getCamera().unproject(touch);
-
-        if (wheel.containsPoint(new Vector2(touch.x, touch.y))) {
-            spin();
-        }
     }
 
     private void handleUIInput() {
@@ -178,11 +165,28 @@ public class GameScreen implements Screen {
 
         // ShapeRenderer renders
         shapeRenderer.setColor(1f, 1f, 1f, 1f);
-        handleWheelClick();
         wheel.render(delta);
 
         ball.update(delta);
         ball.render();
+
+
+        // couple of checks if button can be pressed
+        SpinButton.State spinButtonState;
+
+        if (ball.getState() != Ball.State.STOPPED) {
+            spinButtonState = SpinButton.State.SPINNING;
+        } 
+        else if (game.getRunState().getActiveBets().isEmpty())
+             {
+            spinButtonState = SpinButton.State.NO_BET;
+        } 
+        else {
+            spinButtonState = SpinButton.State.READY;
+        }
+
+        wheel.updateSpinButton(spinButtonState, game.getCamera());
+
 
         // SpriteBatch renders
         updateBetButtonLayout();
