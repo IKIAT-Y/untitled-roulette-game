@@ -44,7 +44,7 @@ public class Wheel {
     private float radius;
     private float tileSize;
     private final SpinButton spinButton;
-    private boolean spinButtonEnabled;
+    private SpinButton.State spinButtonState = SpinButton.State.NO_BET;
 
     private final Body body;
 
@@ -66,6 +66,8 @@ public class Wheel {
         bodyDef.type = BodyType.KinematicBody;
         bodyDef.position.set(position);
         body = this.world.createBody(bodyDef);
+
+        tiles.clear();
 
         for (int i = 0; i < WHEEL_NUMBER_ORDER.length; i++) {
             TileType type = new DefaultTile();
@@ -153,11 +155,12 @@ public class Wheel {
         }
     }
 
-    public void updateSpinButton(boolean enabled, OrthographicCamera camera) {
-    spinButtonEnabled = enabled;
+    public void updateSpinButton(SpinButton.State state, OrthographicCamera camera) {
+
+    spinButtonState = state;
 
     spinButton.setPosition(position);
-    spinButton.update(enabled, camera);
+    spinButton.update(state, camera);
     }
 
     public void render(float delta) {
@@ -187,11 +190,7 @@ public class Wheel {
 
         spinButton.setPosition(position);
 
-        spinButton.draw(
-                spinButtonEnabled,
-                SHAPE_RENDERER,
-                SPRITE_BATCH,
-                FontManager.getInstance().getFontByName("Placeholder"));
+       spinButton.draw(spinButtonState, SHAPE_RENDERER, SPRITE_BATCH, FontManager.getInstance().getFontByName("Placeholder"));
 
     }
             

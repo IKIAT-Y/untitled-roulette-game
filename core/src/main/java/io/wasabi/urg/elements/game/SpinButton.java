@@ -14,8 +14,17 @@ import com.badlogic.gdx.math.Vector3;
 //Circular button drawn at the centre of the roulette wheel.*/
 public final class SpinButton {
 
-    private static final Color ENABLED_COLOR = Color.GREEN;
-    private static final Color DISABLED_COLOR = Color.RED;
+    public enum State {
+    NO_BET,
+    READY,
+    SPINNING
+    }
+    //green, bet available
+    private static final Color ENABLED_COLOR = new Color(0x81D681FF);
+    //red, bet not available
+    private static final Color DISABLED_COLOR = new Color(0xD68181FF);
+    //gray, bet in progress
+    private static final Color WAITING_COLOR = new Color(0xD3D3D3FF);
     private static final Color TEXT_COLOR = Color.BLACK;
 
     private final Vector2 center;
@@ -39,8 +48,8 @@ public final class SpinButton {
     }
 
     //Checks for a click only when the button is currently enabled.*/
-    public void update(boolean enabled, OrthographicCamera camera) {
-        if (!enabled || !Gdx.input.justTouched()) {
+    public void update(State state, OrthographicCamera camera) {
+        if (state != State.READY || !Gdx.input.justTouched()) {
             return;
         }
 
@@ -57,24 +66,40 @@ public final class SpinButton {
     }
 
     // Determines the colour of the button based on state.
-    public void draw(boolean enabled,ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, BitmapFont font) {
+    public void draw(State state, ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, BitmapFont font) {
 
-        // Save the colour that was being used before SpinButton changes it.
         Color previousShapeColor = shapeRenderer.getColor().cpy();
-
-        shapeRenderer.setColor(enabled ? ENABLED_COLOR : DISABLED_COLOR);
+        //Three states of colour the button can be in
+        if (state == State.READY) {
+            shapeRenderer.setColor(ENABLED_COLOR);
+        } 
+        else if (state == State.SPINNING) {
+            shapeRenderer.setColor(WAITING_COLOR);
+        } 
+        else {
+            shapeRenderer.setColor(DISABLED_COLOR);
+        }
 
         shapeRenderer.begin(ShapeType.Filled);
-        shapeRenderer.circle(center.x, center.y, radius);
+        shapeRenderer.circle(center.x, center.y,radius);
         shapeRenderer.end();
 
-        // Restore the old ShapeRenderer colour.
         shapeRenderer.setColor(previousShapeColor);
 
         Color previousColor = font.getColor().cpy();
+
         font.setColor(TEXT_COLOR);
 
-        textLayout.setText(font, enabled ? "SPIN" : "PLACE A BET TO SPIN");
+        //Text displayed on the button based on state.
+        if (state == State.READY) {
+            textLayout.setText(font, "SPIN");
+        } 
+        else if (state == State.SPINNING) {
+            textLayout.setText(font, "SPIN IN PROGRESS...");
+        } 
+        else {
+            textLayout.setText(font, "PLACE A BET TO SPIN");
+        }
 
         spriteBatch.begin();
 

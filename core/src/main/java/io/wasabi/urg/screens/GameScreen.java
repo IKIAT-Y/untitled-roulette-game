@@ -21,6 +21,7 @@ import io.wasabi.urg.elements.betting.BetScreenButton;
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.charm.AbstractCharm;
 import io.wasabi.urg.elements.game.Ball;
+import io.wasabi.urg.elements.game.SpinButton;
 import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.managers.CardInputHandler;
 import io.wasabi.urg.managers.CharmInputHandler;
@@ -171,9 +172,21 @@ public class GameScreen implements Screen {
 
 
         // couple of checks if button can be pressed
-        boolean canSpin = ball.getState() == Ball.State.STOPPED && !game.getRunState().getActiveBets().isEmpty();
+        SpinButton.State spinButtonState;
 
-        wheel.updateSpinButton(canSpin, game.getCamera());
+        if (ball.getState() != Ball.State.STOPPED) {
+            spinButtonState = SpinButton.State.SPINNING;
+        } 
+        else if (game.getRunState().getActiveBets().isEmpty())
+             {
+            spinButtonState = SpinButton.State.NO_BET;
+        } 
+        else {
+            spinButtonState = SpinButton.State.READY;
+        }
+
+        wheel.updateSpinButton(spinButtonState, game.getCamera());
+
 
         // SpriteBatch renders
         updateBetButtonLayout();
