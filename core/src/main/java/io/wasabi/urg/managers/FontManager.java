@@ -20,6 +20,8 @@ public class FontManager {
     private Map<String, String> fontPaths = new HashMap<String, String>() {{
         put("Placeholder", "fonts/placeholder.fnt");
         put("Terminus64PXBold", "fonts/terminus64pxBold.fnt");
+        put("Terminus16PXBold", "fonts/terminus16pxBold.fnt");
+        put("Terminus12PXBold", "fonts/terminus12pxBold.fnt");
     }};
 
     private Map<String, BitmapFont> fonts = new HashMap<>();
@@ -43,6 +45,7 @@ public class FontManager {
             // down (e.g. BettingTable shrinks it to fit inside a pocket cell) — set
             // once here rather than repeatedly by every draw call that uses it.
             font.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
+            font.getData().markupEnabled = true;
             fonts.put(entry.getKey(), font);
         }
     }

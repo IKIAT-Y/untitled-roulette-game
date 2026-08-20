@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.ui.Tooltip;
 
 public abstract class TileType {
     protected  static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
@@ -29,13 +30,15 @@ public abstract class TileType {
 
     protected float betMultiplier = 1.0f; // multiplier for bets on this tile
 
+    private int number;
+    protected Tooltip tooltip = new Tooltip(0.5f, 0.5f);
     protected Texture texture;
     protected TileColour colour;
     protected PolygonRegion region;
     protected float textureColor = Color.WHITE_FLOAT_BITS;
 
     public TileType() {
-
+        tooltip.setDescriptionVisible(false);
     }
 
     public void setColour(TileColour colour) {
@@ -48,6 +51,12 @@ public abstract class TileType {
         pix.fill();
         texture = new Texture(pix);
         pix.dispose();
+
+        updateTooltipTitle();
+    }
+
+    private void updateTooltipTitle() {
+        tooltip.setTitle(String.format("[#%08X]%s %d", tileColourMap.get(colour), colour.toString().toUpperCase(), number));
     }
 
     public void setRegion(float[] vertices, short[] indices) {
@@ -100,6 +109,12 @@ public abstract class TileType {
     public Texture getTexture() { return texture; }
     public PolygonRegion getRegion() { return region; }
     public TileColour getColour() { return colour; }
+    public int getNumber() { return number; }
+    public void setNumber(int number) {
+        this.number = number;
+        updateTooltipTitle();
+    }
+    public Tooltip getTooltip() { return tooltip; }
 
     public void setBetMultiplier(float betMultiplier) { this.betMultiplier = betMultiplier; }
     public float getBetMultiplier() { return betMultiplier; }

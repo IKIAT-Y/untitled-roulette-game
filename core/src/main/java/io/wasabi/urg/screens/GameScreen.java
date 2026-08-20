@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.World;
@@ -72,6 +73,7 @@ public class GameScreen implements Screen {
     private float baseWindowHeight;
     private float baseButtonWidth;
     private float baseButtonHeight;
+    private final Rectangle debugWinButton = new Rectangle();
 
     public GameScreen(final Roulette game) {
         this.game = game;
@@ -86,7 +88,8 @@ public class GameScreen implements Screen {
         this.ball = new Ball(world, 6f, wheelCenter);
 
         this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
-        this.shop = new Shop(shapeRenderer, spriteBatch);
+        this.shop = new Shop(shapeRenderer, spriteBatch, game.getViewport());
+        this.inputMultiplexer.addProcessor(0, shop);
         this.quotaTracker = new QuotaTracker(shapeRenderer, spriteBatch, game.getRunState(), game.getRoundManager());
         this.roundInfoPanel = new RoundInfoPanel(-700f, 250f);
 
@@ -109,7 +112,9 @@ public class GameScreen implements Screen {
     }
 
     private void handleWheelClick() {
-        if (!Gdx.input.justTouched() || ball.getState() != Ball.State.STOPPED) {
+        if (gameState != GameState.ROUND
+                || !Gdx.input.justTouched()
+                || ball.getState() != Ball.State.STOPPED) {
             return;
         }
 
@@ -141,6 +146,10 @@ public class GameScreen implements Screen {
         roundInfoPanel.hide();
         quotaTracker.hide();
         roundResult.show(quota, chips, baseReward, unusedSpinBonus, totalReward);
+    }
+
+    public Ball getBall() {
+        return ball;
     }
 
     private void enterShopScreen() {
@@ -187,6 +196,7 @@ public class GameScreen implements Screen {
         shop.render();
 
         handleUIInput();
+        handleDebugWinInput();
 
         quotaTracker.update(delta);
 
@@ -197,7 +207,7 @@ public class GameScreen implements Screen {
         batch.begin();
         batch.setTransformMatrix(new Matrix4().setToTranslation(0, 0, 0));
 
-        List<Card> cards = Roulette.getInstance().getRunState().getOwnedCards();
+        List<Card> cards = game.getRunState().getOwnedCards();
         float worldWidth = game.getViewport().getWorldWidth();
 
         for (int i = 0; i < cards.size(); i++) {
@@ -210,7 +220,7 @@ public class GameScreen implements Screen {
 
         // TEST CHARM
 
-         List<AbstractCharm> charms = Roulette.getInstance().getRunState().getOwnedCharms();
+         List<AbstractCharm> charms = game.getRunState().getOwnedCharms();
 
         for (int i = 0; i < charms.size(); i++) {
             AbstractCharm c = charms.get(i);
@@ -223,6 +233,15 @@ public class GameScreen implements Screen {
         batch.end();
 
         quotaTracker.render();
+        // render tooltip at very end
+        Tooltip activeTooltip = game.getRunState().getActiveTooltip();
+        if (activeTooltip != null) { activeTooltip.render(); }
+
+        if (gameState == GameState.ROUND) {
+            quotaTracker.render();
+            renderDebugWinButton();
+        }
+        renderTicketCounter();
     }
 
     @Override
@@ -272,6 +291,56 @@ public class GameScreen implements Screen {
 
         betButton.setSize(btnWidth, btnHeight);
         betButton.setPosition((screenWidth - btnWidth) / 2f, 0);
+    }
+
+    private void handleDebugWinInput() {
+        if (gameState != GameState.ROUND || !Gdx.input.justTouched()) {
+            return;
+        }
+
+        float touchX = Gdx.input.getX();
+        float touchY = Gdx.graphics.getHeight() - Gdx.input.getY();
+        if (!debugWinButton.contains(touchX, touchY)) {
+            return;
+        }
+
+        int quota = game.getRoundManager().getCurrentConfig().getQuota();
+        int missingChips = quota - game.getRunState().getChips();
+        if (missingChips > 0) {
+            game.getRunState().addChips(missingChips);
+        }
+        game.getRoundManager().advance();
+    }
+
+    private void renderDebugWinButton() {
+        float buttonWidth = 250f;
+        float buttonHeight = 55f;
+        float buttonX = 20f;
+        float buttonY = 75f;
+        debugWinButton.set(buttonX, buttonY, buttonWidth, buttonHeight);
+
+        Matrix4 previousShapeProjection = new Matrix4(shapeRenderer.getProjectionMatrix());
+        Matrix4 previousSpriteProjection = new Matrix4(spriteBatch.getProjectionMatrix());
+        Matrix4 previousSpriteTransform = new Matrix4(spriteBatch.getTransformMatrix());
+        Matrix4 screenProjection = new Matrix4().setToOrtho2D(
+                0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+        shapeRenderer.setProjectionMatrix(screenProjection);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0.65f, 0.25f, 0.25f, 1f);
+        shapeRenderer.rect(buttonX, buttonY, buttonWidth, buttonHeight);
+        shapeRenderer.end();
+
+        spriteBatch.setProjectionMatrix(screenProjection);
+        spriteBatch.setTransformMatrix(new Matrix4().idt());
+        spriteBatch.begin();
+        FontManager.getInstance().getFontByName("Placeholder")
+                .draw(spriteBatch, "DEBUG WIN", buttonX + 42f, buttonY + 35f);
+        spriteBatch.end();
+
+        shapeRenderer.setProjectionMatrix(previousShapeProjection);
+        spriteBatch.setProjectionMatrix(previousSpriteProjection);
+        spriteBatch.setTransformMatrix(previousSpriteTransform);
     }
 
     @Override

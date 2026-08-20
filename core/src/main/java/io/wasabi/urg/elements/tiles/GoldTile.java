@@ -19,9 +19,12 @@ public class GoldTile extends TileType {
 
     public GoldTile() {
         super();
-        this.betMultiplier = 1.5f;
         Color col = new Color(1f, 1f, 1f, 0.8f);
         this.textureColor = col.toFloatBits();
+
+        tooltip.setDescriptionVisible(true);
+        tooltip.setDescription("Gain 1 [#FFCB1FFF]TICKET [BLACK]when landed on");
+        tooltip.addType("GOLDEN", new Color(0xFFFFFFFF), new Color(0xFFCB1FFF));
 
         stripedTexture = new Texture(Gdx.files.internal("tiles/GoldTile.png"));
         stripedTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.Repeat);
