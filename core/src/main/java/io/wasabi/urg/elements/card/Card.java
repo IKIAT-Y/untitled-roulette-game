@@ -3,14 +3,22 @@ package io.wasabi.urg.elements.card;
 import com.badlogic.gdx.graphics.Texture;
 
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.TextureManager;
 import io.wasabi.urg.util.tweens.Tween;
 
 public abstract class Card extends GameObject {
 
-    protected enum Rarity {
-        COMMON, UNCOMMON, RARE
+    public enum Rarity {
+        // price in tickets
+        COMMON(10), UNCOMMON(15), RARE(20);
+
+        private final int price;
+
+        Rarity(int price) { this.price = price; }
+
+        public int getPrice() { return price; }
     }
 
     protected Rarity cardRarity;
@@ -49,6 +57,11 @@ public abstract class Card extends GameObject {
     public void beforeSpinEffect() {}
     public void afterSpinEffect() {}
     public void roundEndEffect() {}
+    public float getPayoutMultiplier(Tile winningTile, int totalStaked, int chipBalance) { return 1f; }
+    public int getAdditionalEffectTriggers() { return 0; }
+    public int getEffectTriggerMultiplier() { return 1; }
+    public void afterCardEffects(String effectType) {}
+    public void removedEffect() {}
 
     public void update(float delta) {
         if (dragging) return;
@@ -90,6 +103,10 @@ public abstract class Card extends GameObject {
     public void setPosition(float x, float y) { this.x = x; this.y = y; }
     public float getWidth() { return width; }
     public float getHeight() { return height; }
+    public Rarity getRarity() { return cardRarity; }
+    public int getPrice() { return cardRarity.getPrice(); }
+    public int getSellPrice() { return getPrice() / 2; }
+    public String getDisplayName() { return getClass().getSimpleName(); }
     public boolean isDragging() { return dragging; }
 
     public void setDragging(boolean dragging) {

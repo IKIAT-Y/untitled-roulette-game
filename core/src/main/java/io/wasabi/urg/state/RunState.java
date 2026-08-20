@@ -13,6 +13,7 @@ import io.wasabi.urg.elements.game.Tile;
 
 /** Stores the player's progress and inventory for the current run. */
 public final class RunState {
+    public static final int MAX_OWNED_CARDS = 4;
     private int chips;
     private int score;
     private int tickets;
@@ -89,12 +90,17 @@ public final class RunState {
         return tiles;
     }
 
-    public void addCard(Card card) {
-        addUnique(ownedCards, card);
+    public boolean addCard(Card card) {
+        if (card == null || ownedCards.size() >= MAX_OWNED_CARDS || ownsCardType(card)) {
+            return false;
+        }
+        ownedCards.add(card);
+        return true;
     }
 
     public boolean removeCard(Card card) {
         if (ownsCard(card)) {
+            card.removedEffect();
             return ownedCards.remove(card);
         }
         return false;
@@ -111,6 +117,22 @@ public final class RunState {
 
     public boolean ownsCard(Card card) {
         return ownedCards.contains(card);
+    }
+
+    public boolean ownsCardType(Card card) {
+        if (card == null) {
+            return false;
+        }
+        for (Card ownedCard : ownedCards) {
+            if (ownedCard.getClass() == card.getClass()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean canAddCard(Card card) {
+        return ownedCards.size() < MAX_OWNED_CARDS && !ownsCardType(card);
     }
 
     public List<Card> getOwnedCards() {
@@ -231,35 +253,56 @@ public final class RunState {
             totalPayout += bet.payout(lastTile);
         }
 
+        float payoutMultiplier = lastTile.getBetMultiplier();
+        int triggerCount = getCardEffectTriggerCount();
+        for (int trigger = 0; trigger < triggerCount; trigger++) {
+            for (Card card : ownedCards) {
+                payoutMultiplier *= card.getPayoutMultiplier(lastTile, totalStaked, chips);
+            }
+        }
+        totalPayout = Math.round(totalPayout * payoutMultiplier);
+
         chips = chips - totalStaked + totalPayout;
         activeBets.clear();
         return totalPayout;
     }
 
     public void triggerCardEffects(String effectType) {
-        switch (effectType) {
-            case "roundStart":
-                for (Card card : ownedCards) {
-                    card.roundStartEffect();
+        int triggerCount = getCardEffectTriggerCount();
+
+        for (int trigger = 0; trigger < triggerCount; trigger++) {
+            for (Card card : ownedCards) {
+                switch (effectType) {
+                    case "roundStart":
+                        card.roundStartEffect();
+                        break;
+                    case "beforeSpin":
+                        card.beforeSpinEffect();
+                        break;
+                    case "afterSpin":
+                        card.afterSpinEffect();
+                        break;
+                    case "roundEnd":
+                        card.roundEndEffect();
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unknown effect type: " + effectType);
                 }
-                break;
-            case "beforeSpin":
-                for (Card card : ownedCards) {
-                    card.beforeSpinEffect();
-                }
-                break;
-            case "afterSpin":
-                for (Card card : ownedCards) {
-                    card.afterSpinEffect();
-                }
-                break;
-            case "roundEnd":
-                for (Card card : ownedCards) {
-                    card.roundEndEffect();
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown effect type: " + effectType);
+            }
         }
+
+        for (Card card : ownedCards) {
+            card.afterCardEffects(effectType);
+        }
+    }
+
+    private int getCardEffectTriggerCount() {
+        int additionalTriggers = 0;
+        int triggerMultiplier = 1;
+        for (Card card : ownedCards) {
+            additionalTriggers += card.getAdditionalEffectTriggers();
+            triggerMultiplier *= card.getEffectTriggerMultiplier();
+        }
+        return (1 + additionalTriggers) * triggerMultiplier;
     }
 }
