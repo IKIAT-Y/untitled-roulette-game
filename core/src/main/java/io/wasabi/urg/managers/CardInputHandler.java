@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.elements.card.Card;
+import io.wasabi.urg.elements.charm.AbstractCharm;
 import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.ui.CardLayout;
@@ -35,7 +36,6 @@ public class CardInputHandler extends InputAdapter {
             if (card.contains(world.x, world.y)) {
                 draggedCard = card;
                 draggedCard.setDragging(true);
-                draggedCard.getTooltip().hide();
                 dragOffset.set(world.x - card.getX(), world.y - card.getY());
                 return true;
             }
@@ -74,6 +74,17 @@ public class CardInputHandler extends InputAdapter {
             }
         }
 
+        List<AbstractCharm> charms = runState.getOwnedCharms();
+        for (int i = charms.size() - 1; i >= 0; i--) {
+            AbstractCharm charm = charms.get(i);
+            if (charm.contains(world.x, world.y)) {
+                charm.getTooltip().show();
+                break;
+            } else {
+                charm.getTooltip().hide();
+            }
+        }
+
         return true;
     }
 
@@ -101,7 +112,6 @@ public class CardInputHandler extends InputAdapter {
         if (draggedCard == null) return false;
 
         draggedCard.setDragging(false);
-        draggedCard.getTooltip().show();
         draggedCard = null;
         return true;
     }

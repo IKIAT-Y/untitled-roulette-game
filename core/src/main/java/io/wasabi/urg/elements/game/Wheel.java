@@ -148,7 +148,6 @@ public class Wheel {
     public void render(float delta) {
         // placeholder render function
         float r1 = radius;
-        float r2 = radius + tileSize;
 
         if (wheelVelocityTween != null) {
             body.setAngularVelocity(wheelVelocityTween.update(delta));

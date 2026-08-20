@@ -119,6 +119,12 @@ public abstract class Card extends GameObject {
         boolean wasDragging = this.dragging;
         this.dragging = dragging;
 
+        if (dragging == true) {
+            tooltip.hide();
+        } else {
+            tooltip.show();
+        }
+
         if (wasDragging && !dragging) {
             hasTarget = false;
         }

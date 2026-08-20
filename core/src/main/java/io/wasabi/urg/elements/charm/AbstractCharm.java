@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Texture;
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.TextureManager;
+import io.wasabi.urg.ui.Tooltip;
 import io.wasabi.urg.util.tweens.Tween;
 
 public class AbstractCharm extends GameObject{
@@ -15,6 +16,7 @@ public class AbstractCharm extends GameObject{
     private boolean dragging = false;
     private float targetX, targetY;
     private boolean hasTarget = false;
+    private Tooltip tooltip = new Tooltip(0.5f, 1);
 
     private Tween tweenX;
     private Tween tweenY;
@@ -25,6 +27,9 @@ public class AbstractCharm extends GameObject{
         this.y = 0;
         this.width = 64;
         this.height = 64;
+
+        tooltip.setTitle("Charm");
+        tooltip.setDescription("Edit this in the concrete class!!");
 
         loadSprite();
     }
@@ -37,20 +42,27 @@ public class AbstractCharm extends GameObject{
     private void loadSprite() {
         this.texture = TextureManager.getInstance().getTexture(getClass().getSimpleName(), "charm");
     }
-    
+
     public void roundStartEffect() {}
     public void beforeSpinEffect() {}
     public void afterSpinEffect() {}
     public void roundEndEffect() {}
 
+    @Override
     public void update(float delta) {
         if (dragging) return;
 
+        boolean updated = false;
         if (tweenX != null && !tweenX.isComplete()) {
+            updated = true;
             x = tweenX.update(delta);
         }
         if (tweenY != null && !tweenY.isComplete()) {
+            updated = true;
             y = tweenY.update(delta);
+        }
+        if (updated) {
+            updateTooltipPosition();
         }
     }
 
@@ -80,18 +92,29 @@ public class AbstractCharm extends GameObject{
 
     public float getX() { return x; }
     public float getY() { return y; }
-    public void setPosition(float x, float y) { this.x = x; this.y = y; }
+    public void setPosition(float x, float y) {
+        this.x = x; this.y = y;
+        updateTooltipPosition();
+    }
     public float getWidth() { return width; }
     public float getHeight() { return height; }
     public boolean isDragging() { return dragging; }
+    public Tooltip getTooltip() { return tooltip; }
 
     public void setDragging(boolean dragging) {
         boolean wasDragging = this.dragging;
         this.dragging = dragging;
 
+        if (dragging == true) {
+            tooltip.hide();
+        } else { tooltip.show(); }
+
         if (wasDragging && !dragging) {
             hasTarget = false;
         }
-        
+    }
+
+    public void updateTooltipPosition() {
+        tooltip.setPosition(x + width / 2, y - 5);
     }
 }
