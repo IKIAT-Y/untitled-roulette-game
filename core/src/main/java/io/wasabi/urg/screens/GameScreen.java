@@ -22,7 +22,6 @@ import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.charm.AbstractCharm;
 import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.Wheel;
-import io.wasabi.urg.elements.game.SpinButton;
 import io.wasabi.urg.managers.CardInputHandler;
 import io.wasabi.urg.managers.CharmInputHandler;
 import io.wasabi.urg.managers.FontManager;
@@ -55,7 +54,6 @@ public class GameScreen implements Screen {
     // Elements
     private Ball ball;
     private Wheel wheel;
-    private SpinButton spinButton;
     private Vector2 wheelCenter = new Vector2(0f, 0);
 
     // UI
@@ -87,9 +85,8 @@ public class GameScreen implements Screen {
 
         this.gameState = GameState.ROUND;
 
-        this.wheel = new Wheel(world, wheelCenter);
+        this.wheel = new Wheel(world, wheelCenter, this::spin);
         this.ball = new Ball(world, 6f, wheelCenter);
-        this.spinButton = new SpinButton(wheelCenter, 160f, this::spin);
 
         this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
         this.shop = new Shop(shapeRenderer, spriteBatch, game.getViewport());
@@ -176,19 +173,12 @@ public class GameScreen implements Screen {
         // couple of checks if button can be pressed
         boolean canSpin = ball.getState() == Ball.State.STOPPED && !game.getRunState().getActiveBets().isEmpty();
 
-        spinButton.update(canSpin, game.getCamera());
+        wheel.updateSpinButton(canSpin, game.getCamera());
 
-        canSpin = ball.getState() == Ball.State.STOPPED  && !game.getRunState().getActiveBets().isEmpty();
-
-        spinButton.draw(
-                canSpin,
-                shapeRenderer,
-                spriteBatch,
-                FontManager.getInstance().getFontByName("Placeholder"));
-                // SpriteBatch renders
-                updateBetButtonLayout();
-                betButton.update();
-                betButton.draw(spriteBatch);
+        // SpriteBatch renders
+        updateBetButtonLayout();
+        betButton.update();
+        betButton.draw(spriteBatch);
 
         roundResult.update(delta);
         roundResult.render();

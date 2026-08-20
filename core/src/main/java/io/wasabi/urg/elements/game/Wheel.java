@@ -3,8 +3,11 @@ package io.wasabi.urg.elements.game;
 import java.util.List;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -18,6 +21,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.tiles.DefaultTile;
 import io.wasabi.urg.elements.tiles.TileType;
+import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.util.tweens.Tween;
@@ -28,6 +32,7 @@ public class Wheel {
 
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
     private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
+    private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
 
     private static final int[] WHEEL_NUMBER_ORDER = new int[] {
         0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26};
@@ -38,6 +43,8 @@ public class Wheel {
     private float rotation; // in Degrees
     private float radius;
     private float tileSize;
+    private final SpinButton spinButton;
+    private boolean spinButtonEnabled;
 
     private final Body body;
 
@@ -46,9 +53,10 @@ public class Wheel {
 
     private final List<Tile> tiles = RUN_STATE.getTiles();
 
-    public Wheel(World world, Vector2 position) {
+    public Wheel(World world, Vector2 position, SpinButton.ClickAction spinAction) {
         this.world = world;
         this.position = position;
+        this.spinButton = new SpinButton(position, 160f, spinAction);
 
         // Testing
         radius = 200f;
@@ -145,6 +153,13 @@ public class Wheel {
         }
     }
 
+    public void updateSpinButton(boolean enabled, OrthographicCamera camera) {
+    spinButtonEnabled = enabled;
+
+    spinButton.setPosition(position);
+    spinButton.update(enabled, camera);
+    }
+
     public void render(float delta) {
         // placeholder render function
         float r1 = radius;
@@ -169,7 +184,17 @@ public class Wheel {
         Gdx.gl.glLineWidth(2);
         SHAPE_RENDERER.circle(position.x, position.y, r1);
         SHAPE_RENDERER.end();
+
+        spinButton.setPosition(position);
+
+        spinButton.draw(
+                spinButtonEnabled,
+                SHAPE_RENDERER,
+                SPRITE_BATCH,
+                FontManager.getInstance().getFontByName("Placeholder"));
+
     }
+            
 
     public void shiftOutOfScreen() {
         float targetY = -1500;
