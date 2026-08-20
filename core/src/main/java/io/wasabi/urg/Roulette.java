@@ -63,7 +63,7 @@ public class Roulette extends Game {
         cardPool = new CardPool();
 
         // Temporarily set to 10000 for testing purposes. Change to 100 for final release.
-        int STARTING_MONEY = 10000;
+        int STARTING_MONEY = 100;
         runState.reset(STARTING_MONEY);
 
         // Card testing
@@ -73,15 +73,12 @@ public class Roulette extends Game {
         runState.addCharm(new BlackCharm());
         runState.addCharm(new BlackCharm());
         runState.addCharm(new BlackCharm());
-        runState.addCharm(new BlackCharm());
         runState.addCharm(new RedCharm());
 
         this.gameScreen = new GameScreen(this);
         this.bettingScreen = new BettingScreen(this);
 
         this.setScreen(this.gameScreen);
-
-        roundManager.setRound(5);
 
         roundManager.startRound();
     }

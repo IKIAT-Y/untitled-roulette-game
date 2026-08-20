@@ -54,10 +54,10 @@ public class Wheel {
 
     private final List<Tile> tiles = RUN_STATE.getTiles();
 
-    public Wheel(World world, Vector2 position, SpinButton.ClickAction spinAction) {
+    public Wheel(World world, Vector2 position) {
         this.world = world;
         this.position = position;
-        this.spinButton = new SpinButton(position, 160f, spinAction);
+        this.spinButton = new SpinButton(position, 160f);
 
         // Testing
         radius = 200f;
@@ -67,6 +67,18 @@ public class Wheel {
         bodyDef.type = BodyType.KinematicBody;
         bodyDef.position.set(position);
         body = this.world.createBody(bodyDef);
+
+        reset();
+
+        addRing(radius, 5.0f, 0f, false);
+
+        update();
+    }
+
+    public void reset() {
+        for (Tile tile : tiles) {
+            tile.dispose();
+        }
 
         tiles.clear();
 
@@ -86,10 +98,6 @@ public class Wheel {
             Tile tile = new Tile(world, type, position, radius, tileSize);
             tiles.add(tile);
         }
-
-        addRing(radius, 5.0f, 0.5f, false);
-
-        update();
     }
 
     public void setPosition(Vector2 vec) {
@@ -194,7 +202,7 @@ public class Wheel {
        spinButton.draw(spinButtonState, SHAPE_RENDERER, SPRITE_BATCH, FontManager.getInstance().getFontByName("Placeholder"));
 
     }
-            
+
 
     public void shiftOutOfScreen() {
         float targetY = -1500;

@@ -29,6 +29,7 @@ import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.CardLayout;
 import io.wasabi.urg.ui.CharmLayout;
+import io.wasabi.urg.ui.GameOver;
 import io.wasabi.urg.ui.QuotaTracker;
 import io.wasabi.urg.ui.RoundInfoPanel;
 import io.wasabi.urg.ui.RoundResult;
@@ -37,23 +38,27 @@ import io.wasabi.urg.ui.Tooltip;
 
 
 public class GameScreen implements Screen {
+    private static final int STARTING_CHIPS = 100;
     private final Roulette game;
 
     private enum GameState {
         ROUND,
         RESULT,
-        SHOP
+        SHOP,
+        GAME_OVER
     }
 
     private GameState gameState;
 
     // Renderers
+    private final Background background;
     private final ShapeRenderer shapeRenderer;
     private final SpriteBatch spriteBatch;
 
     // Matrices for UI rendering
     private final Matrix4 uiProjection = new Matrix4();
     private final Matrix4 uiTransform = new Matrix4();
+
     // Physics
     private final World world;
 
@@ -65,6 +70,7 @@ public class GameScreen implements Screen {
     // UI
     private RoundResult roundResult;
     private Shop shop;
+    private GameOver gameOver;
     private QuotaTracker quotaTracker;
     private RoundInfoPanel roundInfoPanel;
 
@@ -86,12 +92,13 @@ public class GameScreen implements Screen {
         this.game = game;
         this.shapeRenderer = RendererManager.getInstance().getShapeRenderer();
         this.spriteBatch = RendererManager.getInstance().getSpriteBatch();
+        this.background = new Background(spriteBatch);
 
         this.world = new World(new Vector2(0f, 0f), true);
 
         this.gameState = GameState.ROUND;
 
-        this.wheel = new Wheel(world, wheelCenter, this::spin);
+        this.wheel = new Wheel(world, wheelCenter);
         this.ball = new Ball(world, 6f, wheelCenter);
         this.cardInputHandler = new CardInputHandler(game.getRunState(), game.getViewport());
         this.charmInputHandler = new CharmInputHandler(game.getRunState(), game.getViewport(), wheel);
@@ -99,16 +106,13 @@ public class GameScreen implements Screen {
 
         this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
         this.shop = new Shop(shapeRenderer, spriteBatch, game.getViewport());
+        this.gameOver = new GameOver(shapeRenderer, spriteBatch, game.getViewport());
         this.inputMultiplexer.addProcessor(0, shop);
         this.quotaTracker = new QuotaTracker(shapeRenderer, spriteBatch, game.getRunState(), game.getRoundManager());
         this.roundInfoPanel = new RoundInfoPanel(-700f, 250f);
-
-        //enterResultScreen(0, 0, 0, 0, 0);
-        //enterShopScreen();
-        //spin();
     }
 
-    private void spin() {
+    public void spin() {
         // Move this to launch method when the player presses the spin button
         float startAngleRad = 0f;
         float initialSpeed = new Random().nextFloat() * (1000f) + 5000f;
@@ -116,6 +120,7 @@ public class GameScreen implements Screen {
         float innerWheelRadius = 325f;
         Roulette.getInstance().getRunState().triggerEffects("beforeSpin");
         SoundManager.getInstance().playSound("spin1");
+        ball.setVisible(true);
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
         wheel.spin(6.0f, -10f);
         quotaTracker.onSpinStarted();
@@ -132,15 +137,40 @@ public class GameScreen implements Screen {
             if (shop.handleInput()) {
                 enterRoundScreen();
             }
+        } else if (gameState == GameState.GAME_OVER && gameOver.isVisible()) {
+            if (Gdx.input.justTouched()) {
+                restartGame();
+            }
         }
     }
 
     public void enterResultScreen(int chips, int quota, int baseReward, int unusedSpinBonus, int totalReward) {
         this.gameState = GameState.RESULT;
         wheel.shiftOutOfScreen();
+        ball.setVisible(false);
         roundInfoPanel.hide();
         quotaTracker.hide();
         roundResult.show(quota, chips, baseReward, unusedSpinBonus, totalReward);
+    }
+
+    public void showGameOver() {
+        this.gameState = GameState.GAME_OVER;
+        inputMultiplexer.removeProcessor(cardInputHandler);
+        inputMultiplexer.removeProcessor(charmInputHandler);
+        inputMultiplexer.removeProcessor(shop);
+        gameOver.show();
+    }
+
+    public void restartGame() {
+        game.getRunState().reset(STARTING_CHIPS);
+        game.getRoundManager().reset();
+        wheel.reset();
+        gameOver.hide();
+        enterRoundScreen();
+        inputMultiplexer.addProcessor(0, cardInputHandler);
+        inputMultiplexer.addProcessor(1, charmInputHandler);
+        inputMultiplexer.addProcessor(2, shop);
+        this.gameState = GameState.ROUND;
     }
 
     public Ball getBall() {
@@ -162,6 +192,7 @@ public class GameScreen implements Screen {
         quotaTracker.show();
 
         Roulette.getInstance().getRoundManager().startRound();
+
         wheel.shiftIntoScreen();
     }
 
@@ -172,6 +203,7 @@ public class GameScreen implements Screen {
         ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
 
         // ShapeRenderer renders
+        background.render(delta);
         shapeRenderer.setColor(1f, 1f, 1f, 1f);
         wheel.render(delta);
 
@@ -184,11 +216,11 @@ public class GameScreen implements Screen {
 
         if (ball.getState() != Ball.State.STOPPED) {
             spinButtonState = SpinButton.State.SPINNING;
-        } 
+        }
         else if (game.getRunState().getActiveBets().isEmpty())
              {
             spinButtonState = SpinButton.State.NO_BET;
-        } 
+        }
         else {
             spinButtonState = SpinButton.State.READY;
         }
@@ -219,9 +251,13 @@ public class GameScreen implements Screen {
         batch.begin();
         batch.setTransformMatrix(new Matrix4().setToTranslation(0, 0, 0));
 
+        // Card Inventory Rendering
         List<Card> cards = game.getRunState().getOwnedCards();
         float worldWidth = game.getViewport().getWorldWidth();
+        float worldHeight = game.getViewport().getWorldHeight();
 
+        CardLayout.renderRightBackPanel(batch, worldWidth, worldHeight);
+        CardLayout.renderSlotPanels(batch, worldWidth);
         for (int i = 0; i < cards.size(); i++) {
             Card card = cards.get(i);
             Vector2 slot = CardLayout.getSlotPosition(i, cards.size(), worldWidth);
@@ -230,10 +266,11 @@ public class GameScreen implements Screen {
             card.render();
         }
 
-        // TEST CHARM
+        // Charm Inventory Rendering
+        List<AbstractCharm> charms = game.getRunState().getOwnedCharms();
 
-         List<AbstractCharm> charms = game.getRunState().getOwnedCharms();
-
+        CharmLayout.renderRightBackPanel(batch, worldWidth, worldHeight);
+        CharmLayout.renderSlotPanels(batch, worldWidth);
         for (int i = 0; i < charms.size(); i++) {
             AbstractCharm c = charms.get(i);
             Vector2 slot = CharmLayout.getSlotPosition(i, charms.size(), worldWidth);
@@ -256,6 +293,9 @@ public class GameScreen implements Screen {
             quotaTracker.render();
             renderDebugWinButton();
         }
+
+        gameOver.update(delta);
+        gameOver.render();
     }
 
     @Override

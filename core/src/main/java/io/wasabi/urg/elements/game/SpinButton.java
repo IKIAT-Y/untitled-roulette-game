@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import io.wasabi.urg.Roulette;
 
 //Circular button drawn at the centre of the roulette wheel.*/
 public final class SpinButton {
@@ -29,7 +30,6 @@ public final class SpinButton {
 
     private final Vector2 center;
     private final float radius;
-    private final ClickAction action;
     private final GlyphLayout textLayout = new GlyphLayout();
     private final Vector3 touchPosition = new Vector3();
 
@@ -37,10 +37,9 @@ public final class SpinButton {
         void execute();
     }
 
-    public SpinButton(Vector2 center, float radius, ClickAction action) {
+    public SpinButton(Vector2 center, float radius) {
         this.center = new Vector2(center);
         this.radius = radius;
-        this.action = action;
     }
 
     public void setPosition(Vector2 position) {
@@ -61,7 +60,7 @@ public final class SpinButton {
         float dy = touchPosition.y - center.y;
 
         if (dx * dx + dy * dy <= radius * radius) {
-            action.execute();
+            Roulette.getInstance().getGameScreen().spin();
         }
     }
 
@@ -72,10 +71,10 @@ public final class SpinButton {
         //Three states of colour the button can be in
         if (state == State.READY) {
             shapeRenderer.setColor(ENABLED_COLOR);
-        } 
+        }
         else if (state == State.SPINNING) {
             shapeRenderer.setColor(WAITING_COLOR);
-        } 
+        }
         else {
             shapeRenderer.setColor(DISABLED_COLOR);
         }
@@ -93,10 +92,10 @@ public final class SpinButton {
         //Text displayed on the button based on state.
         if (state == State.READY) {
             textLayout.setText(font, "SPIN");
-        } 
+        }
         else if (state == State.SPINNING) {
             textLayout.setText(font, "SPIN IN PROGRESS...");
-        } 
+        }
         else {
             textLayout.setText(font, "PLACE A BET TO SPIN");
         }
