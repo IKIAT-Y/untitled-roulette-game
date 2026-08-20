@@ -22,12 +22,14 @@ import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.charm.AbstractCharm;
 import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.Wheel;
+import io.wasabi.urg.elements.game.SpinButton;
 import io.wasabi.urg.managers.CardInputHandler;
 import io.wasabi.urg.managers.CharmInputHandler;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.*;
+
 
 public class GameScreen implements Screen {
     private final Roulette game;
@@ -53,6 +55,7 @@ public class GameScreen implements Screen {
     // Elements
     private Ball ball;
     private Wheel wheel;
+    private SpinButton spinButton;
     private Vector2 wheelCenter = new Vector2(0f, 0);
 
     // UI
@@ -86,6 +89,7 @@ public class GameScreen implements Screen {
 
         this.wheel = new Wheel(world, wheelCenter);
         this.ball = new Ball(world, 6f, wheelCenter);
+        this.spinButton = new SpinButton(wheelCenter, 160f, this::spin);
 
         this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
         this.shop = new Shop(shapeRenderer, spriteBatch, game.getViewport());
@@ -109,21 +113,6 @@ public class GameScreen implements Screen {
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
         wheel.spin(6.0f, -10f);
         quotaTracker.onSpinStarted();
-    }
-
-    private void handleWheelClick() {
-        if (gameState != GameState.ROUND
-                || !Gdx.input.justTouched()
-                || ball.getState() != Ball.State.STOPPED) {
-            return;
-        }
-
-        Vector3 touch = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0f);
-        game.getCamera().unproject(touch);
-
-        if (wheel.containsPoint(new Vector2(touch.x, touch.y))) {
-            spin();
-        }
     }
 
     private void handleUIInput() {
@@ -178,16 +167,28 @@ public class GameScreen implements Screen {
 
         // ShapeRenderer renders
         shapeRenderer.setColor(1f, 1f, 1f, 1f);
-        handleWheelClick();
         wheel.render(delta);
 
         ball.update(delta);
         ball.render();
 
-        // SpriteBatch renders
-        updateBetButtonLayout();
-        betButton.update();
-        betButton.draw(spriteBatch);
+
+        // couple of checks if button can be pressed
+        boolean canSpin = ball.getState() == Ball.State.STOPPED && !game.getRunState().getActiveBets().isEmpty();
+
+        spinButton.update(canSpin, game.getCamera());
+
+        canSpin = ball.getState() == Ball.State.STOPPED  && !game.getRunState().getActiveBets().isEmpty();
+
+        spinButton.draw(
+                canSpin,
+                shapeRenderer,
+                spriteBatch,
+                FontManager.getInstance().getFontByName("Placeholder"));
+                // SpriteBatch renders
+                updateBetButtonLayout();
+                betButton.update();
+                betButton.draw(spriteBatch);
 
         roundResult.update(delta);
         roundResult.render();
