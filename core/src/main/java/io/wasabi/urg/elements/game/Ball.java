@@ -302,6 +302,7 @@ public class Ball extends GameObject {
         }
 
         Roulette.getInstance().getRunState().setLastTile(tile);
+        Roulette.getInstance().getRunState().triggerEffects("afterSpin");
         Roulette.getInstance().getRunState().resolveActiveBets();
         Roulette.getInstance().getRoundManager().recordSpin();
     }
