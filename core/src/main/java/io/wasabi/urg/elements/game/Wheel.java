@@ -168,7 +168,6 @@ public class Wheel {
         SHAPE_RENDERER.begin(ShapeType.Line);
         Gdx.gl.glLineWidth(2);
         SHAPE_RENDERER.circle(position.x, position.y, r1);
-        SHAPE_RENDERER.circle(position.x, position.y, r2);
         SHAPE_RENDERER.end();
     }
 

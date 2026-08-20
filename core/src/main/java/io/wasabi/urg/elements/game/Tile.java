@@ -83,7 +83,7 @@ public class Tile extends GameObject {
 
         PolygonShape fretShape = new PolygonShape();
         fretShape.setAsBox(
-            height,
+            height/2,
             2.0f,
             new Vector2(0, 0),
             0
@@ -115,8 +115,8 @@ public class Tile extends GameObject {
         short[] tris = new short[segments * 11];
 
         Vector2 fretPos = new Vector2(
-                x + (r1 + height) * MathUtils.cos(rot),
-                y + (r1 + height) * MathUtils.sin(rot));
+                x + (r1 + height / 2) * MathUtils.cos(rot),
+                y + (r1 + height / 2) * MathUtils.sin(rot));
         body.setTransform(fretPos, rot);
 
         Affine2 fontTransform = new Affine2();
