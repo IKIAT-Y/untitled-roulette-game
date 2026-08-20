@@ -68,8 +68,9 @@ public class Shop extends InputAdapter {
 
     public void hide() {
         returnOffersToPool();
-        visible = false;
         draggedCard = null;
+        y = 0f;
+        tween = new Tween(1f, y, OFFSCREEN_Y, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
     }
 
     public void update(float delta) {

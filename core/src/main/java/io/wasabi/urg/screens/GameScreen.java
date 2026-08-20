@@ -27,12 +27,7 @@ import io.wasabi.urg.managers.CharmInputHandler;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
-import io.wasabi.urg.ui.CardLayout;
-import io.wasabi.urg.ui.CharmLayout;
-import io.wasabi.urg.ui.QuotaTracker;
-import io.wasabi.urg.ui.RoundResult;
-import io.wasabi.urg.ui.Shop;
-import io.wasabi.urg.ui.Tooltip;
+import io.wasabi.urg.ui.*;
 
 public class GameScreen implements Screen {
     private final Roulette game;
@@ -49,7 +44,6 @@ public class GameScreen implements Screen {
     private final ShapeRenderer shapeRenderer;
     private final SpriteBatch spriteBatch;
 
-    private final Texture ticketTexture;
     // Matrices for UI rendering
     private final Matrix4 uiProjection = new Matrix4();
     private final Matrix4 uiTransform = new Matrix4();
@@ -65,6 +59,7 @@ public class GameScreen implements Screen {
     private RoundResult roundResult;
     private Shop shop;
     private QuotaTracker quotaTracker;
+    private RoundInfoPanel roundInfoPanel;
 
     // Handlers
     private CardInputHandler cardInputHandler = new CardInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
@@ -85,7 +80,6 @@ public class GameScreen implements Screen {
         this.shapeRenderer = RendererManager.getInstance().getShapeRenderer();
         this.spriteBatch = RendererManager.getInstance().getSpriteBatch();
 
-        this.ticketTexture = new Texture(Gdx.files.internal("ticket.png"));
         this.world = new World(new Vector2(0f, 0f), true);
 
         this.gameState = GameState.ROUND;
@@ -97,6 +91,7 @@ public class GameScreen implements Screen {
         this.shop = new Shop(shapeRenderer, spriteBatch, game.getViewport());
         this.inputMultiplexer.addProcessor(0, shop);
         this.quotaTracker = new QuotaTracker(shapeRenderer, spriteBatch, game.getRunState(), game.getRoundManager());
+        this.roundInfoPanel = new RoundInfoPanel(-700f, 250f);
 
         //enterResultScreen(0, 0, 0, 0, 0);
         //enterShopScreen();
@@ -109,7 +104,7 @@ public class GameScreen implements Screen {
         float initialSpeed = new Random().nextFloat() * (1000f) + 5000f;
         float outerTrackRadius = 400f;
         float innerWheelRadius = 325f;
-        Roulette.getInstance().getRunState().triggerCardEffects("beforeSpin");
+        Roulette.getInstance().getRunState().triggerEffects("beforeSpin");
         SoundManager.getInstance().playSound("spin1");
         ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
         wheel.spin(6.0f, -10f);
@@ -145,39 +140,11 @@ public class GameScreen implements Screen {
         }
     }
 
-    private void renderTicketCounter() {
-        int tickets = game.getRunState().getTickets();
-
-        float padding = 80f;
-        float iconSize = 32f;
-
-        float screenWidth = Gdx.graphics.getWidth();
-        float screenHeight = Gdx.graphics.getHeight();
-
-        float x = screenWidth - iconSize - padding;
-        // placeholder y
-        float y = padding - 50f;
-
-        uiProjection.setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
-        spriteBatch.setProjectionMatrix(uiProjection);
-        uiTransform.idt();
-        spriteBatch.setTransformMatrix(uiTransform);
-
-        spriteBatch.begin();
-
-        spriteBatch.draw(ticketTexture, x, y, iconSize, iconSize);
-
-        FontManager.getInstance()
-                .getFontByName("Placeholder")
-                .draw(spriteBatch, Integer.toString(tickets), x + iconSize + 8f, y + 24f);
-
-        spriteBatch.end();
-    }
-
     public void enterResultScreen(int chips, int quota, int baseReward, int unusedSpinBonus, int totalReward) {
         this.gameState = GameState.RESULT;
         wheel.shiftOutOfScreen();
+        roundInfoPanel.hide();
+        quotaTracker.hide();
         roundResult.show(quota, chips, baseReward, unusedSpinBonus, totalReward);
     }
 
@@ -196,6 +163,8 @@ public class GameScreen implements Screen {
         gameState = GameState.ROUND;
 
         shop.hide();
+        roundInfoPanel.show();
+        quotaTracker.show();
 
         Roulette.getInstance().getRoundManager().startRound();
         wheel.shiftIntoScreen();
@@ -231,6 +200,9 @@ public class GameScreen implements Screen {
 
         quotaTracker.update(delta);
 
+        roundInfoPanel.update(delta);
+        roundInfoPanel.render();
+
         SpriteBatch batch = RendererManager.getInstance().getSpriteBatch();
         batch.begin();
         batch.setTransformMatrix(new Matrix4().setToTranslation(0, 0, 0));
@@ -260,6 +232,7 @@ public class GameScreen implements Screen {
 
         batch.end();
 
+        quotaTracker.render();
         // render tooltip at very end
         Tooltip activeTooltip = game.getRunState().getActiveTooltip();
         if (activeTooltip != null) { activeTooltip.render(); }
@@ -268,7 +241,6 @@ public class GameScreen implements Screen {
             quotaTracker.render();
             renderDebugWinButton();
         }
-        renderTicketCounter();
     }
 
     @Override
@@ -393,10 +365,10 @@ public class GameScreen implements Screen {
         wheel.dispose();
         betButtonTexture.dispose();
         world.dispose();
-        ticketTexture.dispose();
     }
 
     public Wheel getWheel() {
         return wheel;
     }
+    public World getWorld() { return world; }
 }
