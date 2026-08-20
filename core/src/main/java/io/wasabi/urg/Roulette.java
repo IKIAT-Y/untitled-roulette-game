@@ -62,7 +62,9 @@ public class Roulette extends Game {
 
         cardPool = new CardPool();
 
-        runState.reset(10000);
+        // Temporarily set to 10000 for testing purposes. Change to 100 for final release.
+        int STARTING_MONEY = 10000;
+        runState.reset(STARTING_MONEY);
 
         // Card testing
         runState.addCard(cardPool.getRandomCard());
