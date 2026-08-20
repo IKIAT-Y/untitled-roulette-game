@@ -112,7 +112,13 @@ public class Tile extends GameObject {
         float rot = rotation;
 
         float[] vertices = new float[segments * 4];
-        short[] tris = new short[segments * 11];
+        // Each pair of adjacent segments forms two triangles, which requires six
+        // indices. The final segment has no following segment to connect to.
+        short[] tris = new short[Math.max(0, segments - 1) * 6];
+
+        // short[] tris = new short[segments * 11];
+        // caused errors for me, I got AI to fix it as I was not working on this section
+        // feel free to change back/ further invistage - susan
 
         Vector2 fretPos = new Vector2(
                 x + (r1 + height / 2) * MathUtils.cos(rot),

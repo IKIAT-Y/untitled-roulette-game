@@ -4,10 +4,11 @@ import java.util.List;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.PolygonRegion;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -207,6 +208,32 @@ public class Wheel {
 
     public boolean containsPoint(Vector2 point) {
         return point.dst2(position) <= (radius + tileSize) * (radius + tileSize);
+    }
+
+    public Tile getTileAt(Vector2 point) {
+        for (Tile tile : tiles) {
+            // each tile is represented as triangles
+            PolygonRegion region = tile.getRegion();
+            float[] vertices = region.getVertices();
+            short[] triangles = region.getTriangles();
+
+            // for each triangle in the tile, check if the pointer is in it
+            for (int i = 0; i < triangles.length; i += 3) {
+                Vector2 first = getVertex(vertices, triangles[i]);
+                Vector2 second = getVertex(vertices, triangles[i + 1]);
+                Vector2 third = getVertex(vertices, triangles[i + 2]);
+                if (Intersector.isPointInTriangle(point, first, second, third)) {
+                    return tile;
+                }
+            }
+        }
+        return null;
+    }
+
+    // converts vertex index into actual cordinate
+    private Vector2 getVertex(float[] vertices, short index) {
+        int vertexIndex = index * 2; // multiply by 2 bc each vertex uses two array values 
+        return new Vector2(vertices[vertexIndex], vertices[vertexIndex + 1]);
     }
 
     /**

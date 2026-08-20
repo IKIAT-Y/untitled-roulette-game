@@ -1,8 +1,13 @@
 package io.wasabi.urg.elements.charm;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import com.badlogic.gdx.graphics.Texture;
 
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.TextureManager;
 import io.wasabi.urg.ui.Tooltip;
@@ -22,6 +27,7 @@ public class AbstractCharm extends GameObject{
     private Tween tweenX;
     private Tween tweenY;
     private static final float SNAP_DURATION = 0.25f;
+    private final List<Tile> selectedTiles = new ArrayList<>();
 
     protected AbstractCharm() {
         this.x = 0;
@@ -51,7 +57,25 @@ public class AbstractCharm extends GameObject{
     public void afterSpinEffect() {}
     public void roundEndEffect() {}
 
-    public void activate() {
+    public boolean requiresTileSelection() {
+        return false;
+    }
+
+    public int getRequiredTileSelections() {
+        return 0;
+    }
+
+    public boolean isTileSelectionComplete(int selectedTileCount) {
+        return selectedTileCount >= getRequiredTileSelections();
+    }
+
+    public List<Tile> getSelectedTiles() {
+        return Collections.unmodifiableList(selectedTiles);
+    }
+
+    public void activate(List<Tile> tiles) {
+        selectedTiles.clear();
+        selectedTiles.addAll(tiles);
         beforeSpinEffect();
     }
 

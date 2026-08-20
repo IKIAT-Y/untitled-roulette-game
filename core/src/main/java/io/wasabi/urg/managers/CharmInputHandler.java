@@ -1,5 +1,6 @@
 package io.wasabi.urg.managers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.badlogic.gdx.InputAdapter;
@@ -8,6 +9,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.elements.charm.AbstractCharm;
+import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.ui.CharmLayout;
@@ -18,7 +20,9 @@ public class CharmInputHandler extends InputAdapter {
     private final Wheel wheel;
 
     private AbstractCharm draggedCharm;
+    private AbstractCharm selectingCharm;
     private final Vector2 dragOffset = new Vector2();
+    private final List<Tile> selectedTiles = new ArrayList<>();
     private boolean hoveringWheel;
 
     public CharmInputHandler(RunState runState, Viewport viewport, Wheel wheel) {
@@ -30,6 +34,23 @@ public class CharmInputHandler extends InputAdapter {
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         Vector2 world = screenToWorld(screenX, screenY);
+
+        if (selectingCharm != null) {
+            Tile tile = wheel.getTileAt(world);
+            // if tile was clicked and tile has not been selected yet
+            if (tile != null && !selectedTiles.contains(tile)) {
+                selectedTiles.add(tile);
+                
+                // checks if charm has recieved enough tiles
+                if (selectingCharm.isTileSelectionComplete(selectedTiles.size())) {
+                    selectingCharm.activate(selectedTiles);
+                    selectingCharm = null;
+                    // clear the list
+                    selectedTiles.clear();
+                }
+            }
+            return true;
+        }
 
         List<AbstractCharm> charms = runState.getOwnedCharms();
         for (int i = charms.size() - 1; i >= 0; i--) {
@@ -75,7 +96,12 @@ public class CharmInputHandler extends InputAdapter {
         hoveringWheel = false;
 
         if (wheel.containsPoint(world) && runState.removeCharm(charm)) {
-            charm.activate();
+            if (charm.requiresTileSelection()) {
+                selectingCharm = charm;
+                selectedTiles.clear();
+            } else {
+                charm.activate(selectedTiles);
+            }
         }
         return true;
     }
