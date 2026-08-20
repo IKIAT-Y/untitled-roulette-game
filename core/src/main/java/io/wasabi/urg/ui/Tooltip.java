@@ -63,7 +63,7 @@ public class Tooltip {
 
     private boolean visible = false;
     private float x, y;
-    private float minWidth, minHeight;
+    private float anchorX, anchorY;
     private float width, height;
     private float padding = 2.5f;
     private float innerPadding = 10f;
@@ -83,14 +83,12 @@ public class Tooltip {
     // visual properties
     private boolean titleHasBackground = true;
 
-    public Tooltip(float minWidth, float minHeight, boolean titleHasBackground) {
+    public Tooltip(float anchorX, float anchorY, boolean titleHasBackground) {
         patch = new NinePatch(TEXTURE, 10, 10, 10, 10);
         //tex.dispose();
 
-        this.width = minWidth;
-        this.height = minHeight;
-        this.minWidth = minWidth;
-        this.minHeight = minHeight;
+        this.anchorX = anchorX;
+        this.anchorY = anchorY;
         this.titleHasBackground = titleHasBackground;
     }
 
@@ -127,7 +125,7 @@ public class Tooltip {
     }
 
     private void updateSizes() {
-        GlyphLayout titleLayout = title.update(minWidth, false);
+        GlyphLayout titleLayout = title.update(width, false);
         width = titleLayout.width + fontPaddingX * 2 + innerPadding * 2 + padding * 2;
 
         GlyphLayout descriptionLayout = description.update(titleLayout.width, true);
@@ -161,31 +159,35 @@ public class Tooltip {
         if (visible) {
             SPRITE_BATCH.begin();
 
+            float cX = x - width * anchorX;
+            float cY = y - height * anchorY;
+            float patchX = cX + innerPadding;
+            float patchTextX = cX + innerPadding + fontPaddingX;
             // drop shadow
             SPRITE_BATCH.setColor(0.10f, 0.10f, 0.13f, 1f);
-            patch.draw(SPRITE_BATCH, x, y - height / 2 - padding, width, height);
+            patch.draw(SPRITE_BATCH, cX, cY - padding, width, height);
 
             // white outline
             SPRITE_BATCH.setColor(1, 1, 1, 1);
-            patch.draw(SPRITE_BATCH, x, y - height / 2, width, height);
+            patch.draw(SPRITE_BATCH, cX, cY, width, height);
 
             // black inner
             SPRITE_BATCH.setColor(0.10f, 0.10f, 0.13f, 1f);
-            patch.draw(SPRITE_BATCH, x + padding, y - height / 2 + padding, width - padding * 2, height - padding * 2);
+            patch.draw(SPRITE_BATCH, cX + padding, cY + padding, width - padding * 2, height - padding * 2);
 
             float innerWidth = width - innerPadding * 2;
             float lineHeight = title.getLineHeight() + fontPaddingY * 2;
-            float titleY = y + height / 2 - lineHeight - innerPadding;
+            float titleY = cY + height - lineHeight - innerPadding;
             // title
             SPRITE_BATCH.setColor(1, 1, 1, 1);
-            if (titleHasBackground) { patch.draw(SPRITE_BATCH, x + innerPadding, titleY, innerWidth, lineHeight); }
-            title.draw(x + innerPadding + fontPaddingX, titleY, innerWidth - fontPaddingX * 2, lineHeight);
+            if (titleHasBackground) { patch.draw(SPRITE_BATCH, patchX, titleY, innerWidth, lineHeight); }
+            title.draw(patchTextX, titleY, innerWidth - fontPaddingX * 2, lineHeight);
 
             // description
             float descHeight = description.getLayout().height + fontPaddingY * 2;
             float descY = titleY - descHeight - elementPadding;
-            patch.draw(SPRITE_BATCH, x + innerPadding, descY, innerWidth, descHeight);
-            description.draw(x + innerPadding + fontPaddingX, descY, innerWidth - fontPaddingX * 2, descHeight);
+            patch.draw(SPRITE_BATCH, patchX, descY, innerWidth, descHeight);
+            description.draw(patchTextX, descY, innerWidth - fontPaddingX * 2, descHeight);
 
             float typesY = descY;
             for (Line line : types) {
@@ -193,8 +195,8 @@ public class Tooltip {
                 float typeHeight = line.getLayout().height + fontPaddingY * 2;
                 typesY -= typeHeight;
                 SPRITE_BATCH.setColor(line.getBackgroundColor());
-                patch.draw(SPRITE_BATCH, x + innerPadding, typesY, innerWidth, typeHeight);
-                line.draw(x + innerPadding + fontPaddingX, typesY, innerWidth - fontPaddingX * 2, typeHeight);
+                patch.draw(SPRITE_BATCH, patchX, typesY, innerWidth, typeHeight);
+                line.draw(patchTextX, typesY, innerWidth - fontPaddingX * 2, typeHeight);
             }
 
             SPRITE_BATCH.setColor(1, 1, 1, 1);

@@ -17,14 +17,14 @@ public abstract class Card extends GameObject {
         COMMON, UNCOMMON, RARE
     }
 
-    private EnumMap<Rarity, Integer> rarityColours = new EnumMap<Rarity, Integer>(Rarity.class) {{
+    private static final EnumMap<Rarity, Integer> RARITY_COLOURS = new EnumMap<Rarity, Integer>(Rarity.class) {{
         put(Rarity.COMMON, 0x007aabFF);
         put(Rarity.UNCOMMON, 0x00a629FF);
         put(Rarity.RARE, 0xa61300FF);
     }};
 
     protected Rarity cardRarity;
-    protected Tooltip tooltip = new Tooltip(100, 90, true);
+    protected Tooltip tooltip = new Tooltip(0, 0.5f, true);
     private Texture sprite;
     private float x, y;
     private float width, height;
@@ -44,7 +44,7 @@ public abstract class Card extends GameObject {
         this.width = 96;
         this.height = 128;
 
-        tooltip.addType(rarity.toString(), Color.WHITE, new Color(rarityColours.get(rarity)));
+        tooltip.addType(rarity.toString(), Color.WHITE, new Color(RARITY_COLOURS.get(rarity)));
         loadSprite();
     }
 
