@@ -71,7 +71,8 @@ public class Wheel {
             } else {
                 type.setColour(TileType.TileColour.RED);
             }
-            Tile tile = new Tile(world, type, WHEEL_NUMBER_ORDER[i], position, radius, tileSize);
+            type.setNumber(WHEEL_NUMBER_ORDER[i]);
+            Tile tile = new Tile(world, type, position, radius, tileSize);
             tiles.add(tile);
         }
 
@@ -147,7 +148,6 @@ public class Wheel {
     public void render(float delta) {
         // placeholder render function
         float r1 = radius;
-        float r2 = radius + tileSize;
 
         if (wheelVelocityTween != null) {
             body.setAngularVelocity(wheelVelocityTween.update(delta));
@@ -168,7 +168,6 @@ public class Wheel {
         SHAPE_RENDERER.setColor(1f, 1f, 1f, 1f);
         Gdx.gl.glLineWidth(2);
         SHAPE_RENDERER.circle(position.x, position.y, r1);
-        SHAPE_RENDERER.circle(position.x, position.y, r2);
         SHAPE_RENDERER.end();
     }
 

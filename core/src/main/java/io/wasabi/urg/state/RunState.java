@@ -10,6 +10,7 @@ import io.wasabi.urg.elements.betting.Bet;
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.charm.AbstractCharm;
 import io.wasabi.urg.elements.game.Tile;
+import io.wasabi.urg.ui.Tooltip;
 
 /** Stores the player's progress and inventory for the current run. */
 public final class RunState {
@@ -19,6 +20,7 @@ public final class RunState {
     private int tickets;
 
     private Tile lastTile = null; // The last tile the player landed on, used for certain card effects.
+    private Tooltip activeTooltip = null;
 
     private final List<Tile> tiles = new ArrayList<>();
     private final List<Card> ownedCards = new ArrayList<>();
@@ -210,6 +212,14 @@ public final class RunState {
 
     public Tile getLastTile() {
         return lastTile;
+    }
+
+    public void setTooltip(Tooltip tooltip) {
+        this.activeTooltip = tooltip;
+    }
+
+    public Tooltip getActiveTooltip() {
+        return activeTooltip;
     }
 
     public void addBet(Bet bet) {

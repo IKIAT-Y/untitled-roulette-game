@@ -2,11 +2,14 @@ package io.wasabi.urg.elements.card;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.managers.RoundManager;
-import io.wasabi.urg.state.RunState;
 
 public class ExtraCredit extends Card {
 
-    public ExtraCredit() { super(Rarity.COMMON); }
+    public ExtraCredit() {
+        super(Rarity.COMMON);
+        tooltip.setTitle("Extra Credit");
+        tooltip.setDescription("+1 spin each round");
+    }
 
     @Override
     public void roundStartEffect() {

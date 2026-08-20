@@ -1,5 +1,4 @@
 package io.wasabi.urg.elements.card;
-
 import java.util.List;
 
 import io.wasabi.urg.Roulette;
@@ -7,7 +6,11 @@ import io.wasabi.urg.elements.game.Tile;
 
 public class BlackCard extends Card {
 
-    public BlackCard() { super(Rarity.COMMON); }
+    public BlackCard() {
+        super(Rarity.COMMON);
+        tooltip.setTitle("Black Card");
+        tooltip.setDescription("Black tiles give [RED]1.5x [BLACK]payout");
+    }
 
     @Override
     public void roundStartEffect() {

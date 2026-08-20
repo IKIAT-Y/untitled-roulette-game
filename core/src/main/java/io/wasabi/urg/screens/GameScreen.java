@@ -32,6 +32,7 @@ import io.wasabi.urg.ui.CharmLayout;
 import io.wasabi.urg.ui.QuotaTracker;
 import io.wasabi.urg.ui.RoundResult;
 import io.wasabi.urg.ui.Shop;
+import io.wasabi.urg.ui.Tooltip;
 
 public class GameScreen implements Screen {
     private final Roulette game;
@@ -69,7 +70,7 @@ public class GameScreen implements Screen {
     private CardInputHandler cardInputHandler = new CardInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
     private CharmInputHandler charmInputHandler = new CharmInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
     private InputMultiplexer inputMultiplexer = new InputMultiplexer(cardInputHandler, charmInputHandler);
-    
+
     // Betting
     private Texture betButtonTexture;
     private BetScreenButton betButton;
@@ -234,7 +235,7 @@ public class GameScreen implements Screen {
         batch.begin();
         batch.setTransformMatrix(new Matrix4().setToTranslation(0, 0, 0));
 
-        List<Card> cards = Roulette.getInstance().getRunState().getOwnedCards();
+        List<Card> cards = game.getRunState().getOwnedCards();
         float worldWidth = game.getViewport().getWorldWidth();
 
         for (int i = 0; i < cards.size(); i++) {
@@ -247,7 +248,7 @@ public class GameScreen implements Screen {
 
         // TEST CHARM
 
-         List<AbstractCharm> charms = Roulette.getInstance().getRunState().getOwnedCharms();
+         List<AbstractCharm> charms = game.getRunState().getOwnedCharms();
 
         for (int i = 0; i < charms.size(); i++) {
             AbstractCharm c = charms.get(i);
@@ -258,6 +259,10 @@ public class GameScreen implements Screen {
         }
 
         batch.end();
+
+        // render tooltip at very end
+        Tooltip activeTooltip = game.getRunState().getActiveTooltip();
+        if (activeTooltip != null) { activeTooltip.render(); }
 
         if (gameState == GameState.ROUND) {
             quotaTracker.render();

@@ -1,6 +1,7 @@
 package io.wasabi.urg.elements.tiles;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.Texture;
@@ -17,6 +18,9 @@ public class StripedTile extends TileType {
     public StripedTile() {
         super();
         this.betMultiplier = 1.5f;
+        tooltip.setDescriptionVisible(true);
+        tooltip.setDescription("Counts as both [RED]RED [BLACK]and BLACK");
+        tooltip.addType("[RED]ST[BLACK]RI[RED]PE[BLACK]D", Color.BLACK, new Color(0xFFFFFFFF));
 
         stripedTexture = new Texture(Gdx.files.internal("tiles/StripedTile.png"));
         stripedTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.Repeat);

@@ -7,7 +7,11 @@ import io.wasabi.urg.elements.game.Tile;
 
 public class GreenCard extends Card {
 
-    public GreenCard() { super(Rarity.COMMON); }
+    public GreenCard() {
+        super(Rarity.COMMON);
+        tooltip.setTitle("Green Card");
+        tooltip.setDescription("[GREEN]Green [BLACK]tiles give [RED]3x [BLACK]payout");
+    }
 
     @Override
     public void roundStartEffect() {

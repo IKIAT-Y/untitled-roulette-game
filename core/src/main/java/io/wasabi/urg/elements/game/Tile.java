@@ -30,6 +30,7 @@ import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.ui.Tooltip;
 
 public class Tile extends GameObject {
     public enum Indicator {
@@ -52,7 +53,6 @@ public class Tile extends GameObject {
 
     private final World world;
 
-    private int number;
     private float size = 1; // multiplier
     private TileType type;
 
@@ -74,10 +74,9 @@ public class Tile extends GameObject {
     private Fixture fret;
     private final EnumSet<Indicator> indicators = EnumSet.noneOf(Indicator.class);
 
-    public Tile(World world, TileType type, int number, Vector2 position, float radius, float height) {
+    public Tile(World world, TileType type, Vector2 position, float radius, float height) {
         this.world = world;
 
-        this.number = number;
         this.position = position;
         this.radius = radius;
         this.height = height;
@@ -102,7 +101,7 @@ public class Tile extends GameObject {
 
         PolygonShape fretShape = new PolygonShape();
         fretShape.setAsBox(
-            height,
+            height/2,
             2.0f,
             new Vector2(0, 0),
             0
@@ -134,8 +133,8 @@ public class Tile extends GameObject {
         short[] tris = new short[segments * 11];
 
         Vector2 fretPos = new Vector2(
-                x + (r1 + height) * MathUtils.cos(rot),
-                y + (r1 + height) * MathUtils.sin(rot));
+                x + (r1 + height / 2) * MathUtils.cos(rot),
+                y + (r1 + height / 2) * MathUtils.sin(rot));
         body.setTransform(fretPos, rot);
 
         Affine2 fontTransform = new Affine2();
@@ -144,6 +143,10 @@ public class Tile extends GameObject {
         fontPos.y = y + (r1 + height + 2) * MathUtils.sin(fontRot);
         fontTransform.setToTrnRotRadScl(fontPos, fontRot + radians / 2 + MathUtils.PI / 2, new Vector2(0.4f, 0.4f));
         fontMatrix4.set(fontTransform);
+
+        type.getTooltip().setPosition(
+                x + (r1 + height + 50) * MathUtils.cos(rot + radians / 2),
+                y + (r1 + height + 50) * MathUtils.sin(rot + radians / 2));
 
         fontMatrix4.scale(2f, 2f, 1);
 
@@ -208,7 +211,7 @@ public class Tile extends GameObject {
         SPRITE_BATCH.begin();
         previousSpriteTransform.set(SPRITE_BATCH.getTransformMatrix());
         SPRITE_BATCH.setTransformMatrix(fontMatrix4);
-        FONT.draw(SPRITE_BATCH, Integer.toString(number), 0, 0, 16, Align.center, true);
+        FONT.draw(SPRITE_BATCH, Integer.toString(type.getNumber()), 0, 0, 16, Align.center, true);
         SPRITE_BATCH.setTransformMatrix(previousSpriteTransform);
         SPRITE_BATCH.end();
     }
@@ -309,9 +312,13 @@ public class Tile extends GameObject {
         type.onLanded();
     }
 
+    public Tooltip getTooltip() {
+        return type.getTooltip();
+    }
+
     public float getSize() { return size; }
     public PolygonRegion getRegion() { return type.getRegion(); }
-    public int getNumber() { return number; }
+    public int getNumber() { return type.getNumber(); }
 
     public void setPosition(Vector2 position) {
         this.position = position;
