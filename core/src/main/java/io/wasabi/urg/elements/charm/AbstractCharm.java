@@ -9,7 +9,7 @@ import io.wasabi.urg.util.tweens.Tween;
 
 public class AbstractCharm extends GameObject{
 
-    private Texture sprite;
+    private Texture texture;
     private float x, y;
     private float width, height;
     private boolean dragging = false;
@@ -35,7 +35,7 @@ public class AbstractCharm extends GameObject{
      * So use the class name of the card as the texture file name (without the .png extension).
      */
     private void loadSprite() {
-        this.sprite = TextureManager.getInstance().getTexture(getClass().getSimpleName(), "charm");
+        this.texture = TextureManager.getInstance().getTexture(getClass().getSimpleName(), "charm");
     }
     
     public void roundStartEffect() {}
@@ -56,7 +56,7 @@ public class AbstractCharm extends GameObject{
 
     @Override
     public void render() {
-        RendererManager.getInstance().getSpriteBatch().draw(sprite, x, y, width, height);
+        RendererManager.getInstance().getSpriteBatch().draw(texture, x, y, width, height);
     }
 
     public boolean contains(float worldX, float worldY) {

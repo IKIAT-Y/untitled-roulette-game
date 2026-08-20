@@ -14,8 +14,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.betting.BetScreenButton;
@@ -30,12 +28,9 @@ import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.CardLayout;
 import io.wasabi.urg.ui.CharmLayout;
-import io.wasabi.urg.ui.RoundResult;
 import io.wasabi.urg.ui.QuotaTracker;
+import io.wasabi.urg.ui.RoundResult;
 import io.wasabi.urg.ui.Shop;
-
-import java.util.List;
-import java.util.Random;
 
 public class GameScreen implements Screen {
     private final Roulette game;
@@ -71,10 +66,8 @@ public class GameScreen implements Screen {
 
     // Handlers
     private CardInputHandler cardInputHandler = new CardInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
-
-    // Handlers
-    private CardInputHandler cardInputHandler = new CardInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
     private CharmInputHandler charmInputHandler = new CharmInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
+    private InputMultiplexer inputMultiplexer = new InputMultiplexer(cardInputHandler, charmInputHandler);
     
     // Betting
     private Texture betButtonTexture;
@@ -269,7 +262,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
-        Gdx.input.setInputProcessor(cardInputHandler);
+        Gdx.input.setInputProcessor(inputMultiplexer);
 
         betButtonTexture = new Texture(Gdx.files.internal("buttons/TEX_BUTTON_64x32_BetUp.png"));
 
@@ -309,7 +302,6 @@ public class GameScreen implements Screen {
 
         betButton.setSize(btnWidth, btnHeight);
         betButton.setPosition((screenWidth - btnWidth) / 2f, 0);
-        Gdx.input.setInputProcessor(new InputMultiplexer(cardInputHandler, charmInputHandler));
     }
 
     @Override
