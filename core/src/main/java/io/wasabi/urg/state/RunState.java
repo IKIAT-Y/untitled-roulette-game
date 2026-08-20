@@ -16,6 +16,7 @@ import io.wasabi.urg.ui.Tooltip;
 /** Stores the player's progress and inventory for the current run. */
 public final class RunState {
     public static final int MAX_OWNED_CARDS = 4;
+    public static final int MAX_OWNED_CHARMS = 4;
     private int chips;
     private int score;
     private int tickets;
@@ -151,7 +152,9 @@ public final class RunState {
 
     // charms allow duplicates
     public void addCharm(AbstractCharm charm) {
-        ownedCharms.add(charm);
+        if (ownedCharms.size() + 1 <= MAX_OWNED_CHARMS) {
+            ownedCharms.add(charm);
+        }
     }
 
     public void reorderCharm(AbstractCharm charm, int newIndex) {
