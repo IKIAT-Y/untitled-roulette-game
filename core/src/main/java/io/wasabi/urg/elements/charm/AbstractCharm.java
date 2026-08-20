@@ -1,4 +1,4 @@
-package io.wasabi.urg.elements.card;
+package io.wasabi.urg.elements.charm;
 
 import com.badlogic.gdx.graphics.Texture;
 
@@ -7,14 +7,9 @@ import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.TextureManager;
 import io.wasabi.urg.util.tweens.Tween;
 
-public abstract class Card extends GameObject {
+public class AbstractCharm extends GameObject{
 
-    protected enum Rarity {
-        COMMON, UNCOMMON, RARE
-    }
-
-    protected Rarity cardRarity;
-    private Texture sprite;
+    private Texture texture;
     private float x, y;
     private float width, height;
     private boolean dragging = false;
@@ -25,13 +20,11 @@ public abstract class Card extends GameObject {
     private Tween tweenY;
     private static final float SNAP_DURATION = 0.25f;
 
-    protected Card(Rarity rarity) {
-        this.cardRarity = rarity;
-
+    protected AbstractCharm() {
         this.x = 0;
         this.y = 0;
-        this.width = 96;
-        this.height = 128;
+        this.width = 64;
+        this.height = 64;
 
         loadSprite();
     }
@@ -42,9 +35,9 @@ public abstract class Card extends GameObject {
      * So use the class name of the card as the texture file name (without the .png extension).
      */
     private void loadSprite() {
-        this.sprite = TextureManager.getInstance().getTexture(getClass().getSimpleName(), "card");
+        this.texture = TextureManager.getInstance().getTexture(getClass().getSimpleName(), "charm");
     }
-
+    
     public void roundStartEffect() {}
     public void beforeSpinEffect() {}
     public void afterSpinEffect() {}
@@ -63,7 +56,7 @@ public abstract class Card extends GameObject {
 
     @Override
     public void render() {
-        RendererManager.getInstance().getSpriteBatch().draw(sprite, x, y, width, height);
+        RendererManager.getInstance().getSpriteBatch().draw(texture, x, y, width, height);
     }
 
     public boolean contains(float worldX, float worldY) {
@@ -99,5 +92,6 @@ public abstract class Card extends GameObject {
         if (wasDragging && !dragging) {
             hasTarget = false;
         }
+        
     }
 }

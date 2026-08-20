@@ -1,21 +1,25 @@
 package io.wasabi.urg.managers;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class TextureManager {
     private static final TextureManager INSTANCE = new TextureManager();
 
-    private static final String CARD_DIR = "cards/";
+    // store item type and directory
+    private HashMap<String, String> ITEM_MAPPER = new HashMap<>();
 
-    private final Map<String, Texture> cardTextures = new HashMap<>();
+    private final Map<String, Texture> textures = new HashMap<>();
     private boolean initialized;
 
-    private TextureManager() {}
+    private TextureManager() {
+        ITEM_MAPPER.put("card", "cards/");
+        ITEM_MAPPER.put("charm", "charms/");
+    }
 
     public static TextureManager getInstance() {
         return INSTANCE;
@@ -27,27 +31,33 @@ public class TextureManager {
         // May be useful for preloading textures in the future
     }
 
-    public Texture getCardTexture(String name) {
-        Texture texture = cardTextures.get(name);
+    public Texture getTexture(String name, String itemType) {
+        String dir = ITEM_MAPPER.get(itemType);
+
+        if (dir == null) {
+            throw new IllegalArgumentException("Invalid item type!");
+        }
+
+        Texture texture = textures.get(name);
         if (texture != null) {
             return texture;
         }
 
-        FileHandle file = Gdx.files.internal(CARD_DIR + name + ".png");
+        FileHandle file = Gdx.files.internal(dir + name + ".png");
         if (!file.exists()) {
             throw new IllegalArgumentException("No card texture found for: " + name
-                + " (expected assets/" + CARD_DIR + name + ".png)");
+                + " (expected assets/" + dir + name + ".png)");
         }
 
         texture = new Texture(file);
-        cardTextures.put(name, texture);
+        textures.put(name, texture);
         return texture;
     }
 
     public void dispose() {
-        for (Texture texture : cardTextures.values()) {
+        for (Texture texture : textures.values()) {
             texture.dispose();
         }
-        cardTextures.clear();
+        textures.clear();
     }
 }
