@@ -2,6 +2,7 @@ package io.wasabi.urg.elements.charm;
 
 import com.badlogic.gdx.graphics.Texture;
 
+import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.TextureManager;
@@ -16,11 +17,14 @@ public class AbstractCharm extends GameObject{
     private boolean dragging = false;
     private float targetX, targetY;
     private boolean hasTarget = false;
-    private Tooltip tooltip = new Tooltip(0.5f, 1);
+    protected Tooltip tooltip = new Tooltip(0.5f, 1);
 
     private Tween tweenX;
     private Tween tweenY;
     private static final float SNAP_DURATION = 0.25f;
+
+    private int price = 4;
+    private int sellPrice = 2;
 
     protected AbstractCharm() {
         this.x = 0;
@@ -43,10 +47,13 @@ public class AbstractCharm extends GameObject{
         this.texture = TextureManager.getInstance().getTexture(getClass().getSimpleName(), "charm");
     }
 
-    public void roundStartEffect() {}
-    public void beforeSpinEffect() {}
-    public void afterSpinEffect() {}
-    public void roundEndEffect() {}
+    public void consume() {}
+    public boolean requirements() { return true; }
+
+    protected void removeAndReturnToPool() {
+        Roulette.getInstance().getRunState().removeCharm(this);
+        Roulette.getInstance().getCharmPool().returnCharm(this);
+    }
 
     @Override
     public void update(float delta) {
@@ -100,6 +107,10 @@ public class AbstractCharm extends GameObject{
     public float getHeight() { return height; }
     public boolean isDragging() { return dragging; }
     public Tooltip getTooltip() { return tooltip; }
+    public int getPrice() { return price; }
+    public void setPrice(int price) { this.price = price; }
+    public int getSellPrice() { return sellPrice; }
+    public void setSellPrice(int sellPrice) { this.sellPrice = sellPrice; }
 
     public void setDragging(boolean dragging) {
         boolean wasDragging = this.dragging;

@@ -1,11 +1,14 @@
 package io.wasabi.urg.screens;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -17,11 +20,13 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.wasabi.urg.Roulette;
+import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.elements.betting.BetScreenButton;
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.charm.AbstractCharm;
 import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.SpinButton;
+import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.managers.CardInputHandler;
 import io.wasabi.urg.managers.CharmInputHandler;
@@ -55,6 +60,9 @@ public class GameScreen implements Screen {
 
     // Physics
     private final World world;
+
+    // Miscellaneous
+    private List<GameObject> particles = new ArrayList<GameObject>();
 
     // Elements
     private Ball ball;
@@ -98,7 +106,7 @@ public class GameScreen implements Screen {
         this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
         this.shop = new Shop(shapeRenderer, spriteBatch, game.getViewport());
         this.gameOver = new GameOver(shapeRenderer, spriteBatch, game.getViewport());
-        this.inputMultiplexer.addProcessor(0, shop);
+        this.inputMultiplexer.addProcessor(2, shop);
         this.quotaTracker = new QuotaTracker(shapeRenderer, spriteBatch, game.getRunState(), game.getRoundManager());
         this.roundInfoPanel = new RoundInfoPanel(-700f, 250f);
     }
@@ -232,6 +240,7 @@ public class GameScreen implements Screen {
 
         handleUIInput();
         handleDebugWinInput();
+        handleTileSelectionInput();
 
         quotaTracker.update(delta);
 
@@ -280,6 +289,12 @@ public class GameScreen implements Screen {
         if (gameState == GameState.ROUND) {
             quotaTracker.render();
             renderDebugWinButton();
+        }
+
+        // render all particles
+        for (GameObject particle : particles) {
+            particle.update(delta);
+            particle.render();
         }
 
         gameOver.update(delta);
@@ -335,6 +350,31 @@ public class GameScreen implements Screen {
         betButton.setPosition((screenWidth - btnWidth) / 2f, 0);
     }
 
+    private void handleTileSelectionInput() {
+        if (gameState != GameState.ROUND) {
+            return;
+        }
+
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
+            game.getRunState().clearSelectedTiles();
+            SoundManager.getInstance().playSound("tileDeselect");
+            return;
+        }
+
+        if (!Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+            return;
+        }
+
+        Vector2 touchPoint = new Vector2(Gdx.input.getX(), Gdx.input.getY());
+        game.getViewport().unproject(touchPoint);
+
+        Tile tile = wheel.getTileAt(touchPoint);
+        if (tile != null) {
+            game.getRunState().toggleTileSelection(tile);
+            SoundManager.getInstance().playSound("tileSelect");
+        }
+    }
+
     private void handleDebugWinInput() {
         if (gameState != GameState.ROUND || !Gdx.input.justTouched()) {
             return;
@@ -383,6 +423,10 @@ public class GameScreen implements Screen {
         shapeRenderer.setProjectionMatrix(previousShapeProjection);
         spriteBatch.setProjectionMatrix(previousSpriteProjection);
         spriteBatch.setTransformMatrix(previousSpriteTransform);
+    }
+
+    public void addParticle(GameObject particle) {
+        particles.add(particle);
     }
 
     @Override

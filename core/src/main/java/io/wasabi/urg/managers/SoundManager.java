@@ -30,6 +30,10 @@ public final class SoundManager implements Disposable {
         loadSound("bounce3", "sfx/bounce3.wav");
         loadSound("bounce4", "sfx/bounce4.wav");
         loadSound("bounce5", "sfx/bounce5.wav");
+        loadSound("charmConsume", "sfx/charmConsume.wav");
+        loadSound("error", "sfx/error.wav");
+        loadSound("tileSelect", "sfx/tileSelect.wav");
+        loadSound("tileDeselect", "sfx/tileDeselect.wav");
     }
 
     // ---- Loading ----

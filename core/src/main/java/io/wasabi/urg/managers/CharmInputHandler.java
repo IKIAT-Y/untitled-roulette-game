@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.charm.AbstractCharm;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.ui.CharmLayout;
@@ -34,6 +35,13 @@ public class CharmInputHandler extends InputAdapter {
                 draggedCharm = charm;
                 draggedCharm.setDragging(true);
                 dragOffset.set(world.x - charm.getX(), world.y - charm.getY());
+
+                if (Roulette.getInstance().getGameScreen().getWheel().isSpinning()) {
+                    Roulette.getInstance().getGameScreen().getWheel().setShowConsumeZone(false);
+                } else {
+                    Roulette.getInstance().getGameScreen().getWheel().setShowConsumeZone(true);
+                }
+
                 return true;
             }
         }
@@ -63,8 +71,16 @@ public class CharmInputHandler extends InputAdapter {
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         if (draggedCharm == null) return false;
 
+        Vector2 world = screenToWorld(screenX, screenY);
+        if (Roulette.getInstance().getGameScreen().getWheel().containsPoint(world)) {
+            draggedCharm.consume();
+        }
+
         draggedCharm.setDragging(false);
         draggedCharm = null;
+
+        Roulette.getInstance().getGameScreen().getWheel().setShowConsumeZone(false);
+
         return true;
     }
 
