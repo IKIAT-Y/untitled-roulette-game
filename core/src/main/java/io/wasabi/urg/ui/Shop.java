@@ -388,8 +388,8 @@ public class Shop extends InputAdapter {
     private void layoutControls(float bottom) {
         buyBox.set(560f, bottom + 245f, 160f, 150f);
         sellBox.set(-720f, bottom + 245f, 160f, 150f);
-        rerollButton.set(-290f, bottom + 75f, REROLL_BUTTON_WIDTH, 65f);
-        continueButton.set(30f, bottom + 75f, 240f, 65f);
+        rerollButton.set(-290f, bottom - 75f, REROLL_BUTTON_WIDTH, 65f);
+        continueButton.set(30f, bottom - 75f, 240f, 65f);
     }
 
     private void layoutOffers(float bottom) {
