@@ -335,6 +335,8 @@ public class Ball extends GameObject {
             System.out.println("Tile multiplier: " + tile.getBetMultiplier());
         }
 
+        Roulette.getInstance().getGameScreen().getWheel().resetWheelTweens();
+
         Roulette.getInstance().getRunState().setLastTile(tile);
         Roulette.getInstance().getRunState().triggerEffects("afterSpin");
         Roulette.getInstance().getRunState().resolveActiveBets();

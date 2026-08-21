@@ -107,7 +107,6 @@ public class Wheel {
         this.position.y = vec.y;
 
         body.setTransform(position, 0);
-        update();
     }
 
     public Vector2 getPosition() {
@@ -116,7 +115,6 @@ public class Wheel {
 
     public void setRotation(float rot) {
         this.rotation = rot;
-        update();
     }
 
     public void rotateBy(float deltaDegrees) {
@@ -129,7 +127,6 @@ public class Wheel {
     public void setSize(float radius, float tileSize) {
         this.radius = radius;
         this.tileSize = tileSize;
-        update();
     }
 
     public void setShowConsumeZone(boolean show) {
@@ -264,6 +261,10 @@ public class Wheel {
     public Body getBody() { return body; }
     public List<Tile> getTiles() { return tiles; }
     public boolean isSpinning() { return wheelVelocityTween != null && !wheelVelocityTween.isComplete(); }
+    public void resetWheelTweens() {
+        wheelVelocityTween = null;
+        tweenY = null;
+    }
 
     public void resetTileMultipliers() {
         for (Tile tile : tiles) {
