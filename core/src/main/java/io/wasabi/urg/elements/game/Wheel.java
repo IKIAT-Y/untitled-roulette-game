@@ -110,9 +110,20 @@ public class Wheel {
         update();
     }
 
+    public Vector2 getPosition() {
+        return position;
+    }
+
     public void setRotation(float rot) {
         this.rotation = rot;
         update();
+    }
+
+    public void rotateBy(float deltaDegrees) {
+        if (isSpinning()) {
+            return;
+        }
+        setRotation(rotation + deltaDegrees * 0.0174532925f);
     }
 
     public void setSize(float radius, float tileSize) {
@@ -172,10 +183,10 @@ public class Wheel {
 
     public void updateSpinButton(SpinButton.State state, OrthographicCamera camera) {
 
-    spinButtonState = state;
+        spinButtonState = state;
 
-    spinButton.setPosition(position);
-    spinButton.update(state, camera);
+        spinButton.setPosition(position);
+        spinButton.update(state, camera);
     }
 
     public void render(float delta) {
