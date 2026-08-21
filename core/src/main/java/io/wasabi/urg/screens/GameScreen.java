@@ -39,6 +39,13 @@ import io.wasabi.urg.ui.*;
 
 public class GameScreen implements Screen {
     private static final int STARTING_CHIPS = 100;
+    private static final float START_ANGLE_RAD = 0f;
+    private static final float OUTER_TRACK_RADIUS = 400f;
+    private static final float INNER_WHEEL_RADIUS = 325f;
+    private static final float MIN_INITIAL_SPEED = 5000f;
+    private static final float INITIAL_SPEED_RANGE = 1000f;
+    private static final float WHEEL_SPIN_DURATION = 6.0f;
+    private static final float WHEEL_SPIN_SPEED = -10f;
     private final Roulette game;
 
     private enum GameState {
@@ -117,16 +124,27 @@ public class GameScreen implements Screen {
     }
 
     public void spin() {
-        // Move this to launch method when the player presses the spin button
-        float startAngleRad = 0f;
-        float initialSpeed = new Random().nextFloat() * (1000f) + 5000f;
-        float outerTrackRadius = 400f;
-        float innerWheelRadius = 325f;
+        launchSpin(false);
+    }
+
+    public void freeSpin() {
+        launchSpin(true);
+    }
+
+    private void launchSpin(boolean free) {
+        float initialSpeed = new Random().nextFloat() * INITIAL_SPEED_RANGE + MIN_INITIAL_SPEED;
         Roulette.getInstance().getRunState().triggerEffects("beforeSpin");
         SoundManager.getInstance().playSound("spin1");
         ball.setVisible(true);
-        ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
-        wheel.spin(6.0f, -10f);
+
+        if (free) {
+            ball.launchFree(START_ANGLE_RAD, initialSpeed, OUTER_TRACK_RADIUS, INNER_WHEEL_RADIUS);
+        }
+        else {
+            ball.launch(START_ANGLE_RAD, initialSpeed, OUTER_TRACK_RADIUS, INNER_WHEEL_RADIUS);
+        }
+
+        wheel.spin(WHEEL_SPIN_DURATION, WHEEL_SPIN_SPEED);
         quotaTracker.onSpinStarted();
     }
 

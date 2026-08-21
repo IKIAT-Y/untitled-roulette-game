@@ -107,11 +107,24 @@ public class RoundManager {
         }
 
         spinsRemaining--;
+
+        handleSpinResult();
+    }
+
+    public void recordFreeSpin() {
+        if (gameOver || runComplete) {
+            return;
+        }
+
+        handleSpinResult();
+    }
+
+    private void handleSpinResult() {
         Tile lastTile = runState.getLastTile();
         if (lastTile != null) {
             lastTile.onLanded();
         }
-        runState.triggerEffects("afterSpin");
+        
         printQuotaStatus();
 
         // Temp Debug for checking quota and spins remaining
