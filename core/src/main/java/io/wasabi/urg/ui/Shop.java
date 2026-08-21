@@ -14,6 +14,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.card.Card;
+import io.wasabi.urg.elements.charm.AbstractCharm;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.util.tweens.Tween;
@@ -24,9 +25,12 @@ public class Shop extends InputAdapter {
     private static final float CENTER_X = -WIDTH / 2f;
     private static final float OFFSCREEN_Y = -1500f;
     private static final int OFFER_COUNT = 4;
+    private static final int CHARM_OFFER_COUNT = 3;
     private static final int REROLL_PRICE = 5;
     private static final float OFFER_START_X = -300f;
     private static final float OFFER_SPACING = 160f;
+    private static final float CHARM_OFFER_START_X = -260f;
+    private static final float CHARM_OFFER_SPACING = 160f;
     // Shop appearance settings — adjust these to resize the price text/button.
     private static final float PRICE_FONT_SCALE = 0.6f;
     private static final float REROLL_BUTTON_WIDTH = 260f;
@@ -36,6 +40,7 @@ public class Shop extends InputAdapter {
     private final Viewport viewport;
     private final RunState runState;
     private final List<Card> offers = new ArrayList<>();
+    private final List<AbstractCharm> charmOffers = new ArrayList<>();
 
     private final Rectangle continueButton = new Rectangle();
     private final Rectangle rerollButton = new Rectangle();
@@ -46,8 +51,11 @@ public class Shop extends InputAdapter {
     private float y = OFFSCREEN_Y;
     private boolean visible;
     private boolean continueRequested;
+
     private Card draggedCard;
     private boolean draggingOffer;
+    private AbstractCharm draggedCharm;
+    private boolean draggingCharmOffer;
     private final Vector2 dragOffset = new Vector2();
 
     public Shop(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, Viewport viewport) {
@@ -59,17 +67,20 @@ public class Shop extends InputAdapter {
 
     public void show() {
         returnOffersToPool();
+        returnCharmOffersToPool();
         drawOffers();
+        drawCharmOffers();
         visible = true;
         continueRequested = false;
-        //y = OFFSCREEN_Y;
         tween = new Tween(1f, OFFSCREEN_Y, 0f, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
     }
 
     public void hide() {
         returnOffersToPool();
+        returnCharmOffersToPool();
         draggedCard = null;
-        //y = 0f;
+        draggedCharm = null;
+        //visible = false; // stop sudden disappearance of shop when tweening out
         tween = new Tween(1f, y, OFFSCREEN_Y, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
     }
 
@@ -85,6 +96,7 @@ public class Shop extends InputAdapter {
         float bottom = y - HEIGHT / 2f;
         layoutControls(bottom);
         layoutOffers(bottom);
+        layoutCharmOffers(bottom);
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(0.10f, 0.10f, 0.13f, 1f);
@@ -95,6 +107,10 @@ public class Shop extends InputAdapter {
         shapeRenderer.setColor(0.22f, 0.22f, 0.27f, 1f);
         for (Card card : offers) {
             shapeRenderer.rect(card.getX() - 12f, card.getY() - 42f, 120f, 182f);
+        }
+        shapeRenderer.setColor(0.27f, 0.22f, 0.27f, 1f);
+        for (AbstractCharm charm : charmOffers) {
+            shapeRenderer.rect(charm.getX() - 8f, charm.getY() - 8f, charm.getWidth() + 16f, charm.getHeight() + 16f);
         }
 
         shapeRenderer.setColor(0.22f, 0.50f, 0.28f, 1f);
@@ -115,12 +131,21 @@ public class Shop extends InputAdapter {
         font.draw(spriteBatch, "SELL", sellBox.x + 50f, sellBox.y + 85f);
         font.draw(spriteBatch, "REROLL - " + REROLL_PRICE, rerollButton.x + 30f, rerollButton.y + 43f);
         font.draw(spriteBatch, "CONTINUE", continueButton.x + 75f, continueButton.y + 43f);
+
         for (Card card : offers) {
             card.render();
             float previousScaleX = font.getData().scaleX;
             float previousScaleY = font.getData().scaleY;
             font.getData().setScale(PRICE_FONT_SCALE);
             font.draw(spriteBatch, card.getPrice() + " TICKETS", card.getX() + 12f, card.getY() - 18f);
+            font.getData().setScale(previousScaleX, previousScaleY);
+        }
+        for (AbstractCharm charm : charmOffers) {
+            charm.render();
+            float previousScaleX = font.getData().scaleX;
+            float previousScaleY = font.getData().scaleY;
+            font.getData().setScale(PRICE_FONT_SCALE);
+            font.draw(spriteBatch, charm.getPrice() + " TICKETS", charm.getX() + 8f, charm.getY() - 12f);
             font.getData().setScale(previousScaleX, previousScaleY);
         }
         spriteBatch.end();
@@ -140,7 +165,7 @@ public class Shop extends InputAdapter {
         for (int i = offers.size() - 1; i >= 0; i--) {
             Card card = offers.get(i);
             if (card.contains(world.x, world.y)) {
-                beginDrag(card, true, world);
+                beginCardDrag(card, true, world);
                 return true;
             }
         }
@@ -149,29 +174,64 @@ public class Shop extends InputAdapter {
         for (int i = ownedCards.size() - 1; i >= 0; i--) {
             Card card = ownedCards.get(i);
             if (card.contains(world.x, world.y)) {
-                beginDrag(card, false, world);
+                beginCardDrag(card, false, world);
                 return true;
             }
         }
-        return true;
+
+        for (int i = charmOffers.size() - 1; i >= 0; i--) {
+            AbstractCharm charm = charmOffers.get(i);
+            if (charm.contains(world.x, world.y)) {
+                beginCharmDrag(charm, true, world);
+                return true;
+            }
+        }
+
+        List<AbstractCharm> ownedCharms = runState.getOwnedCharms();
+        for (int i = ownedCharms.size() - 1; i >= 0; i--) {
+            AbstractCharm charm = ownedCharms.get(i);
+            if (charm.contains(world.x, world.y)) {
+                beginCharmDrag(charm, false, world);
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-        if (!visible || draggedCard == null) return false;
+        if (!visible) return false;
         Vector2 world = screenToWorld(screenX, screenY);
-        draggedCard.setPosition(world.x - dragOffset.x, world.y - dragOffset.y);
 
-        if (!draggingOffer) {
-            List<Card> ownedCards = runState.getOwnedCards();
-            int currentIndex = ownedCards.indexOf(draggedCard);
-            int closestIndex = CardLayout.getClosestIndex(
+        if (draggedCard != null) {
+            draggedCard.setPosition(world.x - dragOffset.x, world.y - dragOffset.y);
+            if (!draggingOffer) {
+                List<Card> ownedCards = runState.getOwnedCards();
+                int currentIndex = ownedCards.indexOf(draggedCard);
+                int closestIndex = CardLayout.getClosestIndex(
                     draggedCard.getX(), ownedCards.size(), viewport.getWorldWidth());
-            if (closestIndex != currentIndex) {
-                runState.reorderCard(draggedCard, closestIndex);
+                if (closestIndex != currentIndex) {
+                    runState.reorderCard(draggedCard, closestIndex);
+                }
             }
+            return true;
         }
-        return true;
+
+        if (draggedCharm != null) {
+            draggedCharm.setPosition(world.x - dragOffset.x, world.y - dragOffset.y);
+            if (!draggingCharmOffer) {
+                List<AbstractCharm> ownedCharms = runState.getOwnedCharms();
+                int currentIndex = ownedCharms.indexOf(draggedCharm);
+                int closestIndex = CharmLayout.getClosestIndex(
+                    draggedCharm.getX(), ownedCharms.size(), viewport.getWorldWidth());
+                if (closestIndex != currentIndex) {
+                    runState.reorderCharm(draggedCharm, closestIndex);
+                }
+            }
+            return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -180,7 +240,11 @@ public class Shop extends InputAdapter {
         Vector2 world = screenToWorld(screenX, screenY);
 
         if (draggedCard != null) {
-            finishDrag(world);
+            finishCardDrag(world);
+            return true;
+        }
+        if (draggedCharm != null) {
+            finishCharmDrag(world);
             return true;
         }
         if (continueButton.contains(world)) {
@@ -194,14 +258,21 @@ public class Shop extends InputAdapter {
         return false;
     }
 
-    private void beginDrag(Card card, boolean offer, Vector2 world) {
+    private void beginCardDrag(Card card, boolean offer, Vector2 world) {
         draggedCard = card;
         draggingOffer = offer;
         card.setDragging(true);
         dragOffset.set(world.x - card.getX(), world.y - card.getY());
     }
 
-    private void finishDrag(Vector2 world) {
+    private void beginCharmDrag(AbstractCharm charm, boolean offer, Vector2 world) {
+        draggedCharm = charm;
+        draggingCharmOffer = offer;
+        charm.setDragging(true);
+        dragOffset.set(world.x - charm.getX(), world.y - charm.getY());
+    }
+
+    private void finishCardDrag(Vector2 world) {
         Card card = draggedCard;
         boolean droppedInTarget = draggingOffer ? buyBox.contains(world) : sellBox.contains(world);
         if (droppedInTarget) {
@@ -210,6 +281,17 @@ public class Shop extends InputAdapter {
         }
         card.setDragging(false);
         draggedCard = null;
+    }
+
+    private void finishCharmDrag(Vector2 world) {
+        AbstractCharm charm = draggedCharm;
+        boolean droppedInTarget = draggingCharmOffer ? buyBox.contains(world) : sellBox.contains(world);
+        if (droppedInTarget) {
+            if (draggingCharmOffer) buyCharm(charm);
+            else sellCharm(charm);
+        }
+        charm.setDragging(false);
+        draggedCharm = null;
     }
 
     private void buy(Card card) {
@@ -226,13 +308,35 @@ public class Shop extends InputAdapter {
         }
     }
 
+    private void buyCharm(AbstractCharm charm) {
+        if (!runState.canAddCharm(charm) || runState.getTickets() < charm.getPrice()) return;
+        if (runState.spendTickets(charm.getPrice()) && runState.addCharm(charm)) {
+            charmOffers.remove(charm);
+        }
+    }
+
+    private void sellCharm(AbstractCharm charm) {
+        if (runState.removeCharm(charm)) {
+            runState.addTickets(charm.getSellPrice());
+            Roulette.getInstance().getCharmPool().returnCharm(charm);
+        }
+    }
+
     private void reroll() {
         if (!runState.spendTickets(REROLL_PRICE)) return;
+
         List<Card> previousOffers = new ArrayList<>(offers);
         offers.clear();
         drawOffers();
         for (Card card : previousOffers) {
             Roulette.getInstance().getCardPool().returnCard(card);
+        }
+
+        List<AbstractCharm> previousCharmOffers = new ArrayList<>(charmOffers);
+        charmOffers.clear();
+        drawCharmOffers();
+        for (AbstractCharm charm : previousCharmOffers) {
+            Roulette.getInstance().getCharmPool().returnCharm(charm);
         }
     }
 
@@ -249,23 +353,59 @@ public class Shop extends InputAdapter {
         }
     }
 
+    private void drawCharmOffers() {
+        int attempts = 0;
+        while (charmOffers.size() < CHARM_OFFER_COUNT && attempts++ < 30) {
+            AbstractCharm charm = Roulette.getInstance().getCharmPool().getRandomCharm();
+            if (charm == null) break;
+            if (runState.ownsCharmType(charm) || offersContainType(charmOffers, charm)) {
+                Roulette.getInstance().getCharmPool().returnCharm(charm);
+                continue;
+            }
+            charmOffers.add(charm);
+        }
+    }
+
+    private boolean offersContainType(List<AbstractCharm> offerList, AbstractCharm charm) {
+        for (AbstractCharm offered : offerList) {
+            if (offered.getClass() == charm.getClass()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void returnOffersToPool() {
         for (Card card : offers) Roulette.getInstance().getCardPool().returnCard(card);
         offers.clear();
     }
 
+    private void returnCharmOffersToPool() {
+        for (AbstractCharm charm : charmOffers) Roulette.getInstance().getCharmPool().returnCharm(charm);
+        charmOffers.clear();
+    }
+
     private void layoutControls(float bottom) {
         buyBox.set(560f, bottom + 245f, 160f, 150f);
         sellBox.set(-720f, bottom + 245f, 160f, 150f);
-        rerollButton.set(-290f, bottom + 75f, REROLL_BUTTON_WIDTH, 65f);
-        continueButton.set(30f, bottom + 75f, 240f, 65f);
+        rerollButton.set(-290f, bottom - 75f, REROLL_BUTTON_WIDTH, 65f);
+        continueButton.set(30f, bottom - 75f, 240f, 65f);
     }
 
     private void layoutOffers(float bottom) {
         for (int i = 0; i < offers.size(); i++) {
             Card card = offers.get(i);
             if (!card.isDragging()) {
-                card.setPosition(OFFER_START_X + i * OFFER_SPACING, bottom + 330f);
+                card.setPosition(OFFER_START_X + i * OFFER_SPACING, bottom + 380f);
+            }
+        }
+    }
+
+    private void layoutCharmOffers(float bottom) {
+        for (int i = 0; i < charmOffers.size(); i++) {
+            AbstractCharm charm = charmOffers.get(i);
+            if (!charm.isDragging()) {
+                charm.setPosition(CHARM_OFFER_START_X + i * CHARM_OFFER_SPACING, bottom + 170f);
             }
         }
     }

@@ -3,6 +3,7 @@ package io.wasabi.urg.elements.game;
 import java.util.List;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -47,6 +48,8 @@ public class Wheel {
     private SpinButton.State spinButtonState = SpinButton.State.NO_BET;
 
     private final Body body;
+
+    private boolean showConsumeZone = false;
 
     private Tween wheelVelocityTween;
     private Tween tweenY;
@@ -104,18 +107,30 @@ public class Wheel {
         this.position.y = vec.y;
 
         body.setTransform(position, 0);
-        update();
+    }
+
+    public Vector2 getPosition() {
+        return position;
     }
 
     public void setRotation(float rot) {
         this.rotation = rot;
-        update();
+    }
+
+    public void rotateBy(float deltaDegrees) {
+        if (isSpinning()) {
+            return;
+        }
+        setRotation(rotation + deltaDegrees * 0.0174532925f);
     }
 
     public void setSize(float radius, float tileSize) {
         this.radius = radius;
         this.tileSize = tileSize;
-        update();
+    }
+
+    public void setShowConsumeZone(boolean show) {
+        this.showConsumeZone = show;
     }
 
     private float getBaseTileAngle() {
@@ -165,10 +180,10 @@ public class Wheel {
 
     public void updateSpinButton(SpinButton.State state, OrthographicCamera camera) {
 
-    spinButtonState = state;
+        spinButtonState = state;
 
-    spinButton.setPosition(position);
-    spinButton.update(state, camera);
+        spinButton.setPosition(position);
+        spinButton.update(state, camera);
     }
 
     public void render(float delta) {
@@ -198,8 +213,21 @@ public class Wheel {
 
         spinButton.setPosition(position);
 
-       spinButton.draw(spinButtonState, SHAPE_RENDERER, SPRITE_BATCH, FontManager.getInstance().getFontByName("Placeholder"));
+        spinButton.draw(spinButtonState, SHAPE_RENDERER, SPRITE_BATCH, FontManager.getInstance().getFontByName("Placeholder"));
 
+        if (showConsumeZone) {
+            SHAPE_RENDERER.begin(ShapeType.Filled);
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            SHAPE_RENDERER.setColor(1f, 0.9f, 0.2f, 0.75f);
+            SHAPE_RENDERER.circle(position.x, position.y, radius + tileSize * 2f);
+            SHAPE_RENDERER.end();
+
+            SPRITE_BATCH.begin();
+            FontManager.getInstance().getFontByName("Terminus64PXBold")
+                .draw(SPRITE_BATCH, "Consume", position.x-100f, position.y+20f);
+            SPRITE_BATCH.end();
+        }
     }
 
 
@@ -232,10 +260,62 @@ public class Wheel {
 
     public Body getBody() { return body; }
     public List<Tile> getTiles() { return tiles; }
+    public boolean isSpinning() { return wheelVelocityTween != null && !wheelVelocityTween.isComplete(); }
+    public void resetWheelTweens() {
+        wheelVelocityTween = null;
+        tweenY = null;
+    }
 
     public void resetTileMultipliers() {
         for (Tile tile : tiles) {
             tile.setBetMultiplier(1f);
         }
+    }
+
+    public Tile getTileAt(Vector2 worldPoint) {
+        Vector2 local = new Vector2(worldPoint).sub(position);
+        float dist = local.len();
+
+        float innerRadius = radius;
+        float outerRadius = radius + tileSize * 2f; // matches Tile's r2 = radius + height + numHeight
+
+        if (dist < innerRadius || dist > outerRadius) {
+            return null;
+        }
+
+        float pointAngle = normalizeAngle(MathUtils.atan2(local.y, local.x));
+
+        float ang = getBaseTileAngle();
+        float angc = rotation;
+
+        for (Tile tile : tiles) {
+            float sweep = ang * MathUtils.degreesToRadians * tile.getSize();
+            float startAngle = normalizeAngle(angc);
+            float endAngle = normalizeAngle(angc + sweep);
+
+            if (isAngleInRange(pointAngle, startAngle, endAngle)) {
+                return tile;
+            }
+
+            angc += sweep;
+        }
+
+        return null;
+    }
+
+    private float normalizeAngle(float angle) {
+        float twoPi = MathUtils.PI2;
+        angle %= twoPi;
+        if (angle < 0) {
+            angle += twoPi;
+        }
+        return angle;
+    }
+
+    private boolean isAngleInRange(float angle, float start, float end) {
+        if (start <= end) {
+            return angle >= start && angle <= end;
+        }
+        return angle >= start || angle <= end; // wraps past 0
     }
 }

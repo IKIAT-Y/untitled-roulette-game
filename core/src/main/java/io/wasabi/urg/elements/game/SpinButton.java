@@ -1,6 +1,7 @@
 package io.wasabi.urg.elements.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -46,9 +47,13 @@ public final class SpinButton {
         center.set(position);
     }
 
-    //Checks for a click only when the button is currently enabled.*/
+    //Checks for a left click only when the button is currently enabled.*/
     public void update(State state, OrthographicCamera camera) {
         if (state != State.READY || !Gdx.input.justTouched()) {
+            return;
+        }
+
+        if (!Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
             return;
         }
 

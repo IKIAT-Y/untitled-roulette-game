@@ -1,15 +1,19 @@
 package io.wasabi.urg.screens;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -17,11 +21,13 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.wasabi.urg.Roulette;
+import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.elements.betting.BetScreenButton;
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.charm.AbstractCharm;
 import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.SpinButton;
+import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.managers.CardInputHandler;
 import io.wasabi.urg.managers.CharmInputHandler;
@@ -56,6 +62,9 @@ public class GameScreen implements Screen {
     // Physics
     private final World world;
 
+    // Miscellaneous
+    private List<GameObject> particles = new ArrayList<GameObject>();
+
     // Elements
     private Ball ball;
     private Wheel wheel;
@@ -82,6 +91,10 @@ public class GameScreen implements Screen {
     private float baseButtonHeight;
     private final Rectangle debugWinButton = new Rectangle();
 
+    // Middle-mouse drag-to-rotate
+    private boolean draggingWheelRotation = false;
+    private float lastWheelRotationAngle = 0f;
+
     public GameScreen(final Roulette game) {
         this.game = game;
         this.shapeRenderer = RendererManager.getInstance().getShapeRenderer();
@@ -98,7 +111,7 @@ public class GameScreen implements Screen {
         this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
         this.shop = new Shop(shapeRenderer, spriteBatch, game.getViewport());
         this.gameOver = new GameOver(shapeRenderer, spriteBatch, game.getViewport());
-        this.inputMultiplexer.addProcessor(0, shop);
+        this.inputMultiplexer.addProcessor(2, shop);
         this.quotaTracker = new QuotaTracker(shapeRenderer, spriteBatch, game.getRunState(), game.getRoundManager());
         this.roundInfoPanel = new RoundInfoPanel(-700f, 250f);
     }
@@ -171,12 +184,17 @@ public class GameScreen implements Screen {
     private void enterShopScreen() {
         gameState = GameState.SHOP;
 
+        inputMultiplexer.removeProcessor(cardInputHandler);
+        inputMultiplexer.removeProcessor(charmInputHandler);
         roundResult.hide();
         shop.show();
     }
 
     public void enterRoundScreen() {
         gameState = GameState.ROUND;
+
+        inputMultiplexer.addProcessor(0, cardInputHandler);
+        inputMultiplexer.addProcessor(1, charmInputHandler);
 
         shop.hide();
         roundInfoPanel.show();
@@ -209,7 +227,7 @@ public class GameScreen implements Screen {
             spinButtonState = SpinButton.State.SPINNING;
         }
         else if (game.getRunState().getActiveBets().isEmpty())
-             {
+        {
             spinButtonState = SpinButton.State.NO_BET;
         }
         else {
@@ -232,6 +250,8 @@ public class GameScreen implements Screen {
 
         handleUIInput();
         handleDebugWinInput();
+        handleTileSelectionInput();
+        handleWheelRotationInput();
 
         quotaTracker.update(delta);
 
@@ -282,6 +302,12 @@ public class GameScreen implements Screen {
             renderDebugWinButton();
         }
 
+        // render all particles
+        for (GameObject particle : particles) {
+            particle.update(delta);
+            particle.render();
+        }
+
         gameOver.update(delta);
         gameOver.render();
     }
@@ -305,14 +331,14 @@ public class GameScreen implements Screen {
         baseButtonHeight = btnHeight;
 
         betButton = new BetScreenButton(
-                betButtonTexture,
-                (game.getWorldWidth() - btnWidth) / 2f, 0,
-                btnWidth, btnHeight,
-                () -> {
-                    // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
-                    // sprite batch)
-                    game.setScreen(Roulette.getInstance().getBettingScreen());
-                });
+            betButtonTexture,
+            (game.getWorldWidth() - btnWidth) / 2f, 0,
+            btnWidth, btnHeight,
+            () -> {
+                // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
+                // sprite batch)
+                game.setScreen(Roulette.getInstance().getBettingScreen());
+            });
         updateBetButtonLayout();
     }
 
@@ -333,6 +359,60 @@ public class GameScreen implements Screen {
 
         betButton.setSize(btnWidth, btnHeight);
         betButton.setPosition((screenWidth - btnWidth) / 2f, 0);
+    }
+
+    private void handleTileSelectionInput() {
+        if (gameState != GameState.ROUND) {
+            return;
+        }
+
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
+            game.getRunState().clearSelectedTiles();
+            SoundManager.getInstance().playSound("tileDeselect");
+            return;
+        }
+
+        if (!Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+            return;
+        }
+
+        Vector2 touchPoint = new Vector2(Gdx.input.getX(), Gdx.input.getY());
+        game.getViewport().unproject(touchPoint);
+
+        Tile tile = wheel.getTileAt(touchPoint);
+        if (tile != null) {
+            game.getRunState().toggleTileSelection(tile);
+            SoundManager.getInstance().playSound("tileSelect");
+        }
+    }
+
+    private void handleWheelRotationInput() {
+        if (gameState != GameState.ROUND || wheel.isSpinning() || !Gdx.input.isButtonPressed(Input.Buttons.MIDDLE)) {
+            draggingWheelRotation = false;
+            return;
+        }
+
+        Vector2 touchPoint = new Vector2(Gdx.input.getX(), Gdx.input.getY());
+        game.getViewport().unproject(touchPoint);
+
+        Vector2 wheelPos = wheel.getPosition();
+        float currentAngleDeg = MathUtils.atan2(touchPoint.y - wheelPos.y, touchPoint.x - wheelPos.x)
+            * MathUtils.radiansToDegrees;
+
+        if (draggingWheelRotation) {
+            float deltaDeg = wrapDegrees(currentAngleDeg - lastWheelRotationAngle);
+            wheel.rotateBy(deltaDeg);
+        }
+
+        draggingWheelRotation = true;
+        lastWheelRotationAngle = currentAngleDeg;
+    }
+
+    private float wrapDegrees(float degrees) {
+        degrees %= 360f;
+        if (degrees > 180f) degrees -= 360f;
+        if (degrees < -180f) degrees += 360f;
+        return degrees;
     }
 
     private void handleDebugWinInput() {
@@ -365,7 +445,7 @@ public class GameScreen implements Screen {
         Matrix4 previousSpriteProjection = new Matrix4(spriteBatch.getProjectionMatrix());
         Matrix4 previousSpriteTransform = new Matrix4(spriteBatch.getTransformMatrix());
         Matrix4 screenProjection = new Matrix4().setToOrtho2D(
-                0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         shapeRenderer.setProjectionMatrix(screenProjection);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
@@ -377,12 +457,16 @@ public class GameScreen implements Screen {
         spriteBatch.setTransformMatrix(new Matrix4().idt());
         spriteBatch.begin();
         FontManager.getInstance().getFontByName("Placeholder")
-                .draw(spriteBatch, "DEBUG WIN", buttonX + 42f, buttonY + 35f);
+            .draw(spriteBatch, "DEBUG WIN", buttonX + 42f, buttonY + 35f);
         spriteBatch.end();
 
         shapeRenderer.setProjectionMatrix(previousShapeProjection);
         spriteBatch.setProjectionMatrix(previousSpriteProjection);
         spriteBatch.setTransformMatrix(previousSpriteTransform);
+    }
+
+    public void addParticle(GameObject particle) {
+        particles.add(particle);
     }
 
     @Override

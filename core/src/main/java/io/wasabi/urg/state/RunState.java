@@ -16,6 +16,7 @@ import io.wasabi.urg.ui.Tooltip;
 /** Stores the player's progress and inventory for the current run. */
 public final class RunState {
     public static final int MAX_OWNED_CARDS = 4;
+    public static final int MAX_OWNED_CHARMS = 4;
     private int chips;
     private int score;
     private int tickets;
@@ -24,6 +25,7 @@ public final class RunState {
     private Tooltip activeTooltip = null;
 
     private final List<Tile> tiles = new ArrayList<>();
+    private final List<Tile> selectedTiles = new ArrayList<>();
     private final List<Card> ownedCards = new ArrayList<>();
     private final List<AbstractCharm> ownedCharms = new ArrayList<>();
     private final IntArray chipHistory = new IntArray();
@@ -89,6 +91,34 @@ public final class RunState {
         addUnique(tiles, tile);
     }
 
+    public void toggleTileSelection(Tile tile) {
+        if (tile == null) {
+            return;
+        }
+        if (selectedTiles.contains(tile)) {
+            selectedTiles.remove(tile);
+            tile.setSelected(false);
+        } else {
+            selectedTiles.add(tile);
+            tile.setSelected(true);
+        }
+    }
+
+    public boolean isTileSelected(Tile tile) {
+        return selectedTiles.contains(tile);
+    }
+
+    public List<Tile> getSelectedTiles() {
+        return selectedTiles;
+    }
+
+    public void clearSelectedTiles() {
+        for (Tile tile : selectedTiles) {
+            tile.setSelected(false);
+        }
+        selectedTiles.clear();
+    }
+
     public boolean removeTile(Tile tile) {
         if (tiles.contains(tile)) {
             return tiles.remove(tile);
@@ -149,8 +179,28 @@ public final class RunState {
         return ownedCards;
     }
 
-    public void addCharm(AbstractCharm charm) {
-        addUnique(ownedCharms, charm);
+    public boolean addCharm(AbstractCharm charm) {
+        if (charm == null || ownedCharms.size() >= MAX_OWNED_CHARMS || ownsCharmType(charm)) {
+            return false;
+        }
+        ownedCharms.add(charm);
+        return true;
+    }
+
+    public boolean ownsCharmType(AbstractCharm charm) {
+        if (charm == null) {
+            return false;
+        }
+        for (AbstractCharm owned : ownedCharms) {
+            if (owned.getClass() == charm.getClass()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean canAddCharm(AbstractCharm charm) {
+        return ownedCharms.size() < MAX_OWNED_CHARMS && !ownsCharmType(charm);
     }
 
     public void reorderCharm(AbstractCharm charm, int newIndex) {
@@ -193,6 +243,7 @@ public final class RunState {
         score = 0;
         tickets = 0;
         lastTile = null;
+        clearSelectedTiles();
         activeTooltip = null;
         boss = null;
         activeBets.clear();

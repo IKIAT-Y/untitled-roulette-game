@@ -1,5 +1,6 @@
 package io.wasabi.urg.elements.game;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -7,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.PolygonRegion;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Affine2;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
@@ -30,6 +32,7 @@ public class Tile extends GameObject {
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
     private static final PolygonSpriteBatch POLY_BATCH = RENDERER_MANAGER.getPolygonSpriteBatch();
     private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
+    private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
 
     private static final FontManager FONT_MANAGER = FontManager.getInstance();
     private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Placeholder");
@@ -55,6 +58,8 @@ public class Tile extends GameObject {
 
     private Body body; // for frets
     private Fixture fret;
+
+    private boolean selected = false;
 
     public Tile(World world, TileType type, Vector2 position, float radius, float height) {
         this.world = world;
@@ -205,6 +210,48 @@ public class Tile extends GameObject {
         FONT.draw(SPRITE_BATCH, Integer.toString(type.getNumber()), 0, 0, 16, Align.center, true);
         SPRITE_BATCH.setTransformMatrix(previousSpriteTransform);
         SPRITE_BATCH.end();
+
+        if (selected) {
+            renderSelectionOutline();
+        }
+    }
+
+    // Temp selection indicator
+    private void renderSelectionOutline() {
+        float r1 = radius;
+        float r2 = radius + height + numHeight;
+        float radians = degrees * MathUtils.degreesToRadians * size;
+        int segments = Math.max(1, (int) (3 * (float) Math.cbrt(r2)));
+        float radInc = radians / segments;
+
+        SHAPE_RENDERER.begin(ShapeRenderer.ShapeType.Line);
+        SHAPE_RENDERER.setColor(1f, 0.85f, 0.15f, 1f); // gold highlight, tweak to taste
+        Gdx.gl.glLineWidth(4);
+
+        float rot = rotation;
+        float prevOuterX = position.x + r2 * MathUtils.cos(rot);
+        float prevOuterY = position.y + r2 * MathUtils.sin(rot);
+        for (int i = 1; i <= segments; i++) {
+            rot += radInc;
+            float ox = position.x + r2 * MathUtils.cos(rot);
+            float oy = position.y + r2 * MathUtils.sin(rot);
+            SHAPE_RENDERER.line(prevOuterX, prevOuterY, ox, oy);
+            prevOuterX = ox;
+            prevOuterY = oy;
+        }
+
+        // radial edges to close the wedge
+        float startRot = rotation;
+        float endRot = rotation + radians;
+        SHAPE_RENDERER.line(
+            position.x + r1 * MathUtils.cos(startRot), position.y + r1 * MathUtils.sin(startRot),
+            position.x + r2 * MathUtils.cos(startRot), position.y + r2 * MathUtils.sin(startRot));
+        SHAPE_RENDERER.line(
+            position.x + r1 * MathUtils.cos(endRot), position.y + r1 * MathUtils.sin(endRot),
+            position.x + r2 * MathUtils.cos(endRot), position.y + r2 * MathUtils.sin(endRot));
+
+        SHAPE_RENDERER.end();
+        Gdx.gl.glLineWidth(1);
     }
 
     public void onLanded() {
@@ -219,6 +266,8 @@ public class Tile extends GameObject {
     public PolygonRegion getRegion() { return type.getRegion(); }
     public Vector2 getPosition() { return position; }
     public int getNumber() { return type.getNumber(); }
+    public boolean isSelected() { return selected; }
+    public void setSelected(boolean selected) { this.selected = selected; }
 
     public void setPosition(Vector2 position) {
         this.position = position;
