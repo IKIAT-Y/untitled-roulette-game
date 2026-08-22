@@ -10,12 +10,12 @@ public class ExtraChange extends Card {
     public ExtraChange() {
         super(Rarity.COMMON);
         tooltip.setTitle("Extra Change");
-        tooltip.setDescription("Start each round with extra chips equal to 10% of the missing quota");
+        tooltip.setDescription("Start each round with extra chips equal to 10% of the quota");
     }
 
     @Override
     public void roundStartEffect() {
-        System.out.println("ExtraChange card effect triggered");
+        //System.out.println("ExtraChange card effect triggered");
         triggerDisplay();
         runState.addChips((int) Roulette.getInstance().getRoundManager().getCurrentConfig().getQuota()/10);
     }

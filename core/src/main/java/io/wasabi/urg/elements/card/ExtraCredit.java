@@ -13,7 +13,7 @@ public class ExtraCredit extends Card {
 
     @Override
     public void roundStartEffect() {
-        System.out.println("ExtraCredit card effect triggered");
+        //System.out.println("ExtraCredit card effect triggered");
         triggerDisplay();
         RoundManager roundManager = Roulette.getInstance().getRoundManager();
         roundManager.setSpinsRemaining(roundManager.getSpinsRemaining() + 1);

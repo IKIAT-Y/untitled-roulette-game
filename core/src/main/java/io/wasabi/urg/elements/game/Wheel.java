@@ -258,7 +258,7 @@ public class Wheel {
 
     /**
      * Spins the wheel for a set amount of time, with given initial speed.
-     * 
+     *
      * @param duration     The spin time
      * @param initialSpeed The initial speed
      */
@@ -274,7 +274,7 @@ public class Wheel {
     public Body getBody() { return body; }
     public List<Tile> getTiles() { return tiles; }
     public boolean isSpinning() { return wheelVelocityTween != null && !wheelVelocityTween.isComplete(); }
-  
+
     public void resetWheelTweens() {
         wheelVelocityTween = null;
         tweenY = null;
@@ -333,23 +333,3 @@ public class Wheel {
         return angle >= start || angle <= end; // wraps past 0
     }
 }
-
-    
-
-    
-
-    
-
-    
-        
-    
-
-    
-        
-    
-
-    
-        
-    
-
-    

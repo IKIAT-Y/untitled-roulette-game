@@ -120,14 +120,14 @@ public class RoundManager {
         printQuotaStatus();
 
         // Temp Debug for checking quota and spins remaining
-        System.out.println("Act: " + act + ", Round: " + round + ", Quota: " + currentConfig.getQuota() + ", Chips: " + runState.getChips() + ", Boss round: " + currentConfig.isBossRound());
-        System.out.println("Spins remaining: " + spinsRemaining);
+        // System.out.println("Act: " + act + ", Round: " + round + ", Quota: " + currentConfig.getQuota() + ", Chips: " + runState.getChips() + ", Boss round: " + currentConfig.isBossRound());
+        // System.out.println("Spins remaining: " + spinsRemaining);
 
         if (runState.getChips() >= currentConfig.getQuota()) {
-            System.out.println("winner");
+            // System.out.println("winner");
             advance();
         } else if (spinsRemaining <= 0 || runState.getChips() == 0) {
-            System.out.println("loser");
+            // System.out.println("loser");
             gameOver();
         }
     }
@@ -156,7 +156,7 @@ public class RoundManager {
 
     public void gameOver() {
         gameOver = true;
-        System.out.println("Game over: quota not reached.");
+        // System.out.println("Game over: quota not reached.");
         if (Roulette.getInstance().getGameScreen() != null) {
             Roulette.getInstance().getGameScreen().showGameOver();
         }
@@ -166,22 +166,21 @@ public class RoundManager {
         int ticketsAwarded = BASE_TICKET_REWARD
             + (spinsRemaining * TICKETS_PER_UNUSED_SPIN);
         runState.addTickets(ticketsAwarded);
-        System.out.println(
-            "Quota complete: awarded " + ticketsAwarded
-                + " tickets. Total tickets: " + runState.getTickets()
-        );
-
+        // System.out.println(
+        //     "Quota complete: awarded " + ticketsAwarded
+        //         + " tickets. Total tickets: " + runState.getTickets()
+        // );
     }
 
 // temporary way to check whether the quota has been reached or not, will be replaced with a proper UI later
     private void printQuotaStatus() {
-        System.out.println(
-            "Act " + act
-                + "\nRound " + round
-                + "\nBoss round: " + currentConfig.isBossRound()
-                + "\nQuota: " + runState.getChips() + " / " + currentConfig.getQuota()
-                + "\nTickets: " + runState.getTickets()
-        );
+        // System.out.println(
+        //     "Act " + act
+        //         + "\nRound " + round
+        //         + "\nBoss round: " + currentConfig.isBossRound()
+        //         + "\nQuota: " + runState.getChips() + " / " + currentConfig.getQuota()
+        //         + "\nTickets: " + runState.getTickets()
+        // );
     }
 
     public RoundConfig getCurrentConfig() { return currentConfig; }

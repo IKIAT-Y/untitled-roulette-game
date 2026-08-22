@@ -14,7 +14,7 @@ public class BlackCard extends Card {
 
     @Override
     public void roundStartEffect() {
-        System.out.println("BlackCard card effect triggered");
+        //System.out.println("BlackCard card effect triggered");
         triggerDisplay();
         List<Tile> tiles = Roulette.getInstance().getGameScreen().getWheel().getTiles();
         for (Tile tile : tiles) {

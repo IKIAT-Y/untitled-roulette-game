@@ -1,18 +1,20 @@
 package io.wasabi.urg.elements.betting;
 
 /**
- * The betting-relevant colour category of a tile.
+ * A single summarising colour category for a tile, used where exactly one
+ * answer is needed (e.g. picking one texture to represent a straight-bet zone
+ * — see {@link TableLayoutGenerator#getColor}).
  *
- * This is intentionally separate from whatever colour
- * {@link io.wasabi.urg.elements.game.Tile}
- * renders itself with. Tile currently only exposes a number, so this is derived
- * externally
- * (see {@link TableLayoutGenerator#getColor}) rather than stored on Tile
- * itself. If Tile later grows a real colour/type field, that derivation is the
- * one place to update.
+ * This deliberately does NOT decide RED/BLACK outside-bet membership — a tile
+ * can independently count as red, black, both (a striped tile), or neither at
+ * once (see {@link io.wasabi.urg.elements.game.Tile#isRed()}/{@code isBlack()}/
+ * {@code isGreen()}), which a single value can't represent. Bucketing for those
+ * bets checks the tile's booleans directly instead.
  */
 public enum PocketColor {
     RED,
     BLACK,
-    GREEN
+    GREEN,
+    /** Not conventionally red, black, or green — a tile type with its own distinct look. */
+    SPECIAL
 }

@@ -347,8 +347,8 @@ public class Ball extends GameObject {
 
         Tile tile = getLandedTile();
         if (tile != null) {
-            System.out.println("Landed on tile: " + tile.getNumber());
-            System.out.println("Tile multiplier: " + tile.getBetMultiplier());
+            //System.out.println("Landed on tile: " + tile.getNumber());
+            //System.out.println("Tile multiplier: " + tile.getBetMultiplier());
         }
 
         Roulette.getInstance().getGameScreen().getWheel().resetWheelTweens();
@@ -360,8 +360,9 @@ public class Ball extends GameObject {
         Roulette.getInstance().getRoundManager().recordSpin(freeSpin);
 
         boolean freeSpinRequested = Roulette.getInstance().getRunState().consumeFreeSpinRequest();
-    
-        if (Roulette.getInstance().getRunState().getChips() >= Roulette.getInstance().getRoundManager().getCurrentConfig().getQuota()) {
+
+        if (Roulette.getInstance().getRunState().getChips() >= Roulette.getInstance().getRoundManager()
+                .getCurrentConfig().getQuota()) {
             return;
         }
 
@@ -435,11 +436,10 @@ public class Ball extends GameObject {
         world.destroyBody(ball);
     }}
 
-    
 
-    
-    
-        
-    
-        
-    
+
+
+
+
+
+
