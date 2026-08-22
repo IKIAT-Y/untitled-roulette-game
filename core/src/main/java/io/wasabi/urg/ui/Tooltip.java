@@ -102,6 +102,7 @@ public class Tooltip {
 
     public void setMinWidth(float width) {
         this.minWidth = width;
+        updateSizes();
     }
 
     public void setPosition(float x, float y) {
