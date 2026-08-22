@@ -44,8 +44,8 @@ import io.wasabi.urg.ui.Tooltip;
 public class GameScreen implements Screen {
     private static final int STARTING_CHIPS = 100;
     private static final float START_ANGLE_RAD = 0f;
-    private static final float OUTER_TRACK_RADIUS = 400f;
-    private static final float INNER_WHEEL_RADIUS = 325f;
+    private static final float OUTER_TRACK_RADIUS = 325f;
+    private static final float INNER_WHEEL_RADIUS = 300f;
     private static final float MIN_INITIAL_SPEED = 5000f;
     private static final float INITIAL_SPEED_RANGE = 1000f;
     private static final float WHEEL_SPIN_DURATION = 6.0f;
