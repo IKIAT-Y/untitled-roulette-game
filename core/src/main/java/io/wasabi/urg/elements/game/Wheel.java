@@ -205,9 +205,10 @@ public class Wheel {
         // draw wheel background at the middle of the screen
         SPRITE_BATCH.begin();
         SPRITE_BATCH.draw(
-                wheelBackground,
-                position.x - wheelBackground.getWidth() / 2f,
-                position.y - wheelBackground.getHeight() / 2f);
+            wheelBackground,
+            position.x - wheelBackground.getWidth() / 2f,
+            position.y - wheelBackground.getHeight() / 2f
+        );
         SPRITE_BATCH.end();
 
         for (Tile tile : tiles) {
@@ -224,8 +225,7 @@ public class Wheel {
 
         spinButton.setPosition(position);
 
-        spinButton.draw(spinButtonState, SHAPE_RENDERER, SPRITE_BATCH,
-                FontManager.getInstance().getFontByName("Placeholder"));
+        spinButton.draw(spinButtonState, SHAPE_RENDERER, SPRITE_BATCH, FontManager.getInstance().getFontByName("Placeholder"));
 
         if (showConsumeZone) {
             SHAPE_RENDERER.begin(ShapeType.Filled);
@@ -237,7 +237,7 @@ public class Wheel {
 
             SPRITE_BATCH.begin();
             FontManager.getInstance().getFontByName("Terminus64PXBold")
-                    .draw(SPRITE_BATCH, "Consume", position.x - 100f, position.y + 20f);
+                .draw(SPRITE_BATCH, "Consume", position.x-100f, position.y+20f);
             SPRITE_BATCH.end();
         }
     }
@@ -271,39 +271,30 @@ public class Wheel {
         world.destroyBody(body);
     }
 
-        pubic B
-
-    public List<Tile> getTi
-        es() { retur
-         pub
-
-    
-
-           wheelVe locityTween = null;
-
+    public Body getBody() { return body; }
+    public List<Tile> getTiles() { return tiles; }
+    public boolean isSpinning() { return wheelVelocityTween != null && !wheelVelocityTween.isComplete(); }
+  
+    public void resetWheelTweens() {
+        wheelVelocityTween = null;
         tweenY = null;
-        
-    
-
     }
-        
-    
 
     public void resetTileMultipliers() {
         for (Tile tile : tiles) {
-     
-
+            tile.setBetMultiplier(1f);
         }
+    }
 
-    
-        
-    
+    public Tile getTileAt(Vector2 worldPoint) {
+        Vector2 local = new Vector2(worldPoint).sub(position);
+        float dist = local.len();
 
+        float innerRadius = radius;
+        float outerRadius = radius + tileSize * 2f; // matches Tile's r2 = radius + height + numHeight
 
-     
-
-        float outerRadius = radius + tileSize * 2f; // matches
-
+        if (dist < innerRadius || dist > outerRadius) {
+            return null;
         }
 
         float pointAngle = normalizeAngle(MathUtils.atan2(local.y, local.x));
@@ -342,8 +333,3 @@ public class Wheel {
         return angle >= start || angle <= end; // wraps past 0
     }
 }
-
-    
-
-    
-
