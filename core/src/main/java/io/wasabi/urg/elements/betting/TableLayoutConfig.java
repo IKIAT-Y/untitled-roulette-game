@@ -26,7 +26,7 @@ public final class TableLayoutConfig {
     public static final float COLUMN_STRIP_WIDTH = 60f; // "2 to 1" boxes to the right of the grid
     public static final float DOZEN_STRIP_HEIGHT = 72f; // dozen boxes above the grid
 
-    public static final float OUTSIDE_BOX_WIDTH = 144f; // red/black/odd/even/high/low row
+    public static final float OUTSIDE_BOX_WIDTH = 175f; // red/black/odd/even/high/low row
     public static final float OUTSIDE_BOX_HEIGHT = 60f;
-    public static final float OUTSIDE_BOX_GAP = 12f;
+    public static final float OUTSIDE_BOX_GAP = 40f;
 }

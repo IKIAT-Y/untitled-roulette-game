@@ -137,7 +137,10 @@ public class TableLayoutGenerator {
         return byNumber;
     }
 
-    /** Every physical tile across the given numbers — the covered-tiles list for a zone. */
+    /**
+     * Every physical tile across the given numbers — the covered-tiles list for a
+     * zone.
+     */
     private List<Tile> tilesFor(Map<Integer, List<Tile>> tilesByNumber, List<Integer> numbers) {
         List<Tile> combined = new ArrayList<>();
         for (Integer number : numbers) {
@@ -412,8 +415,8 @@ public class TableLayoutGenerator {
         float gap = TableLayoutConfig.OUTSIDE_BOX_GAP;
 
         Object[][] categories = {
-                { BetType.LOW, low }, { BetType.EVEN, even }, { BetType.RED, red },
-                { BetType.BLACK, black }, { BetType.ODD, odd }, { BetType.HIGH, high }
+                { BetType.LOW, low }, { BetType.HIGH, high }, { BetType.RED, red },
+                { BetType.BLACK, black }, { BetType.ODD, odd }, { BetType.EVEN, even }
         };
 
         for (int i = 0; i < categories.length; i++) {

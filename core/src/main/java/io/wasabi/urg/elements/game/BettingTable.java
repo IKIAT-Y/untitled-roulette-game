@@ -42,6 +42,10 @@ public class BettingTable extends GameObject {
     private static final float TRAY_GAP = 168f;
     private static final float TRAY_MARGIN = 90f;
     private static final float NUMBER_FONT_SCALE = 2f;
+    // Outside boxes hold whole words ("BLACK", "19-36") rather than 1-2 digits, so
+    // they need a smaller scale than the straight-zone numbers to fit the box —
+    // tuned by eye against the placeholder font, not measured exactly.
+    private static final float OUTSIDE_LABEL_FONT_SCALE = 1.2f;
 
     // Small, bounded cache (one entry per distinct pocket number ever drawn) so we
     // aren't allocating a fresh String every zone, every frame.
@@ -339,6 +343,7 @@ public class BettingTable extends GameObject {
             return;
 
         List<BetZone> straightZones = layout.getZonesOfType(BetType.STRAIGHT);
+        List<BetZone> outsideZones = outsideCategoryZones();
 
         SHAPE_RENDERER.begin(ShapeType.Filled);
         for (BetZone zone : straightZones) {
@@ -347,9 +352,14 @@ public class BettingTable extends GameObject {
             Rectangle r = zone.getHitArea().getBoundingRectangle();
             SHAPE_RENDERER.rect(r.x, r.y, r.width, r.height);
         }
+        for (BetZone zone : outsideZones) {
+            SHAPE_RENDERER.setColor(colorForOutsideType(zone.getType()));
+            Rectangle r = zone.getHitArea().getBoundingRectangle();
+            SHAPE_RENDERER.rect(r.x, r.y, r.width, r.height);
+        }
         SHAPE_RENDERER.end();
 
-        drawStraightZoneNumbers(straightZones);
+        drawZoneLabels(straightZones, outsideZones);
 
         SHAPE_RENDERER.begin(ShapeType.Line);
         SHAPE_RENDERER.setColor(Color.WHITE);
@@ -357,12 +367,17 @@ public class BettingTable extends GameObject {
             Rectangle r = zone.getHitArea().getBoundingRectangle();
             SHAPE_RENDERER.rect(r.x, r.y, r.width, r.height);
         }
+        for (BetZone zone : outsideZones) {
+            Rectangle r = zone.getHitArea().getBoundingRectangle();
+            SHAPE_RENDERER.rect(r.x, r.y, r.width, r.height);
+        }
 
-        // Snap-point markers for every non-straight bet (split/corner/street/six-line/
-        // column/dozen/outside)
+        // Snap-point markers for the remaining bet types that don't have a dedicated
+        // shape of their own yet (split/corner/street/six-line/column/dozen) — just
+        // an anchor point to snap a chip to.
         SHAPE_RENDERER.setColor(Color.LIGHT_GRAY);
         for (BetZone zone : layout.getBetZones()) {
-            if (zone.getType() == BetType.STRAIGHT)
+            if (zone.getType() == BetType.STRAIGHT || isOutsideCategoryType(zone.getType()))
                 continue;
             Vector2 a = zone.getChipAnchor();
             SHAPE_RENDERER.circle(a.x, a.y, 4f);
@@ -388,28 +403,43 @@ public class BettingTable extends GameObject {
     }
 
     /**
-     * Draws each straight zone's pocket number, shrunk and centered in its cell.
-     * FONT is shared with other renderers (e.g. Tile, which draws with it at the
-     * default scale/color) — every tweak made here is saved beforehand and
-     * restored afterward so it can't leak into whatever draws with FONT next.
+     * Draws every straight zone's pocket number and every outside zone's label,
+     * shrunk to fit and centered in their box. FONT is shared with other renderers
+     * (e.g. Tile, which draws with it at the default scale/color) — every tweak
+     * made here is saved beforehand and restored afterward so it can't leak into
+     * whatever draws with FONT next. Both groups share one SpriteBatch begin/end —
+     * changing the font's scale mid-batch is fine, it only affects the vertices of
+     * draws that come after it.
      */
-    private void drawStraightZoneNumbers(List<BetZone> straightZones) {
+    private void drawZoneLabels(List<BetZone> straightZones, List<BetZone> outsideZones) {
         float originalScaleX = FONT.getScaleX();
         float originalScaleY = FONT.getScaleY();
         Color originalColor = FONT.getColor().cpy();
 
-        FONT.getData().setScale(NUMBER_FONT_SCALE, NUMBER_FONT_SCALE);
         FONT.setColor(Color.WHITE);
-        // BitmapFont#draw's y is the TOP of the text
-        float halfTextHeight = FONT.getCapHeight() / 2f;
 
         SPRITE_BATCH.begin();
+
+        FONT.getData().setScale(NUMBER_FONT_SCALE, NUMBER_FONT_SCALE);
+        // BitmapFont#draw's y is the TOP of the text, so centering vertically means
+        // pushing the top edge up by half the (scaled) glyph height from the box's
+        // midpoint.
+        float straightHalfHeight = FONT.getCapHeight() / 2f;
         for (BetZone zone : straightZones) {
             Tile tile = zone.getCoveredTiles().get(0);
             Rectangle r = zone.getHitArea().getBoundingRectangle();
             FONT.draw(SPRITE_BATCH, labelFor(tile.getNumber()), r.x,
-                    r.y + r.height / 2f + halfTextHeight, r.width, Align.center, false);
+                    r.y + r.height / 2f + straightHalfHeight, r.width, Align.center, false);
         }
+
+        FONT.getData().setScale(OUTSIDE_LABEL_FONT_SCALE, OUTSIDE_LABEL_FONT_SCALE);
+        float outsideHalfHeight = FONT.getCapHeight() / 2f;
+        for (BetZone zone : outsideZones) {
+            Rectangle r = zone.getHitArea().getBoundingRectangle();
+            FONT.draw(SPRITE_BATCH, outsideLabelFor(zone), r.x,
+                    r.y + r.height / 2f + outsideHalfHeight, r.width, Align.center, false);
+        }
+
         SPRITE_BATCH.end();
 
         FONT.getData().setScale(originalScaleX, originalScaleY);
@@ -418,6 +448,64 @@ public class BettingTable extends GameObject {
 
     private String labelFor(int number) {
         return numberLabels.computeIfAbsent(number, String::valueOf);
+    }
+
+    /**
+     * RED/BLACK/EVEN/ODD are fixed labels; LOW/HIGH show the actual number range
+     * they cover (derived from the zone's own covered tiles) rather than a
+     * hardcoded "1-18"/"19-36", since that range is rank-based and shifts as the
+     * roguelike layer changes what numbers exist — see TableLayoutGenerator.
+     */
+    private String outsideLabelFor(BetZone zone) {
+        switch (zone.getType()) {
+            case RED:
+                return "RED";
+            case BLACK:
+                return "BLACK";
+            case EVEN:
+                return "EVEN";
+            case ODD:
+                return "ODD";
+            case LOW:
+            case HIGH:
+                return numberRangeLabel(zone);
+            default:
+                return "";
+        }
+    }
+
+    private String numberRangeLabel(BetZone zone) {
+        int min = Integer.MAX_VALUE;
+        int max = Integer.MIN_VALUE;
+        for (Tile tile : zone.getCoveredTiles()) {
+            min = Math.min(min, tile.getNumber());
+            max = Math.max(max, tile.getNumber());
+        }
+        return min + "-" + max;
+    }
+
+    private List<BetZone> outsideCategoryZones() {
+        List<BetZone> zones = new ArrayList<>();
+        for (BetZone zone : layout.getBetZones()) {
+            if (isOutsideCategoryType(zone.getType())) {
+                zones.add(zone);
+            }
+        }
+        return zones;
+    }
+
+    private boolean isOutsideCategoryType(BetType type) {
+        switch (type) {
+            case LOW:
+            case HIGH:
+            case EVEN:
+            case ODD:
+            case RED:
+            case BLACK:
+                return true;
+            default:
+                return false;
+        }
     }
 
     private Color colorFor(PocketColor color) {
@@ -430,6 +518,21 @@ public class BettingTable extends GameObject {
                 return Color.GREEN;
             default:
                 return Color.GRAY;
+        }
+    }
+
+    /**
+     * Returns the color to fill an outside-category zone with. RED/BLACK are
+     * colored, everything else is dark green.
+     */
+    private Color colorForOutsideType(BetType type) {
+        switch (type) {
+            case RED:
+                return Color.RED;
+            case BLACK:
+                return Color.BLACK;
+            default:
+                return Color.FOREST;
         }
     }
 

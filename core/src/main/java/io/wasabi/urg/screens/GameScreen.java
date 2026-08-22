@@ -36,6 +36,7 @@ import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.*;
 
+
 public class GameScreen implements Screen {
     private static final int STARTING_CHIPS = 100;
     private static final float START_ANGLE_RAD = 0f;
@@ -84,10 +85,8 @@ public class GameScreen implements Screen {
     private RoundInfoPanel roundInfoPanel;
 
     // Handlers
-    private CardInputHandler cardInputHandler = new CardInputHandler(Roulette.getInstance().getRunState(),
-            Roulette.getInstance().getViewport());
-    private CharmInputHandler charmInputHandler = new CharmInputHandler(Roulette.getInstance().getRunState(),
-            Roulette.getInstance().getViewport());
+    private CardInputHandler cardInputHandler = new CardInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
+    private CharmInputHandler charmInputHandler = new CharmInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
     private InputMultiplexer inputMultiplexer = new InputMultiplexer(cardInputHandler, charmInputHandler);
 
     // Betting
@@ -125,9 +124,8 @@ public class GameScreen implements Screen {
     }
 
     public void spin() {
-     
-
-    
+        launchSpin(false);
+    }
 
     public void freeSpin() {
         launchSpin(true);
@@ -137,9 +135,8 @@ public class GameScreen implements Screen {
         float initialSpeed = new Random().nextFloat() * INITIAL_SPEED_RANGE + MIN_INITIAL_SPEED;
         Roulette.getInstance().getRunState().triggerEffects("beforeSpin");
         SoundManager.getInstance().playSound("spin1");
-       
+        ball.setVisible(true);
 
-    
         if (free) {
             ball.launchFree(START_ANGLE_RAD, initialSpeed, OUTER_TRACK_RADIUS, INNER_WHEEL_RADIUS);
         }
@@ -181,7 +178,8 @@ public class GameScreen implements Screen {
     public void showGameOver() {
         this.gameState = GameState.GAME_OVER;
         inputMultiplexer.removeProcessor(cardInputHandler);
-            inputMultiplexer.removeProcessor(shop);
+        inputMultiplexer.removeProcessor(charmInputHandler);
+        inputMultiplexer.removeProcessor(shop);
         gameOver.show();
     }
 
@@ -204,15 +202,14 @@ public class GameScreen implements Screen {
     private void enterShopScreen() {
         gameState = GameState.SHOP;
 
+        roundResult.hide();
+        shop.show();
+    }
 
-           shop
+    public void enterRoundScreen() {
+        gameState = GameState.ROUND;
 
-    
-    
-    ic void enterRoundScreen
-
-           
-
+        inputMultiplexer.addProcessor(0, cardInputHandler);
         inputMultiplexer.addProcessor(1, charmInputHandler);
 
         shop.hide();
@@ -227,7 +224,8 @@ public class GameScreen implements Screen {
     @Override
     public void render(float delta) {
         // TODO: game screen rendering
-            ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
+        // includes the roulette wheel & the ui
+        ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
 
         // ShapeRenderer renders
         background.render(delta);
@@ -263,21 +261,26 @@ public class GameScreen implements Screen {
         roundResult.update(delta);
         roundResult.render();
 
-        shop.update(de
+        shop.update(delta);
+        shop.render();
 
         handleUIInput();
         handleDebugWinInput();
         handleTileSelectionInput();
         handleWheelRotationInput();
 
-        q  roundInfoPanel.update(delta);
+        quotaTracker.update(delta);
+
+        roundInfoPanel.update(delta);
         roundInfoPanel.render();
- SpriteBatch batch = RendererManager.getInstance().getSpriteBatch();
+
+        SpriteBatch batch = RendererManager.getInstance().getSpriteBatch();
         batch.begin();
         batch.setTransformMatrix(new Matrix4().setToTranslation(0, 0, 0));
 
         // Card Inventory Rendering
-
+        List<Card> cards = game.getRunState().getOwnedCards();
+        Card draggedCard = null;
         float worldWidth = game.getViewport().getWorldWidth();
         float worldHeight = game.getViewport().getWorldHeight();
 
@@ -342,23 +345,17 @@ public class GameScreen implements Screen {
     }
 
     @Override
-    public void resize(int width
-             int height) {
+    public void resize(int width, int height) {
         updateBetButtonLayout();
-            
     }
-            
 
-            
     @Override
     public void show() {
         Gdx.input.setInputProcessor(inputMultiplexer);
 
         betButtonTexture = new Texture(Gdx.files.internal("buttons/TEX_BUTTON_64x32_BetUp.png"));
 
-        float btnWidth = betButtonTe
-            ture.getWidth();
-        
+        float btnWidth = betButtonTexture.getWidth();
         float btnHeight = betButtonTexture.getHeight();
         baseWindowWidth = game.getWorldWidth();
         baseWindowHeight = game.getWorldHeight();
@@ -464,7 +461,7 @@ public class GameScreen implements Screen {
         int quota = game.getRoundManager().getCurrentConfig().getQuota();
         int missingChips = quota - game.getRunState().getChips();
         if (missingChips > 0) {
-                game.getRunState().addChips(missingChips);
+            game.getRunState().addChips(missingChips);
         }
         game.getRoundManager().advance();
     }
@@ -477,10 +474,8 @@ public class GameScreen implements Screen {
         debugWinButton.set(buttonX, buttonY, buttonWidth, buttonHeight);
 
         Matrix4 previousShapeProjection = new Matrix4(shapeRenderer.getProjectionMatrix());
-        Matrix4 previousSpr
-            teProjection = new Matrix4(spriteBatch.getProjectionMatrix());
-        Matrix4 previousSpri
-            eTransform = new Matrix4(spriteBatch.getTransformMatrix());
+        Matrix4 previousSpriteProjection = new Matrix4(spriteBatch.getProjectionMatrix());
+        Matrix4 previousSpriteTransform = new Matrix4(spriteBatch.getTransformMatrix());
         Matrix4 screenProjection = new Matrix4().setToOrtho2D(
             0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
@@ -514,7 +509,7 @@ public class GameScreen implements Screen {
     @Override
     public void pause() {
 
-                
+    }
 
     @Override
     public void resume() {
@@ -526,7 +521,7 @@ public class GameScreen implements Screen {
         shapeRenderer.dispose();
         spriteBatch.dispose();
         ball.dispose();
-                l.dispose();
+        wheel.dispose();
         betButtonTexture.dispose();
         world.dispose();
     }
@@ -534,13 +529,8 @@ public class GameScreen implements Screen {
     public Wheel getWheel() {
         return wheel;
     }
+
     public World getWorld() { return world; }
+    
     public Shop getShop() { return shop; }
 }
-
-
-    
-        
-    
-
-    
