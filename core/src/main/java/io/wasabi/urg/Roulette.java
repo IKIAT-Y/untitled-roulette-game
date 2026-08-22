@@ -61,7 +61,8 @@ public class Roulette extends Game {
         cardPool = new CardPool();
         charmPool = new CharmPool();
 
-        // Temporarily set to 10000 for testing purposes. Change to 100 for final release.
+        // Temporarily set to 10000 for testing purposes. Change to 100 for final
+        // release.
         int STARTING_MONEY = 100;
         runState.reset(STARTING_MONEY);
 
@@ -122,7 +123,9 @@ public class Roulette extends Game {
         return gameScreen;
     }
 
-    public BettingScreen getBettingScreen() { return bettingScreen; }
+    public BettingScreen getBettingScreen() {
+        return bettingScreen;
+    }
 
     public RoundManager getRoundManager() {
         return roundManager;

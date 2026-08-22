@@ -190,7 +190,7 @@ public final class RunState {
     }
 
     public boolean addCharm(AbstractCharm charm) {
-        if (charm == null || ownedCharms.size() >= MAX_OWNED_CHARMS) {
+        if (charm == null || ownedCharms.size() >= MAX_OWNED_CHARMS || ownsCharmType(charm)) {
             return false;
         }
         ownedCharms.add(charm);
@@ -317,8 +317,6 @@ public final class RunState {
     public List<Bet> getActiveBets() {
         return activeBets;
     }
-
-
 
     /**
      * Drops every pending bet without touching {@link #chips} — placing a bet never

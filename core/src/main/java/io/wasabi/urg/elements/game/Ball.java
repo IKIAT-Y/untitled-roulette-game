@@ -239,7 +239,7 @@ public class Ball extends GameObject {
             // tune this — how long the drop takes
             float dropDuration = 0.6f;
             dropTween = new Tween(dropDuration, currentRadius, targetRadius,
-                Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
+                    Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
             state = State.DROPPING;
         }
     }
@@ -260,13 +260,13 @@ public class Ball extends GameObject {
 
         if (dropTween.isComplete() || currentRadius <= innerWheelRadius - (2 * radius)) {
             Vector2 tangentDir = new Vector2(
-                -(float) Math.sin(currentAngleRad),
-                (float) Math.cos(currentAngleRad));
+                    -(float) Math.sin(currentAngleRad),
+                    (float) Math.cos(currentAngleRad));
             Vector2 radialOutDir = new Vector2(
-                (float) Math.cos(currentAngleRad),
-                (float) Math.sin(currentAngleRad));
+                    (float) Math.cos(currentAngleRad),
+                    (float) Math.sin(currentAngleRad));
             Vector2 exitVelocity = tangentDir.scl(tangentialSpeed)
-                .add(radialOutDir.scl(-dropRadialSpeed));
+                    .add(radialOutDir.scl(-dropRadialSpeed));
             ball.setLinearVelocity(exitVelocity);
 
             state = State.BOUNCING;
@@ -285,8 +285,8 @@ public class Ball extends GameObject {
         float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP);
         Vector2 vel = ball.getLinearVelocity();
         ball.setLinearVelocity(
-            vel.x * (1f - dampingThisFrame),
-            vel.y * (1f - dampingThisFrame));
+                vel.x * (1f - dampingThisFrame),
+                vel.y * (1f - dampingThisFrame));
 
         applyTangentialDamping();
 
@@ -327,8 +327,8 @@ public class Ball extends GameObject {
 
         Vector2 vel = ball.getLinearVelocity();
         ball.setLinearVelocity(
-            vel.x * (1f - dampingThisFrame),
-            vel.y * (1f - dampingThisFrame));
+                vel.x * (1f - dampingThisFrame),
+                vel.y * (1f - dampingThisFrame));
 
         settleTimer += Ball.FIXED_TIMESTEP;
         float settleTimeRequired = 0.5f;
@@ -419,17 +419,27 @@ public class Ball extends GameObject {
         if (visible) {
             SHAPE_RENDERER.begin(ShapeType.Filled);
             SHAPE_RENDERER.circle(
-                ball.getPosition().x,
-                ball.getPosition().y,
-                radius);
+                    ball.getPosition().x,
+                    ball.getPosition().y,
+                    radius);
             SHAPE_RENDERER.end();
         }
     }
 
-    public void setVisible(boolean visible) { this.visible = visible; }
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
 
     @Override
     public void dispose() {
         world.destroyBody(ball);
-    }
-}
+    }}
+
+    
+
+    
+    
+        
+    
+        
+    
