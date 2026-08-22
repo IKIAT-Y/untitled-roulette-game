@@ -1,6 +1,9 @@
 # Contributing
 
+## Code of Conduct
+
 Thank you for your interest in contributing!
+Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md) to help keep our community safe and friendly.
 
 ## Development Workflow
 
