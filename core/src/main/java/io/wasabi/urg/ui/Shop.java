@@ -58,6 +58,25 @@ public class Shop extends InputAdapter {
     private final Rectangle buyBox = new Rectangle();
     private final Rectangle sellBox = new Rectangle();
 
+    private boolean rerollButtonHover = false;
+    private boolean rerollButtonDown = false;
+    private final Color rerollButtonColor = new Color(0.6f, 0.5f, 0.2f, 1);
+    private final Color rerollButtonHoverColor = new Color(0.4f, 0.3f, 0f, 1);
+    private final Color rerollButtonDownColor = new Color(0.61f, 0.51f, 0.21f, 1);
+
+    private boolean continueButtonHover = false;
+    private boolean continueButtonDown = false;
+    private final Color continueButtonColor = new Color(0.2f, 0.6f, 0.2f, 1);
+    private final Color continueButtonHoverColor = new Color(0f, 0.4f, 0f, 1);
+    private final Color continueButtonDownColor = new Color(0.21f, 0.61f, 0.21f, 1);
+
+    private final Color buyButtonColor = new Color(0.4f, 0.6f, 0.4f, 1);
+    private final Color buyButtonHoverColor = new Color(0.3f, 0.7f, 0.3f, 1);
+
+    private boolean draggingInventory = false;
+    private final Color sellButtonColor = new Color(0.6f, 0.4f, 0.4f, 1);
+    private final Color sellButtonHoverColor = new Color(0.7f, 0.3f, 0.3f, 1);
+
     private Tween tween;
     private Tween tweenY;
     private float x = OFFSCREEN_X;
@@ -114,31 +133,6 @@ public class Shop extends InputAdapter {
         layoutOffers(left);
         layoutCharmOffers(left);
 
-        // shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        // shapeRenderer.setColor(0.10f, 0.10f, 0.13f, 1f);
-        // shapeRenderer.rect(CENTER_Y, bottom - 300f, WIDTH, HEIGHT + 300f);
-        // shapeRenderer.setColor(0.18f, 0.18f, 0.22f, 1f);
-        // shapeRenderer.rect(CENTER_Y, bottom + HEIGHT - 90f, WIDTH, 90f);
-
-        // shapeRenderer.setColor(0.22f, 0.22f, 0.27f, 1f);
-        // for (Card card : offers) {
-        //     shapeRenderer.rect(card.getX() - 12f, card.getY() - 42f, 120f, 182f);
-        // }
-        // shapeRenderer.setColor(0.27f, 0.22f, 0.27f, 1f);
-        // for (AbstractCharm charm : charmOffers) {
-        //     shapeRenderer.rect(charm.getX() - 8f, charm.getY() - 8f, charm.getWidth() + 16f, charm.getHeight() + 16f);
-        // }
-
-        // shapeRenderer.setColor(0.22f, 0.50f, 0.28f, 1f);
-        // shapeRenderer.rect(buyBox.x, buyBox.y, buyBox.width, buyBox.height);
-        // shapeRenderer.setColor(0.55f, 0.25f, 0.25f, 1f);
-        // shapeRenderer.rect(sellBox.x, sellBox.y, sellBox.width, sellBox.height);
-        // shapeRenderer.setColor(0.35f, 0.35f, 0.65f, 1f);
-        // shapeRenderer.rect(rerollButton.x, rerollButton.y, rerollButton.width, rerollButton.height);
-        // shapeRenderer.setColor(0.25f, 0.60f, 0.30f, 1f);
-        // shapeRenderer.rect(continueButton.x, continueButton.y, continueButton.width, continueButton.height);
-        // shapeRenderer.end();
-
         spriteBatch.begin();
         spriteBatch.setTransformMatrix(new com.badlogic.gdx.math.Matrix4().setToTranslation(0, 0, 0));
 
@@ -154,25 +148,30 @@ public class Shop extends InputAdapter {
         float boxPadding = 3f;
         spriteBatch.setColor(1, 1, 1, 1);
         patch.draw(spriteBatch, buyBox.x - boxPadding/2, buyBox.y - boxPadding/2, buyBox.width + boxPadding, buyBox.height + boxPadding);
-        spriteBatch.setColor(0.4f, 0.6f, 0.4f, 1);
+        spriteBatch.setColor((draggedCard != null || draggedCharm != null) ? buyButtonHoverColor : buyButtonColor);
         patch.draw(spriteBatch, buyBox.x, buyBox.y, buyBox.width, buyBox.height);
 
         // sell box
         spriteBatch.setColor(1, 1, 1, 1);
         patch.draw(spriteBatch, sellBox.x - boxPadding / 2, sellBox.y - boxPadding / 2, sellBox.width + boxPadding, sellBox.height + boxPadding);
-        spriteBatch.setColor(0.6f, 0.4f, 0.4f, 1);
+        spriteBatch.setColor(draggingInventory ? sellButtonHoverColor : sellButtonColor);
         patch.draw(spriteBatch, sellBox.x, sellBox.y, sellBox.width, sellBox.height);
 
         // continue
         spriteBatch.setColor(1, 1, 1, 1);
         patch.draw(spriteBatch, continueButton.x - boxPadding / 2, continueButton.y - boxPadding / 2, continueButton.width + boxPadding, continueButton.height + boxPadding);
-        spriteBatch.setColor(0.2f, 0.6f, 0.2f, 1);
+        if (continueButtonDown && continueButtonHover) {
+            spriteBatch.setColor(continueButtonDownColor);
+        } else spriteBatch.setColor(continueButtonHover ? continueButtonHoverColor : continueButtonColor);
         patch.draw(spriteBatch, continueButton.x, continueButton.y, continueButton.width, continueButton.height);
 
         // REROLL
         spriteBatch.setColor(1, 1, 1, 1);
         patch.draw(spriteBatch, rerollButton.x - boxPadding / 2, rerollButton.y - boxPadding / 2, rerollButton.width + boxPadding, rerollButton.height + boxPadding);
-        spriteBatch.setColor(0.6f, 0.5f, 0.2f, 1);
+        if (rerollButtonDown && rerollButtonHover) {
+            spriteBatch.setColor(rerollButtonDownColor);
+        } else spriteBatch.setColor(rerollButtonHover ? rerollButtonHoverColor : rerollButtonColor);
+
         patch.draw(spriteBatch, rerollButton.x, rerollButton.y, rerollButton.width, rerollButton.height);
 
         spriteBatch.setColor(1, 1, 1, 1);
@@ -249,6 +248,17 @@ public class Shop extends InputAdapter {
             }
         }
 
+        rerollButtonDown = rerollButton.contains(world);
+        continueButtonDown = continueButton.contains(world);
+
+        return false;
+    }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        Vector2 world = screenToWorld(screenX, screenY);
+        rerollButtonHover = rerollButton.contains(world);
+        continueButtonHover = continueButton.contains(world);
         return false;
     }
 
@@ -256,6 +266,9 @@ public class Shop extends InputAdapter {
     public boolean touchDragged(int screenX, int screenY, int pointer) {
         if (!visible) return false;
         Vector2 world = screenToWorld(screenX, screenY);
+
+        rerollButtonHover = rerollButton.contains(world);
+        continueButtonHover = continueButton.contains(world);
 
         if (draggedCard != null) {
             draggedCard.setPosition(world.x - dragOffset.x, world.y - dragOffset.y);
@@ -293,6 +306,9 @@ public class Shop extends InputAdapter {
         if (!visible) return false;
         Vector2 world = screenToWorld(screenX, screenY);
 
+        rerollButtonDown = false;
+        continueButtonDown = false;
+
         if (draggedCard != null) {
             finishCardDrag(world);
             return true;
@@ -326,9 +342,14 @@ public class Shop extends InputAdapter {
         dragOffset.set(world.x - charm.getX(), world.y - charm.getY());
     }
 
+    public void beginInventoryDrag() {
+        draggingInventory = true;
+    }
+
     public void finishInventoryCardDrag(int x, int y, Card card) {
         Vector2 world = screenToWorld(x, y);
         draggedCard = card;
+        draggingInventory = false;
         draggingOffer = false;
         finishCardDrag(world);
     }
@@ -336,6 +357,7 @@ public class Shop extends InputAdapter {
     public void finishInventoryCharmDrag(int x, int y, AbstractCharm charm) {
         Vector2 world = screenToWorld(x, y);
         draggedCharm = charm;
+        draggingInventory = false;
         draggingCharmOffer = false;
         finishCharmDrag(world);
     }
