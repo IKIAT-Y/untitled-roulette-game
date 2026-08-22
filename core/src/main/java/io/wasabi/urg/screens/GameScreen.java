@@ -383,7 +383,9 @@ public class GameScreen implements Screen {
             () -> {
                 // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
                 // sprite batch)
-                game.setScreen(Roulette.getInstance().getBettingScreen());
+                if (canBet()) {
+                    game.setScreen(Roulette.getInstance().getBettingScreen());
+                }
             });
         updateBetButtonLayout();
     }
