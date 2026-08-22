@@ -137,7 +137,10 @@ public class TableLayoutGenerator {
         return byNumber;
     }
 
-    /** Every physical tile across the given numbers — the covered-tiles list for a zone. */
+    /**
+     * Every physical tile across the given numbers — the covered-tiles list for a
+     * zone.
+     */
     private List<Tile> tilesFor(Map<Integer, List<Tile>> tilesByNumber, List<Integer> numbers) {
         List<Tile> combined = new ArrayList<>();
         for (Integer number : numbers) {
@@ -351,23 +354,39 @@ public class TableLayoutGenerator {
     private List<BetZone> buildDozenZones(List<Integer> uniqueNumbers, Map<Integer, List<Tile>> tilesByNumber,
             int columns, int rows, float originX, float originY) {
         List<BetZone> zones = new ArrayList<>();
-        int groupSize = TableLayoutConfig.DOZEN_GROUP_SIZE;
+        if (uniqueNumbers.isEmpty() || columns == 0)
+            return zones;
+
+        int dozenCount = TableLayoutConfig.DOZEN_COUNT;
         float stripY = originY + rows * TableLayoutConfig.CELL_HEIGHT; // top edge of the grid
         float stripH = TableLayoutConfig.DOZEN_STRIP_HEIGHT;
 
-        // Fixed-size blocks of 12 distinct numbers, like a real table. A trailing
-        // partial block (unique number count not a multiple of 12) intentionally gets
-        // no dozen zone — see architecture notes on scaling.
-        int fullBlocks = uniqueNumbers.size() / groupSize;
-        int columnsPerBlock = groupSize / rows; // assumes ROWS divides GROUP_SIZE evenly
+        // Split the grid's columns into `dozenCount` groups as evenly as possible
+        // (rounded boundaries, not a fixed 12-numbers-per-block size) so the dozen
+        // boxes always span actual thirds of however many columns currently exist,
+        // spread evenly across the board regardless of pocket count.
+        int[] columnBoundary = new int[dozenCount + 1];
+        for (int i = 0; i <= dozenCount; i++) {
+            columnBoundary[i] = Math.round(i * columns / (float) dozenCount);
+        }
 
-        for (int block = 0; block < fullBlocks; block++) {
-            int fromCol = block * columnsPerBlock;
-            int toCol = fromCol + columnsPerBlock - 1;
-            List<Integer> blockNumbers = uniqueNumbers.subList(block * groupSize, (block + 1) * groupSize);
+        for (int block = 0; block < dozenCount; block++) {
+            int fromCol = columnBoundary[block];
+            int toColExclusive = columnBoundary[block + 1];
+            if (toColExclusive <= fromCol)
+                continue; // fewer columns than dozens — this third has no columns to cover
+
+            // Numbers fill column-by-column ascending (see assignGridPositions), so a
+            // column range maps directly onto an index range of uniqueNumbers.
+            int fromIndex = fromCol * rows;
+            int toIndexExclusive = Math.min(toColExclusive * rows, uniqueNumbers.size());
+            if (fromIndex >= toIndexExclusive)
+                continue; // ragged trailing column — no numbers actually land in range
+
+            List<Integer> blockNumbers = uniqueNumbers.subList(fromIndex, toIndexExclusive);
 
             float leftX = cellX(fromCol, originX);
-            float rightX = cellX(toCol, originX) + TableLayoutConfig.CELL_WIDTH;
+            float rightX = cellX(toColExclusive - 1, originX) + TableLayoutConfig.CELL_WIDTH;
             float width = rightX - leftX;
             Vector2 anchor = new Vector2(leftX + width / 2f, stripY + stripH / 2f);
             zones.add(new BetZone(BetType.DOZEN, tilesFor(tilesByNumber, blockNumbers),
@@ -412,8 +431,8 @@ public class TableLayoutGenerator {
         float gap = TableLayoutConfig.OUTSIDE_BOX_GAP;
 
         Object[][] categories = {
-                { BetType.LOW, low }, { BetType.EVEN, even }, { BetType.RED, red },
-                { BetType.BLACK, black }, { BetType.ODD, odd }, { BetType.HIGH, high }
+                { BetType.LOW, low }, { BetType.HIGH, high }, { BetType.RED, red },
+                { BetType.BLACK, black }, { BetType.ODD, odd }, { BetType.EVEN, even }
         };
 
         for (int i = 0; i < categories.length; i++) {

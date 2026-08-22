@@ -36,7 +36,8 @@ public class Wheel {
     private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
 
     private static final int[] WHEEL_NUMBER_ORDER = new int[] {
-        0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26};
+            0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22,
+            18, 29, 7, 28, 12, 35, 3, 26 };
 
     private final World world;
 
@@ -213,7 +214,8 @@ public class Wheel {
 
         spinButton.setPosition(position);
 
-        spinButton.draw(spinButtonState, SHAPE_RENDERER, SPRITE_BATCH, FontManager.getInstance().getFontByName("Placeholder"));
+        spinButton.draw(spinButtonState, SHAPE_RENDERER, SPRITE_BATCH,
+                FontManager.getInstance().getFontByName("Placeholder"));
 
         if (showConsumeZone) {
             SHAPE_RENDERER.begin(ShapeType.Filled);
@@ -225,11 +227,10 @@ public class Wheel {
 
             SPRITE_BATCH.begin();
             FontManager.getInstance().getFontByName("Terminus64PXBold")
-                .draw(SPRITE_BATCH, "Consume", position.x-100f, position.y+20f);
+                    .draw(SPRITE_BATCH, "Consume", position.x - 100f, position.y + 20f);
             SPRITE_BATCH.end();
         }
     }
-
 
     public void shiftOutOfScreen() {
         float targetY = -1500;
@@ -247,7 +248,8 @@ public class Wheel {
 
     /**
      * Spins the wheel for a set amount of time, with given initial speed.
-     * @param duration The spin time
+     * 
+     * @param duration     The spin time
      * @param initialSpeed The initial speed
      */
     public void spin(float duration, float initialSpeed) {
@@ -258,9 +260,18 @@ public class Wheel {
         world.destroyBody(body);
     }
 
-    public Body getBody() { return body; }
-    public List<Tile> getTiles() { return tiles; }
-    public boolean isSpinning() { return wheelVelocityTween != null && !wheelVelocityTween.isComplete(); }
+    public Body getBody() {
+        return body;
+    }
+
+    public List<Tile> getTiles() {
+        return tiles;
+    }
+
+    public boolean isSpinning() {
+        return wheelVelocityTween != null && !wheelVelocityTween.isComplete();
+    }
+
     public void resetWheelTweens() {
         wheelVelocityTween = null;
         tweenY = null;
@@ -318,4 +329,25 @@ public class Wheel {
         }
         return angle >= start || angle <= end; // wraps past 0
     }
+
 }
+
+    
+
+    
+
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
