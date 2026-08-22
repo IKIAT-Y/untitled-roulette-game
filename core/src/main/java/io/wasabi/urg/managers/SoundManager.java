@@ -34,6 +34,7 @@ public final class SoundManager implements Disposable {
         loadSound("error", "sfx/error.wav");
         loadSound("tileSelect", "sfx/tileSelect.wav");
         loadSound("tileDeselect", "sfx/tileDeselect.wav");
+        loadSound("cardTrigger", "sfx/cardTrigger.wav");
     }
 
     // ---- Loading ----

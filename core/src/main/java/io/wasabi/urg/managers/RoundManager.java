@@ -101,17 +101,22 @@ public class RoundManager {
         printQuotaStatus();
     }
 
-    public void recordSpin() {
-        if (gameOver || runComplete || spinsRemaining <= 0) {
+    public void recordSpin(boolean freeSpin) {
+        if (gameOver || runComplete || (!freeSpin && spinsRemaining <= 0)) {
             return;
         }
 
-        spinsRemaining--;
+        if (!freeSpin) {
+            spinsRemaining--;
+        }
+
         Tile lastTile = runState.getLastTile();
         if (lastTile != null) {
             lastTile.onLanded();
         }
-        runState.triggerEffects("afterSpin");
+
+        Roulette.getInstance().getRunState().triggerEffects("afterSpin");
+
         printQuotaStatus();
 
         // Temp Debug for checking quota and spins remaining

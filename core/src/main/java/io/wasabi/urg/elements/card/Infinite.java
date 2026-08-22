@@ -17,6 +17,7 @@ public class Infinite extends Card {
         Tile landedTile = io.wasabi.urg.Roulette.getInstance().getRunState().getLastTile();
         if (landedTile != null && landedTile.getNumber() == 8) {
             multiplier += 0.2f;
+            triggerDisplay();
         }
     }
 }

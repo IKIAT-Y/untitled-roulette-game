@@ -8,7 +8,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -16,7 +15,6 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 
@@ -39,6 +37,13 @@ import io.wasabi.urg.ui.*;
 
 public class GameScreen implements Screen {
     private static final int STARTING_CHIPS = 100;
+    private static final float START_ANGLE_RAD = 0f;
+    private static final float OUTER_TRACK_RADIUS = 400f;
+    private static final float INNER_WHEEL_RADIUS = 325f;
+    private static final float MIN_INITIAL_SPEED = 5000f;
+    private static final float INITIAL_SPEED_RANGE = 1000f;
+    private static final float WHEEL_SPIN_DURATION = 6.0f;
+    private static final float WHEEL_SPIN_SPEED = -10f;
     private final Roulette game;
 
     private enum GameState {
@@ -117,16 +122,27 @@ public class GameScreen implements Screen {
     }
 
     public void spin() {
-        // Move this to launch method when the player presses the spin button
-        float startAngleRad = 0f;
-        float initialSpeed = new Random().nextFloat() * (1000f) + 5000f;
-        float outerTrackRadius = 400f;
-        float innerWheelRadius = 325f;
+        launchSpin(false);
+    }
+
+    public void freeSpin() {
+        launchSpin(true);
+    }
+
+    private void launchSpin(boolean free) {
+        float initialSpeed = new Random().nextFloat() * INITIAL_SPEED_RANGE + MIN_INITIAL_SPEED;
         Roulette.getInstance().getRunState().triggerEffects("beforeSpin");
         SoundManager.getInstance().playSound("spin1");
         ball.setVisible(true);
-        ball.launch(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
-        wheel.spin(6.0f, -10f);
+
+        if (free) {
+            ball.launchFree(START_ANGLE_RAD, initialSpeed, OUTER_TRACK_RADIUS, INNER_WHEEL_RADIUS);
+        }
+        else {
+            ball.launch(START_ANGLE_RAD, initialSpeed, OUTER_TRACK_RADIUS, INNER_WHEEL_RADIUS);
+        }
+
+        wheel.spin(WHEEL_SPIN_DURATION, WHEEL_SPIN_SPEED);
         quotaTracker.onSpinStarted();
     }
 
@@ -184,8 +200,6 @@ public class GameScreen implements Screen {
     private void enterShopScreen() {
         gameState = GameState.SHOP;
 
-        inputMultiplexer.removeProcessor(cardInputHandler);
-        inputMultiplexer.removeProcessor(charmInputHandler);
         roundResult.hide();
         shop.show();
     }
@@ -264,31 +278,45 @@ public class GameScreen implements Screen {
 
         // Card Inventory Rendering
         List<Card> cards = game.getRunState().getOwnedCards();
+        Card draggedCard = null;
         float worldWidth = game.getViewport().getWorldWidth();
         float worldHeight = game.getViewport().getWorldHeight();
 
-        CardLayout.renderRightBackPanel(batch, worldWidth, worldHeight);
-        CardLayout.renderSlotPanels(batch, worldWidth);
+        CardLayout.renderBackPanel(batch, game.getRunState().getMaxHandSize(), cards.size());
         for (int i = 0; i < cards.size(); i++) {
             Card card = cards.get(i);
             Vector2 slot = CardLayout.getSlotPosition(i, cards.size(), worldWidth);
             card.setTargetPosition(slot.x, slot.y);
             card.update(delta);
+            if (card.isDragging()) {
+                draggedCard = card;
+                continue;
+            }
             card.render();
         }
 
         // Charm Inventory Rendering
         List<AbstractCharm> charms = game.getRunState().getOwnedCharms();
+        AbstractCharm draggedCharm = null;
 
-        CharmLayout.renderRightBackPanel(batch, worldWidth, worldHeight);
-        CharmLayout.renderSlotPanels(batch, worldWidth);
+        CharmLayout.renderBackPanel(batch, game.getRunState().getMaxOwnableCharms(), charms.size());
         for (int i = 0; i < charms.size(); i++) {
             AbstractCharm c = charms.get(i);
             Vector2 slot = CharmLayout.getSlotPosition(i, charms.size(), worldWidth);
             c.setTargetPosition(slot.x, slot.y);
             c.update(delta);
+            if (c.isDragging()) {
+                draggedCharm = c;
+                continue;
+            }
             c.render();
         }
+
+        // draw dragged elements at the end
+        if (draggedCard != null) draggedCard.render();
+        if (draggedCharm != null) draggedCharm.render();
+        if (shop.getDraggedCard() != null) shop.renderCard(shop.getDraggedCard());
+        if (shop.getDraggedCharm() != null) shop.renderCharm(shop.getDraggedCharm());
 
         batch.end();
 
@@ -498,4 +526,5 @@ public class GameScreen implements Screen {
         return wheel;
     }
     public World getWorld() { return world; }
+    public Shop getShop() { return shop; }
 }

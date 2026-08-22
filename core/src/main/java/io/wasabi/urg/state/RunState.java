@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.badlogic.gdx.utils.IntArray;
 
-import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.elements.betting.Bet;
 import io.wasabi.urg.elements.boss.Boss;
 import io.wasabi.urg.elements.card.Card;
@@ -15,11 +14,12 @@ import io.wasabi.urg.ui.Tooltip;
 
 /** Stores the player's progress and inventory for the current run. */
 public final class RunState {
-    public static final int MAX_OWNED_CARDS = 4;
-    public static final int MAX_OWNED_CHARMS = 4;
+    public static final int MAX_OWNED_CARDS = 5;
+    public static final int MAX_OWNED_CHARMS = 2;
     private int chips;
     private int score;
     private int tickets;
+    private boolean freeSpinRequested = false;
 
     private Tile lastTile = null; // The last tile the player landed on, used for certain card effects.
     private Tooltip activeTooltip = null;
@@ -29,6 +29,7 @@ public final class RunState {
     private final List<Card> ownedCards = new ArrayList<>();
     private final List<AbstractCharm> ownedCharms = new ArrayList<>();
     private final IntArray chipHistory = new IntArray();
+
 
     private Boss boss = null; // The current boss for the run, if any.
 
@@ -130,6 +131,14 @@ public final class RunState {
         return tiles;
     }
 
+    public int getMaxHandSize() {
+        return MAX_OWNED_CARDS;
+    }
+
+    public int getMaxOwnableCharms() {
+        return MAX_OWNED_CHARMS;
+    }
+
     public boolean addCard(Card card) {
         if (card == null || ownedCards.size() >= MAX_OWNED_CARDS || ownsCardType(card)) {
             return false;
@@ -140,6 +149,7 @@ public final class RunState {
 
     public boolean removeCard(Card card) {
         if (ownsCard(card)) {
+            card.getTooltip().hide();
             card.removedEffect();
             return ownedCards.remove(card);
         }
@@ -180,7 +190,7 @@ public final class RunState {
     }
 
     public boolean addCharm(AbstractCharm charm) {
-        if (charm == null || ownedCharms.size() >= MAX_OWNED_CHARMS || ownsCharmType(charm)) {
+        if (charm == null || ownedCharms.size() >= MAX_OWNED_CHARMS) {
             return false;
         }
         ownedCharms.add(charm);
@@ -212,14 +222,15 @@ public final class RunState {
         ownedCharms.add(newIndex, charm);
     }
 
-    public boolean removeCharm(GameObject charm) {
+    public boolean removeCharm(AbstractCharm charm) {
         if (ownsCharm(charm)) {
+            charm.getTooltip().hide();
             return ownedCharms.remove(charm);
         }
         return false;
     }
 
-    public boolean ownsCharm(GameObject charm) {
+    public boolean ownsCharm(AbstractCharm charm) {
         return ownedCharms.contains(charm);
     }
 
@@ -246,6 +257,7 @@ public final class RunState {
         clearSelectedTiles();
         activeTooltip = null;
         boss = null;
+        freeSpinRequested = false;
         activeBets.clear();
         ownedCards.clear();
         ownedCharms.clear();
@@ -266,6 +278,16 @@ public final class RunState {
         if (value < 0) {
             throw new IllegalArgumentException(name + " cannot be negative");
         }
+    }
+
+    public void requestFreeSpin() {
+        freeSpinRequested = true;
+    }
+
+    public boolean consumeFreeSpinRequest() {
+        boolean requested = freeSpinRequested;
+        freeSpinRequested = false;
+        return requested;
     }
 
     public void setLastTile(Tile tile) {
@@ -295,6 +317,8 @@ public final class RunState {
     public List<Bet> getActiveBets() {
         return activeBets;
     }
+
+
 
     /**
      * Drops every pending bet without touching {@link #chips} — placing a bet never
