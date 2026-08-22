@@ -276,7 +276,7 @@ public class GameScreen implements Screen {
         shop.render();
 
         handleUIInput();
-        handleDebugWinInput();
+        //handleDebugWinInput();
         handleTileSelectionInput();
         handleWheelRotationInput();
 
@@ -346,7 +346,7 @@ public class GameScreen implements Screen {
 
         if (gameState == GameState.ROUND) {
             quotaTracker.render();
-            renderDebugWinButton();
+            //renderDebugWinButton();
         }
 
         // render all particles
@@ -507,8 +507,8 @@ public class GameScreen implements Screen {
         spriteBatch.setProjectionMatrix(screenProjection);
         spriteBatch.setTransformMatrix(new Matrix4().idt());
         spriteBatch.begin();
-        FontManager.getInstance().getFontByName("Placeholder")
-                .draw(spriteBatch, "DEBUG WIN", buttonX + 42f, buttonY + 35f);
+        //FontManager.getInstance().getFontByName("Placeholder")
+        //        .draw(spriteBatch, "DEBUG WIN", buttonX + 42f, buttonY + 35f);
         spriteBatch.end();
 
         shapeRenderer.setProjectionMatrix(previousShapeProjection);
