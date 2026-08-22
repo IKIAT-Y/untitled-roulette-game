@@ -56,4 +56,13 @@ public class NullTile extends TileType {
     public boolean isBlack() {
         return false;
     }
+
+    // The base texture field is never actually drawn (drawTextures() is a no-op
+    // here; the real look comes from the nullTexture mesh in drawOverlay()), so
+    // anything pulling "this tile's texture" generically (e.g. the betting table)
+    // needs this override to see the real pattern instead of a flat placeholder.
+    @Override
+    public Texture getTexture() {
+        return nullTexture;
+    }
 }

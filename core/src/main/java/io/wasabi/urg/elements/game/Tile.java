@@ -303,4 +303,23 @@ public class Tile extends GameObject {
     public float getBetMultiplier() { return type.getBetMultiplier(); }
     public TileType.TileColour getColor() { return type.getColour(); }
     public void setColor(TileType.TileColour color) { type.setColour(color); }
+
+    /**
+     * The texture this pocket renders itself with — whatever {@link #type}
+     * currently returns. Generic on purpose: callers that just want to draw
+     * "this tile's look" (e.g. the betting table matching its straight-bet cells
+     * to the wheel) can call this without knowing or caring which {@link TileType}
+     * subclass is involved, so a new tile type never needs its own rendering
+     * function elsewhere — it only needs to override this (or the colour/texture
+     * it derives from) on TileType itself.
+     */
+    public Texture getTexture() { return type.getTexture(); }
+
+    // Independent of getColor()/getColour() on purpose — a tile type can count as
+    // more than one (e.g. a striped tile is both red and black) or none (a tile
+    // type with its own distinct look, not conventionally red/black/green) at
+    // once, which a single colour value can't represent.
+    public boolean isRed() { return type.isRed(); }
+    public boolean isBlack() { return type.isBlack(); }
+    public boolean isGreen() { return type.isGreen(); }
 }

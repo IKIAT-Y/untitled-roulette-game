@@ -2,6 +2,7 @@ package io.wasabi.urg.elements.tiles;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.PolygonRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
@@ -79,6 +80,12 @@ public class VoidTile extends TileType {
 
     @Override
     public PolygonRegion getRegion() { return originalType.getRegion(); }
+
+    // Base TileType#texture is never set here (VoidTile never calls setColour()),
+    // so without this override this would return null and crash anything that
+    // draws it (e.g. the betting table's straight-zone rendering).
+    @Override
+    public Texture getTexture() { return originalType.getTexture(); }
 
     @Override
     public TileColour getColour() { return originalType.getColour(); }
