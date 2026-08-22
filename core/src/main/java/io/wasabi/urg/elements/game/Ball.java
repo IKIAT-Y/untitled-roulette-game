@@ -20,8 +20,10 @@ import com.badlogic.gdx.physics.box2d.World;
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.elements.betting.Bet;
+import io.wasabi.urg.elements.betting.WinBreakdown;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
+import io.wasabi.urg.screens.GameScreen;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.util.tweens.Tween;
 
@@ -120,13 +122,13 @@ public class Ball extends GameObject {
     }
 
     public void launchFree(float startAngleRad, float initialSpeed,
-            float outerTrackRadius, float innerWheelRadius) {
+                           float outerTrackRadius, float innerWheelRadius) {
         freeSpin = true;
         launchBall(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
     }
 
     private void launchBall(float startAngleRad, float initialSpeed,
-            float outerTrackRadius, float innerWheelRadius) {
+                            float outerTrackRadius, float innerWheelRadius) {
         this.outerTrackRadius = outerTrackRadius;
         this.innerWheelRadius = innerWheelRadius;
         this.tangentialSpeed = initialSpeed;
@@ -136,8 +138,8 @@ public class Ball extends GameObject {
         this.physicsAccumulator = 0f;
 
         Vector2 startPos = new Vector2(
-                wheelCenter.x + outerTrackRadius * (float) Math.cos(startAngleRad),
-                wheelCenter.y + outerTrackRadius * (float) Math.sin(startAngleRad));
+            wheelCenter.x + outerTrackRadius * (float) Math.cos(startAngleRad),
+            wheelCenter.y + outerTrackRadius * (float) Math.sin(startAngleRad));
         ball.setTransform(startPos, 0f);
         ball.setLinearVelocity(0f, 0f);
         ball.setAngularVelocity(0f);
@@ -202,8 +204,8 @@ public class Ball extends GameObject {
      */
     private void setPositionFromPolar(float angleRad, float radialDist) {
         Vector2 pos = new Vector2(
-                wheelCenter.x + radialDist * (float) Math.cos(angleRad),
-                wheelCenter.y + radialDist * (float) Math.sin(angleRad));
+            wheelCenter.x + radialDist * (float) Math.cos(angleRad),
+            wheelCenter.y + radialDist * (float) Math.sin(angleRad));
         ball.setTransform(pos, 0f);
     }
 
@@ -239,7 +241,7 @@ public class Ball extends GameObject {
             // tune this — how long the drop takes
             float dropDuration = 0.6f;
             dropTween = new Tween(dropDuration, currentRadius, targetRadius,
-                    Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
+                Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
             state = State.DROPPING;
         }
     }
@@ -260,13 +262,13 @@ public class Ball extends GameObject {
 
         if (dropTween.isComplete() || currentRadius <= innerWheelRadius - (2 * radius)) {
             Vector2 tangentDir = new Vector2(
-                    -(float) Math.sin(currentAngleRad),
-                    (float) Math.cos(currentAngleRad));
+                -(float) Math.sin(currentAngleRad),
+                (float) Math.cos(currentAngleRad));
             Vector2 radialOutDir = new Vector2(
-                    (float) Math.cos(currentAngleRad),
-                    (float) Math.sin(currentAngleRad));
+                (float) Math.cos(currentAngleRad),
+                (float) Math.sin(currentAngleRad));
             Vector2 exitVelocity = tangentDir.scl(tangentialSpeed)
-                    .add(radialOutDir.scl(-dropRadialSpeed));
+                .add(radialOutDir.scl(-dropRadialSpeed));
             ball.setLinearVelocity(exitVelocity);
 
             state = State.BOUNCING;
@@ -285,8 +287,8 @@ public class Ball extends GameObject {
         float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP);
         Vector2 vel = ball.getLinearVelocity();
         ball.setLinearVelocity(
-                vel.x * (1f - dampingThisFrame),
-                vel.y * (1f - dampingThisFrame));
+            vel.x * (1f - dampingThisFrame),
+            vel.y * (1f - dampingThisFrame));
 
         applyTangentialDamping();
 
@@ -327,8 +329,8 @@ public class Ball extends GameObject {
 
         Vector2 vel = ball.getLinearVelocity();
         ball.setLinearVelocity(
-                vel.x * (1f - dampingThisFrame),
-                vel.y * (1f - dampingThisFrame));
+            vel.x * (1f - dampingThisFrame),
+            vel.y * (1f - dampingThisFrame));
 
         settleTimer += Ball.FIXED_TIMESTEP;
         float settleTimeRequired = 0.5f;
@@ -355,21 +357,36 @@ public class Ball extends GameObject {
 
         Roulette.getInstance().getRunState().setLastTile(tile);
 
-        Roulette.getInstance().getRunState().resolveActiveBets();
+        WinBreakdown result = Roulette.getInstance().getRunState().resolveActiveBetsDetailed();
+        GameScreen gameScreen = Roulette.getInstance().getGameScreen();
+        RunState runState = Roulette.getInstance().getRunState();
+        Vector2 topCenterAnchor = new Vector2(0f, Roulette.getInstance().getWorldHeight()/2 - 60f);
+        Vector2 impactPosition = new Vector2(-500f, 200f);
+        gameScreen.getWinAnimation().start(
+            result,
+            topCenterAnchor,
+            impactPosition,
+            () ->  {
+                // What to run after the win animation finishes
+                runState.clearActiveBets();
+                runState.applyWinBreakdown(result);
 
-        Roulette.getInstance().getRoundManager().recordSpin(freeSpin);
+                Roulette.getInstance().getRoundManager().recordSpin(freeSpin);
 
-        boolean freeSpinRequested = Roulette.getInstance().getRunState().consumeFreeSpinRequest();
+                boolean freeSpinRequested = Roulette.getInstance().getRunState().consumeFreeSpinRequest();
 
-        if (Roulette.getInstance().getRunState().getChips() >= Roulette.getInstance().getRoundManager()
-                .getCurrentConfig().getQuota()) {
-            return;
-        }
 
-        if (freeSpinRequested) {
-            Roulette.getInstance().getRunState().getActiveBets().addAll(savedBets);
-            Roulette.getInstance().getGameScreen().freeSpin();
-        }
+                if (Roulette.getInstance().getRunState().getChips() >= Roulette.getInstance().getRoundManager()
+                    .getCurrentConfig().getQuota()) {
+                    return;
+                }
+
+                if (freeSpinRequested) {
+                    Roulette.getInstance().getRunState().getActiveBets().addAll(savedBets);
+                    Roulette.getInstance().getGameScreen().freeSpin();
+                }
+            }
+        );
     }
 
     private Tile getLandedTile() {
@@ -420,9 +437,9 @@ public class Ball extends GameObject {
         if (visible) {
             SHAPE_RENDERER.begin(ShapeType.Filled);
             SHAPE_RENDERER.circle(
-                    ball.getPosition().x,
-                    ball.getPosition().y,
-                    radius);
+                ball.getPosition().x,
+                ball.getPosition().y,
+                radius);
             SHAPE_RENDERER.end();
         }
     }
@@ -435,11 +452,3 @@ public class Ball extends GameObject {
     public void dispose() {
         world.destroyBody(ball);
     }}
-
-
-
-
-
-
-
-
