@@ -2,7 +2,6 @@ package io.wasabi.urg.elements.tiles;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.Texture;
@@ -32,10 +31,9 @@ public class VoidTile extends TileType {
         tooltip.addType("VOID", Color.WHITE, RIM_COLOR);
 
         mesh = new Mesh(false, 2000, 2000,
-			new VertexAttribute(Usage.Position, 2, ShaderProgram.POSITION_ATTRIBUTE),
-			new VertexAttribute(Usage.ColorPacked, 4, ShaderProgram.COLOR_ATTRIBUTE),
-			new VertexAttribute(Usage.TextureCoordinates, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + "0")
-        );
+                new VertexAttribute(Usage.Position, 2, ShaderProgram.POSITION_ATTRIBUTE),
+                new VertexAttribute(Usage.ColorPacked, 4, ShaderProgram.COLOR_ATTRIBUTE),
+                new VertexAttribute(Usage.TextureCoordinates, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + "0"));
     }
 
     @Override
@@ -84,29 +82,9 @@ public class VoidTile extends TileType {
     }
 
     @Override
-    public boolean isRed() { return originalType.isRed(); }
-
-    @Override
-    public boolean isBlack() { return originalType.isBlack(); }
-
-    @Override
-    public boolean isGreen() { return originalType.isGreen(); }
-
-    @Override
-    public PolygonRegion getRegion() { return originalType.getRegion(); }
-
-    // Base TileType#texture is never set here (VoidTile never calls setColour()),
-    // so without this override this would return null and crash anything that
-    // draws it (e.g. the betting table's straight-zone rendering).
-    @Override
-    public Texture getTexture() { return originalType.getTexture(); }
-
-    @Override
-    public TileColour getColour() { return originalType.getColour(); }
-
-    @Override
-    public int getNumber() { return originalType.getNumber(); }
-    public float getBetMultiplier() { return 3f; }
+    public float getBetMultiplier() {
+        return 3f;
+    }
 
     @Override
     public void dispose() {
