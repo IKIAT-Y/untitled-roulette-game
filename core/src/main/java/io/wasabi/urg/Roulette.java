@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import io.wasabi.urg.elements.card.Infinite;
 import io.wasabi.urg.managers.CardPool;
 import io.wasabi.urg.managers.CharmPool;
 import io.wasabi.urg.managers.FontManager;
@@ -72,7 +71,6 @@ public class Roulette extends Game {
 
         // Card testing
         runState.addCard(cardPool.getRandomCard());
-        runState.addCard(new Infinite());
 
         // Charm testing
         //runState.addCharm(new BlackCharm());

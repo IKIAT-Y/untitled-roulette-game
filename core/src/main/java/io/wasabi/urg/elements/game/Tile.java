@@ -80,6 +80,7 @@ public class Tile extends GameObject {
         update();
     }
 
+    @Override
     public void dispose() {
         if (fretTex != null) {
             fretTex.dispose();
@@ -89,6 +90,7 @@ public class Tile extends GameObject {
             world.destroyBody(body);
             body = null;
         }
+        type.dispose();
     }
 
     private void build() {
@@ -296,6 +298,7 @@ public class Tile extends GameObject {
 
     public TileType getType() { return type; }
     public void setType(TileType type) {
+        this.type.dispose();
         this.type = type;
         update();
     }

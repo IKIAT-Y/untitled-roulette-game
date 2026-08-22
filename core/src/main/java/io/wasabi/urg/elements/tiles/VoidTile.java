@@ -17,7 +17,7 @@ import io.wasabi.urg.elements.game.Tile;
 
 public class VoidTile extends TileType {
     private static final Color RIM_COLOR = new Color(0.45f, 0.05f, 0.6f, 0.8f);
-    private final Texture voidTexture;
+    private static final Texture VOID_TEXTURE = new Texture(Gdx.files.internal("tiles/VoidTile.png"));
     private final Tile tile;
     private final Mesh mesh;
 
@@ -30,9 +30,6 @@ public class VoidTile extends TileType {
         tooltip.setDescription("Gain [RED]3x [BLACK]payout. This tile is destroyed when landed on");
         tooltip.addType("VOID", Color.WHITE, RIM_COLOR);
 
-        voidTexture = new Texture(Gdx.files.internal("tiles/VoidTile.png"));
-        voidTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.Repeat);
-
         mesh = new Mesh(false, 2000, 2000,
 			new VertexAttribute(Usage.Position, 2, ShaderProgram.POSITION_ATTRIBUTE),
 			new VertexAttribute(Usage.ColorPacked, 4, ShaderProgram.COLOR_ATTRIBUTE),
@@ -44,14 +41,14 @@ public class VoidTile extends TileType {
     public void setRegion(float[] vertices, short[] indices) {
         super.setRegion(vertices, indices);
 
-        TextureRegion texRegion = new TextureRegion(voidTexture);
+        TextureRegion texRegion = new TextureRegion(VOID_TEXTURE);
         mesh.setVertices(textureWrapVertices(vertices, texRegion));
         mesh.setIndices(indices);
     }
 
     @Override
     public void drawOverlay() {
-        voidTexture.bind();
+        VOID_TEXTURE.bind();
         mesh.render(POLY_BATCH.getShader(), GL20.GL_TRIANGLES);
     }
 
@@ -87,4 +84,9 @@ public class VoidTile extends TileType {
 
     @Override
     public float getBetMultiplier() { return 3f; }
+
+    @Override
+    public void dispose() {
+        mesh.dispose();
+    }
 }

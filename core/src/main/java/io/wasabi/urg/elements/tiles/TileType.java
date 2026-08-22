@@ -9,11 +9,12 @@ import com.badlogic.gdx.graphics.g2d.PolygonRegion;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.utils.Disposable;
 
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.ui.Tooltip;
 
-public abstract class TileType {
+public abstract class TileType implements Disposable {
     protected  static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
     protected static final PolygonSpriteBatch POLY_BATCH = RENDERER_MANAGER.getPolygonSpriteBatch();
     protected static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
@@ -106,6 +107,11 @@ public abstract class TileType {
             bottom = !bottom;
         }
         return resultVerts;
+    }
+
+    @Override
+    public void dispose() {
+        texture.dispose();
     }
 
     public boolean isRed() { return colour == TileColour.RED; }

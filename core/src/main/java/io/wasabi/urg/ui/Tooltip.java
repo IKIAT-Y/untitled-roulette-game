@@ -80,8 +80,8 @@ public class Tooltip {
 
     private BitmapFont font_16px = FontManager.getInstance().getFontByName("Terminus16PXBold");
     private BitmapFont font_12px = FontManager.getInstance().getFontByName("Terminus12PXBold");
-    private float fontPaddingX = 5f;
-    private float fontPaddingY = 4f;
+    private float fontPaddingX = 10f;
+    private float fontPaddingY = 8f;
 
     private NinePatch patch;
 
@@ -152,7 +152,7 @@ public class Tooltip {
     }
 
     private void updateSizes() {
-        GlyphLayout titleLayout = title.update(Math.max(minWidth, width), false);
+        GlyphLayout titleLayout = title.update(width, false);
         float currentWidth = Math.max(minWidth, titleLayout.width);
         width = currentWidth + fontPaddingX * 2 + innerPadding * 2 + padding * 2;
         height = titleLayout.height + fontPaddingY * 2 + innerPadding * 2 + padding * 2;
@@ -165,7 +165,7 @@ public class Tooltip {
         for (Line line : types) {
             height += elementPadding;
             GlyphLayout layout = line.update(currentWidth, false);
-            width = Math.max(currentWidth, layout.width + fontPaddingX * 2 + innerPadding * 2 + padding * 2);
+            width = Math.max(width, layout.width + fontPaddingX * 2 + innerPadding * 2 + padding * 2);
             height += layout.height + fontPaddingY * 2;
         }
     }
