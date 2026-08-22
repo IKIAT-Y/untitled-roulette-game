@@ -5,6 +5,7 @@ import java.util.List;
 
 import io.wasabi.urg.elements.card.AllIn;
 import io.wasabi.urg.elements.card.BlackCard;
+import io.wasabi.urg.elements.card.BullRush;
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.card.ExtraChange;
 import io.wasabi.urg.elements.card.ExtraCredit;
@@ -18,7 +19,6 @@ import io.wasabi.urg.elements.card.MysteriousFragment;
 import io.wasabi.urg.elements.card.OddCard;
 import io.wasabi.urg.elements.card.Oneshot;
 import io.wasabi.urg.elements.card.Ouroboros;
-import io.wasabi.urg.elements.card.BullRush;
 
 /** Owns the available cards and handles rarity-weighted shop draws. */
 public final class CardPool {

@@ -36,6 +36,7 @@ public abstract class TileType {
     protected TileColour colour;
     protected PolygonRegion region;
     protected float textureColor = Color.WHITE_FLOAT_BITS;
+    protected float textureVerticalSteps = 1;
 
     public TileType() {
         tooltip.setDescriptionVisible(false);
@@ -101,7 +102,7 @@ public abstract class TileType {
             resultVerts[vertexIndex++] = vertices[i + 1];
             resultVerts[vertexIndex++] = textureColor;
             resultVerts[vertexIndex++] = u + uvWidth * ((float) i / regionVerticesLength);
-            resultVerts[vertexIndex++] = bottom ? v : v + uvHeight;
+            resultVerts[vertexIndex++] = bottom ? v : v + uvHeight * textureVerticalSteps;
             bottom = !bottom;
         }
         return resultVerts;
