@@ -184,8 +184,8 @@ public class GameScreen implements Screen {
     private void enterShopScreen() {
         gameState = GameState.SHOP;
 
-        inputMultiplexer.removeProcessor(cardInputHandler);
-        inputMultiplexer.removeProcessor(charmInputHandler);
+        // inputMultiplexer.removeProcessor(cardInputHandler);
+        // inputMultiplexer.removeProcessor(charmInputHandler);
         roundResult.hide();
         shop.show();
     }
@@ -498,4 +498,5 @@ public class GameScreen implements Screen {
         return wheel;
     }
     public World getWorld() { return world; }
+    public Shop getShop() { return shop; }
 }

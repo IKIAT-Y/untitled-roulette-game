@@ -134,6 +134,7 @@ public final class RunState {
         if (card == null || ownedCards.size() >= MAX_OWNED_CARDS || ownsCardType(card)) {
             return false;
         }
+        card.setOwned(true);
         ownedCards.add(card);
         return true;
     }
@@ -141,6 +142,7 @@ public final class RunState {
     public boolean removeCard(Card card) {
         if (ownsCard(card)) {
             card.removedEffect();
+            card.setOwned(false);
             return ownedCards.remove(card);
         }
         return false;

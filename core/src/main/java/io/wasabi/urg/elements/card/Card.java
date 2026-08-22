@@ -39,6 +39,7 @@ public abstract class Card extends GameObject {
     private boolean dragging = false;
     private float targetX, targetY;
     private boolean hasTarget = false;
+    private boolean owned = false;
 
     private Tween tweenX;
     private Tween tweenY;
@@ -131,6 +132,8 @@ public abstract class Card extends GameObject {
     public String getDisplayName() { return getClass().getSimpleName(); }
     public boolean isDragging() { return dragging; }
     public Tooltip getTooltip() { return tooltip; }
+    public boolean isOwned() { return owned; }
+    public void setOwned(boolean owned) { this.owned = owned; }
 
     public void setDragging(boolean dragging) {
         boolean wasDragging = this.dragging;

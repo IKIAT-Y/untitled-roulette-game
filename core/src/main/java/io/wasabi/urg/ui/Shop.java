@@ -170,15 +170,6 @@ public class Shop extends InputAdapter {
             }
         }
 
-        List<Card> ownedCards = runState.getOwnedCards();
-        for (int i = ownedCards.size() - 1; i >= 0; i--) {
-            Card card = ownedCards.get(i);
-            if (card.contains(world.x, world.y)) {
-                beginCardDrag(card, false, world);
-                return true;
-            }
-        }
-
         for (int i = charmOffers.size() - 1; i >= 0; i--) {
             AbstractCharm charm = charmOffers.get(i);
             if (charm.contains(world.x, world.y)) {
@@ -187,14 +178,6 @@ public class Shop extends InputAdapter {
             }
         }
 
-        List<AbstractCharm> ownedCharms = runState.getOwnedCharms();
-        for (int i = ownedCharms.size() - 1; i >= 0; i--) {
-            AbstractCharm charm = ownedCharms.get(i);
-            if (charm.contains(world.x, world.y)) {
-                beginCharmDrag(charm, false, world);
-                return true;
-            }
-        }
         return false;
     }
 
@@ -415,5 +398,7 @@ public class Shop extends InputAdapter {
         return new Vector2(world.x, world.y);
     }
 
+    public List<Card> getOffers() { return offers; }
+    public List<AbstractCharm> getCharmOffers() { return charmOffers; }
     public boolean isVisible() { return visible; }
 }
