@@ -27,6 +27,7 @@ public class GoldenTicket extends Card {
 
     @Override
     public void roundStartEffect() {
+        triggerDisplay();
         int roundNumber = Roulette.getInstance().getRoundManager().getOverallRoundNumber();
         if (roundNumber != activeRound) {
             activeRound = roundNumber;

@@ -20,6 +20,7 @@ public class MysteriousFragment extends Card {
 
     @Override
     public void roundStartEffect() {
+        triggerDisplay();
         List<Tile> tiles = new ArrayList<>(Roulette.getInstance().getRunState().getTiles());
         tiles.removeIf(tile -> tile.getType() instanceof VoidTile);
         if (!tiles.isEmpty()) {

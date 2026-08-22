@@ -21,6 +21,7 @@ public class BullRush extends Card {
 
         if (landedTile != null && landedTile.getNumber() == 6) {
             runState.requestFreeSpin();
+            triggerDisplay();
         }
     }
 }

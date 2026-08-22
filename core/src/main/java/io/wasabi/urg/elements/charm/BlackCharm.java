@@ -34,17 +34,17 @@ public class BlackCharm extends AbstractCharm {
     @Override
     public boolean requirements() {
         if (Roulette.getInstance().getGameScreen().getWheel().isSpinning()) {
-            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("You cannot use charms while the wheel is spinning!", getX(), getY(), Color.RED));
+            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("You cannot use charms while the wheel is spinning!", getX(), getY(), Color.RED, 1f));
             SoundManager.getInstance().playSound("error");
             return false;
         }
 
         List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
         if (selectedTiles.isEmpty()) {
-            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("Select at least one tile!", getX(), getY(), Color.RED));
+            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("Select at least one tile!", getX(), getY(), Color.RED, 1f));
             SoundManager.getInstance().playSound("error");
         } else if (selectedTiles.size() > 2) {
-            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("You can only select up to two tiles!", getX(), getY(), Color.RED));
+            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("You can only select up to two tiles!", getX(), getY(), Color.RED, 1f));
             SoundManager.getInstance().playSound("error");
         } else {
             return true;

@@ -30,6 +30,7 @@ public class CharmInputHandler extends InputAdapter {
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         Vector2 world = screenToWorld(screenX, screenY);
 
+        Shop shop = GAME.getGameScreen().getShop();
         List<AbstractCharm> charms = runState.getOwnedCharms();
         for (int i = charms.size() - 1; i >= 0; i--) {
             AbstractCharm charm = charms.get(i);
@@ -42,6 +43,10 @@ public class CharmInputHandler extends InputAdapter {
                     Roulette.getInstance().getGameScreen().getWheel().setShowConsumeZone(false);
                 } else {
                     Roulette.getInstance().getGameScreen().getWheel().setShowConsumeZone(true);
+                }
+
+                if (shop.isVisible()) {
+                    shop.beginInventoryDrag(charm.getSellPrice());
                 }
 
                 return true;

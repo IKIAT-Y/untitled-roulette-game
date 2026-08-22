@@ -14,8 +14,8 @@ import io.wasabi.urg.ui.Tooltip;
 
 /** Stores the player's progress and inventory for the current run. */
 public final class RunState {
-    public static final int MAX_OWNED_CARDS = 4;
-    public static final int MAX_OWNED_CHARMS = 4;
+    public static final int MAX_OWNED_CARDS = 5;
+    public static final int MAX_OWNED_CHARMS = 2;
     private int chips;
     private int score;
     private int tickets;
@@ -129,6 +129,14 @@ public final class RunState {
 
     public List<Tile> getTiles() {
         return tiles;
+    }
+
+    public int getMaxHandSize() {
+        return MAX_OWNED_CARDS;
+    }
+
+    public int getMaxOwnableCharms() {
+        return MAX_OWNED_CHARMS;
     }
 
     public boolean addCard(Card card) {
@@ -309,8 +317,6 @@ public final class RunState {
     public List<Bet> getActiveBets() {
         return activeBets;
     }
-
-    
 
     /**
      * Drops every pending bet without touching {@link #chips} — placing a bet never

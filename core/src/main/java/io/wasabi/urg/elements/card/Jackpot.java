@@ -15,11 +15,16 @@ public class Jackpot extends Card {
         if (roundNumber != lastCountedRound) {
             lastCountedRound = roundNumber;
             jackpotRound = roundNumber % 7 == 0;
+            triggerDisplay();
         }
     }
 
     @Override
     public float getPayoutMultiplier(Tile winningTile, int totalStaked, int chipBalance) {
-        return jackpotRound ? 7f : 1f;
+        if  (jackpotRound) {
+            triggerDisplay();
+            return 7f;
+        }
+        return 1f;
     }
 }

@@ -5,10 +5,10 @@ import java.util.List;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -40,6 +40,7 @@ public class Wheel {
             18, 29, 7, 28, 12, 35, 3, 26 };
 
     private final World world;
+    private final Texture wheelBackground;
 
     private Vector2 position = new Vector2();
     private float rotation; // in Degrees
@@ -60,6 +61,7 @@ public class Wheel {
     public Wheel(World world, Vector2 position) {
         this.world = world;
         this.position = position;
+        this.wheelBackground = new Texture(Gdx.files.internal("ui/WheelBack.png"));
         this.spinButton = new SpinButton(position, 160f);
 
         // Testing
@@ -196,12 +198,21 @@ public class Wheel {
             setRotation(body.getAngle());
         }
 
-        for (Tile tile : tiles) {
-            tile.render();
-        }
-
         if (tweenY != null && !tweenY.isComplete()) {
             this.position.y = tweenY.update(delta);
+        }
+
+        // draw wheel background at the middle of the screen
+        SPRITE_BATCH.begin();
+        SPRITE_BATCH.draw(
+            wheelBackground,
+            position.x - wheelBackground.getWidth() / 2f,
+            position.y - wheelBackground.getHeight() / 2f
+        );
+        SPRITE_BATCH.end();
+
+        for (Tile tile : tiles) {
+            tile.render();
         }
 
         update();
@@ -257,21 +268,14 @@ public class Wheel {
     }
 
     public void dispose() {
+        wheelBackground.dispose();
         world.destroyBody(body);
     }
 
-    public Body getBody() {
-        return body;
-    }
-
-    public List<Tile> getTiles() {
-        return tiles;
-    }
-
-    public boolean isSpinning() {
-        return wheelVelocityTween != null && !wheelVelocityTween.isComplete();
-    }
-
+    public Body getBody() { return body; }
+    public List<Tile> getTiles() { return tiles; }
+    public boolean isSpinning() { return wheelVelocityTween != null && !wheelVelocityTween.isComplete(); }
+  
     public void resetWheelTweens() {
         wheelVelocityTween = null;
         tweenY = null;
