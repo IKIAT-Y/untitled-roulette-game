@@ -10,16 +10,13 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 
 public class NullTile extends TileType {
-    protected Texture nullTexture;
+    private final static Texture NULL_TEXTURE = new Texture(Gdx.files.internal("tiles/NullTile.png"));
 
     private final Mesh mesh;
 
     public NullTile() {
         super();
         this.betMultiplier = 0f;
-
-        nullTexture = new Texture(Gdx.files.internal("tiles/NullTile.png"));
-        nullTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.Repeat);
 
         mesh = new Mesh(false, 2000, 2000,
             new VertexAttribute(Usage.Position, 2, ShaderProgram.POSITION_ATTRIBUTE),
@@ -31,7 +28,7 @@ public class NullTile extends TileType {
     @Override
     public void setRegion(float[] vertices, short[] indices) {
         super.setRegion(vertices, indices);
-        TextureRegion texRegion = new TextureRegion(nullTexture);
+        TextureRegion texRegion = new TextureRegion(NULL_TEXTURE);
         mesh.setVertices(textureWrapVertices(vertices, texRegion));
         mesh.setIndices(indices);
     }
@@ -43,7 +40,7 @@ public class NullTile extends TileType {
 
     @Override
     public void drawOverlay() {
-        nullTexture.bind();
+        NULL_TEXTURE.bind();
         mesh.render(POLY_BATCH.getShader(), GL20.GL_TRIANGLES);
     }
 
@@ -55,5 +52,10 @@ public class NullTile extends TileType {
     @Override
     public boolean isBlack() {
         return false;
+    }
+
+    @Override
+    public void dispose() {
+        mesh.dispose();
     }
 }

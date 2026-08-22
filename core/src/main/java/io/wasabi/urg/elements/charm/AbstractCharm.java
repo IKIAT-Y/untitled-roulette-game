@@ -47,7 +47,9 @@ public class AbstractCharm extends GameObject{
         this.texture = TextureManager.getInstance().getTexture(getClass().getSimpleName(), "charm");
     }
 
-    public void consume() {}
+    public void consume() {
+        Roulette.getInstance().getRunState().triggerEffects("charmConsumed");
+    }
     public boolean requirements() { return true; }
 
     protected void removeAndReturnToPool() {

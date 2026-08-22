@@ -1,14 +1,14 @@
 package io.wasabi.urg.elements.charm;
 
-import com.badlogic.gdx.audio.Sound;
+import java.util.List;
+
 import com.badlogic.gdx.graphics.Color;
+
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.FloatingText;
-
-import java.util.List;
 
 public class BlackCharm extends AbstractCharm {
 
@@ -21,6 +21,7 @@ public class BlackCharm extends AbstractCharm {
     @Override
     public void consume() {
         if (requirements()) {
+            super.consume();
             List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
             for (Tile tile : selectedTiles) {
                 tile.setColor(TileType.TileColour.BLACK);

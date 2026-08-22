@@ -5,10 +5,13 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import io.wasabi.urg.elements.charm.BlackCharm;
-import io.wasabi.urg.elements.charm.RedCharm;
-import io.wasabi.urg.elements.charm.ScrambledCharm;
-import io.wasabi.urg.managers.*;
+import io.wasabi.urg.managers.CardPool;
+import io.wasabi.urg.managers.CharmPool;
+import io.wasabi.urg.managers.FontManager;
+import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.managers.RoundManager;
+import io.wasabi.urg.managers.SoundManager;
+import io.wasabi.urg.managers.TextureManager;
 import io.wasabi.urg.screens.BettingScreen;
 import io.wasabi.urg.screens.GameScreen;
 import io.wasabi.urg.state.RunState;
@@ -67,7 +70,8 @@ public class Roulette extends Game {
         runState.reset(STARTING_MONEY);
 
         // Card testing
-        runState.addCard(cardPool.getRandomCard());
+        // runState.addCard(cardPool.getRandomCard());
+        // runState.addCard(new Oneshot());
 
         // Charm testing
         //runState.addCharm(new BlackCharm());
