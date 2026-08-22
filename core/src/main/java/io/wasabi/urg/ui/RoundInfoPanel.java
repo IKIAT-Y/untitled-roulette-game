@@ -1,5 +1,7 @@
 package io.wasabi.urg.ui;
 
+import java.util.List;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
@@ -19,8 +21,6 @@ import io.wasabi.urg.managers.RoundManager;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.util.tweens.Tween;
 
-import java.util.List;
-
 public class RoundInfoPanel {
 
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
@@ -33,7 +33,7 @@ public class RoundInfoPanel {
     private static final Color COL_SHADOW    = new Color(0.10f, 0.10f, 0.13f, 1f);
     private static final Color COL_OUTLINE   = Color.WHITE;
     private static final Color COL_PANEL_BG  = new Color(0.14f, 0.14f, 0.18f, 1f);
-    private static final Color COL_BACKING   = new Color(0.21f, 0.44f, 0.35f, 1f); // panel behind everything
+    private static final Color COL_BACKING   = new Color( 0.29020f, 0.22745f, 0.18039f, 1f ); // panel behind everything
     private static final Color COL_NORMAL    = new Color(0.51f, 0.53f, 0.9f, 1f); // normal roundnd
     private static final Color COL_BOSS      = new Color(0.72f, 0.16f, 0.16f, 1f); // boss round
     private static final Color COL_SPINS     = new Color(0.22f, 0.47f, 0.86f, 1f);

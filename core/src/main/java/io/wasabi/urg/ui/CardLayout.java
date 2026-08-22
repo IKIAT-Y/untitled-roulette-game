@@ -26,7 +26,7 @@ public final class CardLayout {
     private static final Color COL_SHADOW = new Color(0.10f, 0.10f, 0.13f, 0.65f);
     private static final Color COL_OUTLINE = new Color(1f, 1f, 1f, 0.9f);
     private static final Color COL_FILL = new Color(0.12f, 0.12f, 0.16f, 0.55f);
-    private static final Color COL_BACKING = new Color(0.10f, 0.10f, 0.13f, 1f);
+    private static final Color COL_BACKING = new Color( 0.29020f, 0.22745f, 0.18039f, 1f );
 
     private CardLayout() {}
 
