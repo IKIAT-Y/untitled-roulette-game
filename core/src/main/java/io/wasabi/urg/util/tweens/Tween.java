@@ -60,7 +60,7 @@ public class Tween {
         time += delta;
         float alpha = formula.get(time / duration);
 
-        if (alpha >= 0.99f) {
+        if (time >= duration) {
             alpha = 1;
             complete = true;
         }

@@ -3,10 +3,14 @@ package io.wasabi.urg.ui;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -21,28 +25,33 @@ import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.util.tweens.Tween;
 
 public class Shop extends InputAdapter {
-    private static final float WIDTH = 1200f;
-    private static final float HEIGHT = 650f;
-    private static final float CENTER_X = -WIDTH / 2f;
+    private static final float WIDTH = 680f;
+    private static final float HEIGHT = 900f;
+    private static final float CENTER_Y = -HEIGHT / 2f;
+    private static final float OFFSCREEN_X = -1500f;
     private static final float OFFSCREEN_Y = -1500f;
+
     private static final int OFFER_COUNT = 4;
     private static final int CHARM_OFFER_COUNT = 3;
     private static final int REROLL_PRICE = 5;
-    private static final float OFFER_START_X = -300f;
-    private static final float OFFER_SPACING = 160f;
-    private static final float CHARM_OFFER_START_X = -260f;
-    private static final float CHARM_OFFER_SPACING = 160f;
+
+    private static final float OFFER_START_Y = 155f;
+    private static final float OFFER_TARGET_WIDTH = 620f;
+    private static final float CHARM_OFFER_START_Y = OFFER_START_Y - 250f;
     // Shop appearance settings — adjust these to resize the price text/button.
     private static final float PRICE_FONT_SCALE = 0.6f;
-    private static final float REROLL_BUTTON_WIDTH = 260f;
-    private static final BitmapFont FONT = FontManager.getInstance().getFontByName("Placeholder");
 
-    private final ShapeRenderer shapeRenderer;
+    private static final BitmapFont FONT = FontManager.getInstance().getFontByName("Placeholder");
+    private static final BitmapFont FONT_64PX = FontManager.getInstance().getFontByName("Terminus64PXBold");
+
+    private static final Texture PATCH_TEXTURE = new Texture(Gdx.files.internal("ui/CorneredPatch.png"));
+
     private final SpriteBatch spriteBatch;
     private final Viewport viewport;
     private final RunState runState;
     private final List<Card> offers = new ArrayList<>();
     private final List<AbstractCharm> charmOffers = new ArrayList<>();
+    private final NinePatch patch = new NinePatch(PATCH_TEXTURE, 10, 10, 10, 10);
 
     private final Rectangle continueButton = new Rectangle();
     private final Rectangle rerollButton = new Rectangle();
@@ -50,6 +59,8 @@ public class Shop extends InputAdapter {
     private final Rectangle sellBox = new Rectangle();
 
     private Tween tween;
+    private Tween tweenY;
+    private float x = OFFSCREEN_X;
     private float y = OFFSCREEN_Y;
     private boolean visible;
     private boolean continueRequested;
@@ -60,8 +71,7 @@ public class Shop extends InputAdapter {
     private boolean draggingCharmOffer;
     private final Vector2 dragOffset = new Vector2();
 
-    public Shop(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, Viewport viewport) {
-        this.shapeRenderer = shapeRenderer;
+    public Shop(SpriteBatch spriteBatch, Viewport viewport) {
         this.spriteBatch = spriteBatch;
         this.viewport = viewport;
         this.runState = Roulette.getInstance().getRunState();
@@ -74,7 +84,8 @@ public class Shop extends InputAdapter {
         drawCharmOffers();
         visible = true;
         continueRequested = false;
-        tween = new Tween(1f, OFFSCREEN_Y, 0f, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
+        tween = new Tween(1f, OFFSCREEN_X, -95f, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
+        tweenY = new Tween(1f, OFFSCREEN_Y, 0, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
     }
 
     public void hide() {
@@ -83,55 +94,104 @@ public class Shop extends InputAdapter {
         draggedCard = null;
         draggedCharm = null;
         //visible = false; // stop sudden disappearance of shop when tweening out
-        tween = new Tween(1f, y, OFFSCREEN_Y, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
+        tween = new Tween(1f, x, OFFSCREEN_X, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
+        tweenY = new Tween(1f, y, OFFSCREEN_Y, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
     }
 
     public void update(float delta) {
         if (visible && tween != null && !tween.isComplete()) {
-            y = tween.update(delta);
+            x = tween.update(delta);
+            y = tweenY.update(delta);
         }
     }
 
     public void render() {
         if (!visible) return;
 
+        float left = x - WIDTH / 2f;
         float bottom = y - HEIGHT / 2f;
-        layoutControls(bottom);
-        layoutOffers(bottom);
-        layoutCharmOffers(bottom);
+        layoutControls(bottom, left);
+        layoutOffers(left);
+        layoutCharmOffers(left);
 
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(0.10f, 0.10f, 0.13f, 1f);
-        shapeRenderer.rect(CENTER_X, bottom - 300f, WIDTH, HEIGHT + 300f);
-        shapeRenderer.setColor(0.18f, 0.18f, 0.22f, 1f);
-        shapeRenderer.rect(CENTER_X, bottom + HEIGHT - 90f, WIDTH, 90f);
+        // shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        // shapeRenderer.setColor(0.10f, 0.10f, 0.13f, 1f);
+        // shapeRenderer.rect(CENTER_Y, bottom - 300f, WIDTH, HEIGHT + 300f);
+        // shapeRenderer.setColor(0.18f, 0.18f, 0.22f, 1f);
+        // shapeRenderer.rect(CENTER_Y, bottom + HEIGHT - 90f, WIDTH, 90f);
 
-        shapeRenderer.setColor(0.22f, 0.22f, 0.27f, 1f);
-        for (Card card : offers) {
-            shapeRenderer.rect(card.getX() - 12f, card.getY() - 42f, 120f, 182f);
-        }
-        shapeRenderer.setColor(0.27f, 0.22f, 0.27f, 1f);
-        for (AbstractCharm charm : charmOffers) {
-            shapeRenderer.rect(charm.getX() - 8f, charm.getY() - 8f, charm.getWidth() + 16f, charm.getHeight() + 16f);
-        }
+        // shapeRenderer.setColor(0.22f, 0.22f, 0.27f, 1f);
+        // for (Card card : offers) {
+        //     shapeRenderer.rect(card.getX() - 12f, card.getY() - 42f, 120f, 182f);
+        // }
+        // shapeRenderer.setColor(0.27f, 0.22f, 0.27f, 1f);
+        // for (AbstractCharm charm : charmOffers) {
+        //     shapeRenderer.rect(charm.getX() - 8f, charm.getY() - 8f, charm.getWidth() + 16f, charm.getHeight() + 16f);
+        // }
 
-        shapeRenderer.setColor(0.22f, 0.50f, 0.28f, 1f);
-        shapeRenderer.rect(buyBox.x, buyBox.y, buyBox.width, buyBox.height);
-        shapeRenderer.setColor(0.55f, 0.25f, 0.25f, 1f);
-        shapeRenderer.rect(sellBox.x, sellBox.y, sellBox.width, sellBox.height);
-        shapeRenderer.setColor(0.35f, 0.35f, 0.65f, 1f);
-        shapeRenderer.rect(rerollButton.x, rerollButton.y, rerollButton.width, rerollButton.height);
-        shapeRenderer.setColor(0.25f, 0.60f, 0.30f, 1f);
-        shapeRenderer.rect(continueButton.x, continueButton.y, continueButton.width, continueButton.height);
-        shapeRenderer.end();
+        // shapeRenderer.setColor(0.22f, 0.50f, 0.28f, 1f);
+        // shapeRenderer.rect(buyBox.x, buyBox.y, buyBox.width, buyBox.height);
+        // shapeRenderer.setColor(0.55f, 0.25f, 0.25f, 1f);
+        // shapeRenderer.rect(sellBox.x, sellBox.y, sellBox.width, sellBox.height);
+        // shapeRenderer.setColor(0.35f, 0.35f, 0.65f, 1f);
+        // shapeRenderer.rect(rerollButton.x, rerollButton.y, rerollButton.width, rerollButton.height);
+        // shapeRenderer.setColor(0.25f, 0.60f, 0.30f, 1f);
+        // shapeRenderer.rect(continueButton.x, continueButton.y, continueButton.width, continueButton.height);
+        // shapeRenderer.end();
 
         spriteBatch.begin();
         spriteBatch.setTransformMatrix(new com.badlogic.gdx.math.Matrix4().setToTranslation(0, 0, 0));
-        FONT.draw(spriteBatch, "SHOP", -30f, bottom + HEIGHT - 30f);
-        FONT.draw(spriteBatch, "BUY", buyBox.x + 55f, buyBox.y + 85f);
-        FONT.draw(spriteBatch, "SELL", sellBox.x + 50f, sellBox.y + 85f);
-        FONT.draw(spriteBatch, "REROLL - " + REROLL_PRICE, rerollButton.x + 30f, rerollButton.y + 43f);
-        FONT.draw(spriteBatch, "CONTINUE", continueButton.x + 75f, continueButton.y + 43f);
+
+        // white outline
+        spriteBatch.setColor(1, 1, 1, 1);
+        patch.draw(spriteBatch, left - 4f, CENTER_Y, WIDTH + 8, HEIGHT);
+
+        // black inner
+        spriteBatch.setColor(0.10f, 0.10f, 0.13f, 1f);
+        patch.draw(spriteBatch, left, CENTER_Y + 2.5f, WIDTH, HEIGHT - 5);
+
+        // buy box
+        float boxPadding = 3f;
+        spriteBatch.setColor(1, 1, 1, 1);
+        patch.draw(spriteBatch, buyBox.x - boxPadding/2, buyBox.y - boxPadding/2, buyBox.width + boxPadding, buyBox.height + boxPadding);
+        spriteBatch.setColor(0.4f, 0.6f, 0.4f, 1);
+        patch.draw(spriteBatch, buyBox.x, buyBox.y, buyBox.width, buyBox.height);
+
+        // sell box
+        spriteBatch.setColor(1, 1, 1, 1);
+        patch.draw(spriteBatch, sellBox.x - boxPadding / 2, sellBox.y - boxPadding / 2, sellBox.width + boxPadding, sellBox.height + boxPadding);
+        spriteBatch.setColor(0.6f, 0.4f, 0.4f, 1);
+        patch.draw(spriteBatch, sellBox.x, sellBox.y, sellBox.width, sellBox.height);
+
+        // continue
+        spriteBatch.setColor(1, 1, 1, 1);
+        patch.draw(spriteBatch, continueButton.x - boxPadding / 2, continueButton.y - boxPadding / 2, continueButton.width + boxPadding, continueButton.height + boxPadding);
+        spriteBatch.setColor(0.2f, 0.6f, 0.2f, 1);
+        patch.draw(spriteBatch, continueButton.x, continueButton.y, continueButton.width, continueButton.height);
+
+        // REROLL
+        spriteBatch.setColor(1, 1, 1, 1);
+        patch.draw(spriteBatch, rerollButton.x - boxPadding / 2, rerollButton.y - boxPadding / 2, rerollButton.width + boxPadding, rerollButton.height + boxPadding);
+        spriteBatch.setColor(0.6f, 0.5f, 0.2f, 1);
+        patch.draw(spriteBatch, rerollButton.x, rerollButton.y, rerollButton.width, rerollButton.height);
+
+        spriteBatch.setColor(1, 1, 1, 1);
+
+        FONT_64PX.draw(spriteBatch, "SHOP", left + 30f, HEIGHT / 2 - 30f);
+
+        GlyphLayout layout = new GlyphLayout();
+        layout.setText(FONT, "BUY", Color.WHITE, buyBox.width, Align.center, false);
+        FONT.draw(spriteBatch, "BUY", buyBox.x, buyBox.y + buyBox.height / 2f + layout.height / 2f, buyBox.width, Align.center, false);
+
+        layout.setText(FONT, "SELL", Color.WHITE, buyBox.width, Align.center, false);
+        FONT.draw(spriteBatch, "SELL", sellBox.x, sellBox.y + sellBox.height / 2f + layout.height / 2f, sellBox.width, Align.center, false);
+
+        String rerollText = "REROLL - " + REROLL_PRICE;
+        layout.setText(FONT, rerollText, Color.WHITE, rerollButton.width, Align.center, false);
+        FONT.draw(spriteBatch, rerollText, rerollButton.x, rerollButton.y + rerollButton.height / 2f + layout.height / 2f, rerollButton.width, Align.center, false);
+
+        layout.setText(FONT, "CONTINUE", Color.WHITE, continueButton.width, Align.center, false);
+        FONT.draw(spriteBatch, "CONTINUE", continueButton.x, continueButton.y + continueButton.height / 2f + layout.height / 2f, continueButton.width, Align.center, false);
 
         for (Card card : offers) {
             if (card == draggedCard) continue;
@@ -393,28 +453,36 @@ public class Shop extends InputAdapter {
         charmOffers.clear();
     }
 
-    private void layoutControls(float bottom) {
-        buyBox.set(560f, bottom + 245f, 160f, 150f);
-        sellBox.set(-720f, bottom + 245f, 160f, 150f);
-        rerollButton.set(-290f, bottom - 75f, REROLL_BUTTON_WIDTH, 65f);
-        continueButton.set(30f, bottom - 75f, 240f, 65f);
+    private void layoutControls(float bottom, float left) {
+        buyBox.set(280f, bottom + 150f, 225f, 300f);
+        sellBox.set(550f, bottom + 150f, 225f, 300f);
+        rerollButton.set(left + WIDTH / 2 - OFFER_TARGET_WIDTH / 2, -HEIGHT / 2f + 30f, OFFER_TARGET_WIDTH, 65f);
+        continueButton.set(280f, bottom + 30f, 495f, 65f);
     }
 
-    private void layoutOffers(float bottom) {
+    private void layoutOffers(float left) {
+        int size = OFFER_COUNT; // offers.size();
+        float spacing = (OFFER_TARGET_WIDTH - (size * 96f)) / size;
+        float targetX = spacing / 2 + left + WIDTH / 2 - OFFER_TARGET_WIDTH / 2;
         for (int i = 0; i < offers.size(); i++) {
             Card card = offers.get(i);
             if (!card.isDragging()) {
-                card.setPosition(OFFER_START_X + i * OFFER_SPACING, bottom + 380f);
+                card.setPosition(targetX, OFFER_START_Y);
             }
+            targetX += spacing + card.getWidth();
         }
     }
 
-    private void layoutCharmOffers(float bottom) {
+    private void layoutCharmOffers(float left) {
+        int size = CHARM_OFFER_COUNT; // offers.size();
+        float spacing = (OFFER_TARGET_WIDTH - (size * 64f)) / size;
+        float targetX = spacing / 2 + left + WIDTH / 2 - OFFER_TARGET_WIDTH / 2;
         for (int i = 0; i < charmOffers.size(); i++) {
             AbstractCharm charm = charmOffers.get(i);
             if (!charm.isDragging()) {
-                charm.setPosition(CHARM_OFFER_START_X + i * CHARM_OFFER_SPACING, bottom + 170f);
+                charm.setPosition(targetX, CHARM_OFFER_START_Y);
             }
+            targetX += spacing + charm.getWidth();
         }
     }
 

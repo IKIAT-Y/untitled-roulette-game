@@ -1,5 +1,7 @@
 package io.wasabi.urg.ui;
 
+import java.util.List;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
@@ -18,8 +20,6 @@ import io.wasabi.urg.managers.RoundConfig;
 import io.wasabi.urg.managers.RoundManager;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.util.tweens.Tween;
-
-import java.util.List;
 
 public class RoundInfoPanel {
 
@@ -123,7 +123,7 @@ public class RoundInfoPanel {
     public void setBackingPadding(float padding) { this.backingPadding = padding; }
     public void setTicketIconSize(float size) { this.ticketIconSize = size; }
 
-    public void update(float delta) {
+    public void updateRoundType() {
         Boss boss = this.runState.getBoss();
         RoundConfig config = this.roundManager.getCurrentConfig();
 
@@ -134,7 +134,9 @@ public class RoundInfoPanel {
             setRoundType("Normal Round");
             setRoundInfo("A normal round of roulette.", "Reach the quota before you run out of spins.");
         }
+    }
 
+    public void update(float delta) {
         List<Bet> activeBets = this.runState.getActiveBets();
         int betSum = activeBets.stream().mapToInt(Bet::getAmount).sum();
         setBetAmount(betSum);

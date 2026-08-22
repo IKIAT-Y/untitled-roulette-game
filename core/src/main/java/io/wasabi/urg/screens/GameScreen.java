@@ -8,15 +8,13 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 
@@ -34,7 +32,14 @@ import io.wasabi.urg.managers.CharmInputHandler;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
-import io.wasabi.urg.ui.*;
+import io.wasabi.urg.ui.CardLayout;
+import io.wasabi.urg.ui.CharmLayout;
+import io.wasabi.urg.ui.GameOver;
+import io.wasabi.urg.ui.QuotaTracker;
+import io.wasabi.urg.ui.RoundInfoPanel;
+import io.wasabi.urg.ui.RoundResult;
+import io.wasabi.urg.ui.Shop;
+import io.wasabi.urg.ui.Tooltip;
 
 
 public class GameScreen implements Screen {
@@ -116,11 +121,12 @@ public class GameScreen implements Screen {
         this.ball = new Ball(world, 6f, wheelCenter);
 
         this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
-        this.shop = new Shop(shapeRenderer, spriteBatch, game.getViewport());
+        this.shop = new Shop(spriteBatch, game.getViewport());
         this.gameOver = new GameOver(shapeRenderer, spriteBatch, game.getViewport());
         this.inputMultiplexer.addProcessor(2, shop);
         this.quotaTracker = new QuotaTracker(shapeRenderer, spriteBatch, game.getRunState(), game.getRoundManager());
         this.roundInfoPanel = new RoundInfoPanel(-700f, 250f);
+        roundInfoPanel.updateRoundType();
     }
 
     public void spin() {
@@ -203,6 +209,12 @@ public class GameScreen implements Screen {
         gameState = GameState.SHOP;
 
         roundResult.hide();
+
+        roundInfoPanel.setRoundType("Shop");
+        roundInfoPanel.setRoundInfo("Enhance your run!", "Drag-n-drop items to the BUY/SELL squares");
+
+        roundInfoPanel.show();
+        quotaTracker.show();
         shop.show();
     }
 
@@ -213,10 +225,13 @@ public class GameScreen implements Screen {
         inputMultiplexer.addProcessor(1, charmInputHandler);
 
         shop.hide();
+
+        Roulette.getInstance().getRoundManager().startRound();
+
         roundInfoPanel.show();
         quotaTracker.show();
 
-        Roulette.getInstance().getRoundManager().startRound();
+        roundInfoPanel.updateRoundType();
 
         wheel.shiftIntoScreen();
     }
