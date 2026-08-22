@@ -36,7 +36,6 @@ import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.*;
 
-
 public class GameScreen implements Screen {
     private static final int STARTING_CHIPS = 100;
     private static final float START_ANGLE_RAD = 0f;
@@ -85,8 +84,10 @@ public class GameScreen implements Screen {
     private RoundInfoPanel roundInfoPanel;
 
     // Handlers
-    private CardInputHandler cardInputHandler = new CardInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
-    private CharmInputHandler charmInputHandler = new CharmInputHandler(Roulette.getInstance().getRunState(), Roulette.getInstance().getViewport());
+    private CardInputHandler cardInputHandler = new CardInputHandler(Roulette.getInstance().getRunState(),
+            Roulette.getInstance().getViewport());
+    private CharmInputHandler charmInputHandler = new CharmInputHandler(Roulette.getInstance().getRunState(),
+            Roulette.getInstance().getViewport());
     private InputMultiplexer inputMultiplexer = new InputMultiplexer(cardInputHandler, charmInputHandler);
 
     // Betting
@@ -139,8 +140,7 @@ public class GameScreen implements Screen {
 
         if (free) {
             ball.launchFree(START_ANGLE_RAD, initialSpeed, OUTER_TRACK_RADIUS, INNER_WHEEL_RADIUS);
-        }
-        else {
+        } else {
             ball.launch(START_ANGLE_RAD, initialSpeed, OUTER_TRACK_RADIUS, INNER_WHEEL_RADIUS);
         }
 
@@ -235,23 +235,18 @@ public class GameScreen implements Screen {
         ball.update(delta);
         ball.render();
 
-
         // couple of checks if button can be pressed
         SpinButton.State spinButtonState;
 
         if (ball.getState() != Ball.State.STOPPED) {
             spinButtonState = SpinButton.State.SPINNING;
-        }
-        else if (game.getRunState().getActiveBets().isEmpty())
-        {
+        } else if (game.getRunState().getActiveBets().isEmpty()) {
             spinButtonState = SpinButton.State.NO_BET;
-        }
-        else {
+        } else {
             spinButtonState = SpinButton.State.READY;
         }
 
         wheel.updateSpinButton(spinButtonState, game.getCamera());
-
 
         // SpriteBatch renders
         updateBetButtonLayout();
@@ -317,17 +312,23 @@ public class GameScreen implements Screen {
         }
 
         // draw dragged elements at the end
-        if (draggedCard != null) draggedCard.render();
-        if (draggedCharm != null) draggedCharm.render();
-        if (shop.getDraggedCard() != null) shop.renderCard(shop.getDraggedCard());
-        if (shop.getDraggedCharm() != null) shop.renderCharm(shop.getDraggedCharm());
+        if (draggedCard != null)
+            draggedCard.render();
+        if (draggedCharm != null)
+            draggedCharm.render();
+        if (shop.getDraggedCard() != null)
+            shop.renderCard(shop.getDraggedCard());
+        if (shop.getDraggedCharm() != null)
+            shop.renderCharm(shop.getDraggedCharm());
 
         batch.end();
 
         quotaTracker.render();
         // render tooltip at very end
         Tooltip activeTooltip = game.getRunState().getActiveTooltip();
-        if (activeTooltip != null) { activeTooltip.render(); }
+        if (activeTooltip != null) {
+            activeTooltip.render();
+        }
 
         if (gameState == GameState.ROUND) {
             quotaTracker.render();
@@ -363,14 +364,16 @@ public class GameScreen implements Screen {
         baseButtonHeight = btnHeight;
 
         betButton = new BetScreenButton(
-            betButtonTexture,
-            (game.getWorldWidth() - btnWidth) / 2f, 0,
-            btnWidth, btnHeight,
-            () -> {
-                // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
-                // sprite batch)
-                game.setScreen(Roulette.getInstance().getBettingScreen());
-            });
+                betButtonTexture,
+                (game.getWorldWidth() - btnWidth) / 2f, 0,
+                btnWidth, btnHeight,
+                () -> {
+                    // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
+                    // sprite batch)
+                    if (canBet()) {
+                        game.setScreen(Roulette.getInstance().getBettingScreen());
+                    }
+                });
         updateBetButtonLayout();
     }
 
@@ -429,7 +432,7 @@ public class GameScreen implements Screen {
 
         Vector2 wheelPos = wheel.getPosition();
         float currentAngleDeg = MathUtils.atan2(touchPoint.y - wheelPos.y, touchPoint.x - wheelPos.x)
-            * MathUtils.radiansToDegrees;
+                * MathUtils.radiansToDegrees;
 
         if (draggingWheelRotation) {
             float deltaDeg = wrapDegrees(currentAngleDeg - lastWheelRotationAngle);
@@ -442,8 +445,10 @@ public class GameScreen implements Screen {
 
     private float wrapDegrees(float degrees) {
         degrees %= 360f;
-        if (degrees > 180f) degrees -= 360f;
-        if (degrees < -180f) degrees += 360f;
+        if (degrees > 180f)
+            degrees -= 360f;
+        if (degrees < -180f)
+            degrees += 360f;
         return degrees;
     }
 
@@ -477,7 +482,7 @@ public class GameScreen implements Screen {
         Matrix4 previousSpriteProjection = new Matrix4(spriteBatch.getProjectionMatrix());
         Matrix4 previousSpriteTransform = new Matrix4(spriteBatch.getTransformMatrix());
         Matrix4 screenProjection = new Matrix4().setToOrtho2D(
-            0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+                0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         shapeRenderer.setProjectionMatrix(screenProjection);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
@@ -489,12 +494,17 @@ public class GameScreen implements Screen {
         spriteBatch.setTransformMatrix(new Matrix4().idt());
         spriteBatch.begin();
         FontManager.getInstance().getFontByName("Placeholder")
-            .draw(spriteBatch, "DEBUG WIN", buttonX + 42f, buttonY + 35f);
+                .draw(spriteBatch, "DEBUG WIN", buttonX + 42f, buttonY + 35f);
         spriteBatch.end();
 
         shapeRenderer.setProjectionMatrix(previousShapeProjection);
         spriteBatch.setProjectionMatrix(previousSpriteProjection);
         spriteBatch.setTransformMatrix(previousSpriteTransform);
+    }
+
+    private boolean canBet() {
+        return gameState != GameState.SHOP
+                && !wheel.isSpinning();
     }
 
     public void addParticle(GameObject particle) {
@@ -530,7 +540,11 @@ public class GameScreen implements Screen {
         return wheel;
     }
 
-    public World getWorld() { return world; }
-    
-    public Shop getShop() { return shop; }
+    public World getWorld() {
+        return world;
+    }
+
+    public Shop getShop() {
+        return shop;
+    }
 }
