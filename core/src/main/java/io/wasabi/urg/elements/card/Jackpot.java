@@ -1,0 +1,34 @@
+package io.wasabi.urg.elements.card;
+
+import io.wasabi.urg.elements.game.Tile;
+
+public class Jackpot extends Card {
+    private int lastCountedRound = -1;
+    private boolean jackpotRound;
+
+    public Jackpot() {
+        super(Rarity.COMMON);
+        tooltip.setTitle("Jackpot");
+        tooltip.setDescription("Every 7th tile you score gives [RED]7x [BLACK]payout");
+    }
+
+    @Override
+    public void roundStartEffect() {
+        int roundNumber = io.wasabi.urg.Roulette.getInstance()
+                .getRoundManager().getOverallRoundNumber();
+        if (roundNumber != lastCountedRound) {
+            lastCountedRound = roundNumber;
+            jackpotRound = roundNumber % 7 == 0;
+            triggerDisplay();
+        }
+    }
+
+    @Override
+    public float getPayoutMultiplier(Tile winningTile, int totalStaked, int chipBalance) {
+        if  (jackpotRound) {
+            triggerDisplay();
+            return 7f;
+        }
+        return 1f;
+    }
+}

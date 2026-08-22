@@ -1,0 +1,55 @@
+package io.wasabi.urg.elements.charm;
+
+import java.util.List;
+
+import com.badlogic.gdx.graphics.Color;
+
+import io.wasabi.urg.Roulette;
+import io.wasabi.urg.elements.game.Tile;
+import io.wasabi.urg.elements.tiles.TileType;
+import io.wasabi.urg.managers.SoundManager;
+import io.wasabi.urg.ui.FloatingText;
+
+public class BlackCharm extends AbstractCharm {
+
+    public BlackCharm() {
+        super();
+        tooltip.setTitle("Black Charm");
+        tooltip.setDescription("Choose up to two tiles, turn them into black tiles.");
+    }
+
+    @Override
+    public void consume() {
+        if (requirements()) {
+            super.consume();
+            List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
+            for (Tile tile : selectedTiles) {
+                tile.setColor(TileType.TileColour.BLACK);
+            }
+            Roulette.getInstance().getRunState().clearSelectedTiles();
+            removeAndReturnToPool();
+            SoundManager.getInstance().playSound("charmConsume");
+        }
+    }
+
+    @Override
+    public boolean requirements() {
+        if (Roulette.getInstance().getGameScreen().getWheel().isSpinning()) {
+            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("You cannot use charms while the wheel is spinning!", getX(), getY(), Color.RED, 1f));
+            SoundManager.getInstance().playSound("error");
+            return false;
+        }
+
+        List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
+        if (selectedTiles.isEmpty()) {
+            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("Select at least one tile!", getX(), getY(), Color.RED, 1f));
+            SoundManager.getInstance().playSound("error");
+        } else if (selectedTiles.size() > 2) {
+            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("You can only select up to two tiles!", getX(), getY(), Color.RED, 1f));
+            SoundManager.getInstance().playSound("error");
+        } else {
+            return true;
+        }
+        return false;
+    }
+}

@@ -1,5 +1,6 @@
 package io.wasabi.urg.elements.game;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.badlogic.gdx.graphics.g2d.PolygonRegion;
@@ -18,17 +19,20 @@ import com.badlogic.gdx.physics.box2d.World;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.elements.betting.Bet;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.state.RunState;
+import io.wasabi.urg.util.tweens.Tween;
 
 public class Ball extends GameObject {
 
     public enum State {
-        SPINNING,   // on outer track, no inward movement
-        DROPPING,   // still spinning moving inwards
-        BOUNCING,   // free physics against frets on inner wheel
-        SETTLING,   // almost stopped
-        STOPPED     // fully stopped in pocket
+        SPINNING, // on outer track, no inward movement
+        DROPPING, // still spinning moving inwards
+        BOUNCING, // free physics against frets on inner wheel
+        SETTLING, // almost stopped
+        STOPPED // fully stopped in pocket
     }
 
     private static final Roulette GAME = Roulette.getInstance();
@@ -43,32 +47,27 @@ public class Ball extends GameObject {
 
     // Used to track when to switch states
     private final Vector2 wheelCenter;
-    private float outerTrackRadius;
     private float innerWheelRadius;
+    private float outerTrackRadius;
 
     // Used for fixed spinning in SPINNING AND DROPPING states
     private float currentAngleRad = 0f;
     private float currentRadius = 0f;
 
-    // How fast the ball moves radially inward during DROPPING
-    private float radialDropSpeed = 120f;
-
     // Used during Spin state
     private State state = State.STOPPED;
     private float tangentialSpeed = 0f;
+    private boolean freeSpin = false;
 
-    private float decelerationFactor = 0.6f;
-    private float dropDecelerationFactor = 0.4f; // equivalent to old pow(0.999, 5) per-frame @60fps
-
-    // Speed to enter DROPPING state
-    private float dropSpeedThreshold = 300f;
-
-    // Speed to enter SETTLE state
-    private float settleSpeedThreshold = 5f;
-    private float settleTimeRequired = 0.5f;
+    private Tween dropTween;
     private float settleTimer = 0f;
+    private float lowSpeedTimer = 0f;
 
-    // Used to cap the frame time between frames so a huge lag spike doesn't kill the physics
+    // Visibility
+    private boolean visible = false;
+
+    // Used to cap the frame time between frames so a huge lag spike doesn't kill
+    // the physics
     private static final float MAX_DELTA = 1f / 20f;
 
     // Framed timeStep for physics steps
@@ -106,15 +105,28 @@ public class Ball extends GameObject {
     /**
      * Launches the ball into a spin on the outer track.
      *
-     * @param startAngleRad     starting angle around wheelCenter, radians
-     * @param initialSpeed      initial tangential (linear) speed, units/sec — note this is
-     *                          NOT radians/sec, it's divided by radius internally to get
-     *                          angular velocity
-     * @param outerTrackRadius  radius of the outer track the ball starts on
-     * @param innerWheelRadius  radius of the inner wheel surface it will drop onto
+     * @param startAngleRad    starting angle around wheelCenter, radians
+     * @param initialSpeed     initial tangential (linear) speed, units/sec — note
+     *                         this is
+     *                         NOT radians/sec, it's divided by radius internally to
+     *                         get
+     *                         angular velocity
+     * @param outerTrackRadius radius of the outer track the ball starts on
+     * @param innerWheelRadius radius of the inner wheel surface it will drop onto
      */
-    public void launch(float startAngleRad, float initialSpeed,
-                       float outerTrackRadius, float innerWheelRadius) {
+    public void launch(float startAngleRad, float initialSpeed, float outerTrackRadius, float innerWheelRadius) {
+        freeSpin = false;
+        launchBall(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
+    }
+
+    public void launchFree(float startAngleRad, float initialSpeed,
+            float outerTrackRadius, float innerWheelRadius) {
+        freeSpin = true;
+        launchBall(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
+    }
+
+    private void launchBall(float startAngleRad, float initialSpeed,
+            float outerTrackRadius, float innerWheelRadius) {
         this.outerTrackRadius = outerTrackRadius;
         this.innerWheelRadius = innerWheelRadius;
         this.tangentialSpeed = initialSpeed;
@@ -124,9 +136,8 @@ public class Ball extends GameObject {
         this.physicsAccumulator = 0f;
 
         Vector2 startPos = new Vector2(
-            wheelCenter.x + outerTrackRadius * (float) Math.cos(startAngleRad),
-            wheelCenter.y + outerTrackRadius * (float) Math.sin(startAngleRad)
-        );
+                wheelCenter.x + outerTrackRadius * (float) Math.cos(startAngleRad),
+                wheelCenter.y + outerTrackRadius * (float) Math.sin(startAngleRad));
         ball.setTransform(startPos, 0f);
         ball.setLinearVelocity(0f, 0f);
         ball.setAngularVelocity(0f);
@@ -142,8 +153,7 @@ public class Ball extends GameObject {
         // Clamp so a lag spike doesn't destroy the simulation
         float dt = Math.min(delta, MAX_DELTA);
 
-        //System.out.println(state.toString());
-
+        // System.out.println(state.toString());
         switch (state) {
             case SPINNING:
                 updateSpinning(dt);
@@ -158,12 +168,14 @@ public class Ball extends GameObject {
                 stepPhysicsFixed(dt);
                 break;
             case STOPPED:
-                return;
+                world.step(dt, 6, 2);
+                break;
         }
     }
 
     /**
-     * Advances BOUNCING/SETTLING physics in fixed-size chunks, accumulating leftover real
+     * Advances BOUNCING/SETTLING physics in fixed-size chunks, accumulating
+     * leftover real
      * time between calls.
      */
     private void stepPhysicsFixed(float dt) {
@@ -185,60 +197,80 @@ public class Ball extends GameObject {
     }
 
     /**
-     * Used to set position of the ball from the wheel center using angle in radian and distance
+     * Used to set position of the ball from the wheel center using angle in radian
+     * and distance
      */
     private void setPositionFromPolar(float angleRad, float radialDist) {
         Vector2 pos = new Vector2(
-            wheelCenter.x + radialDist * (float) Math.cos(angleRad),
-            wheelCenter.y + radialDist * (float) Math.sin(angleRad)
-        );
+                wheelCenter.x + radialDist * (float) Math.cos(angleRad),
+                wheelCenter.y + radialDist * (float) Math.sin(angleRad));
         ball.setTransform(pos, 0f);
     }
 
+    private void applyTangentialDamping() {
+        Vector2 radialDir = new Vector2(wheelCenter).sub(ball.getPosition()).nor();
+        Vector2 tangentDir = new Vector2(-radialDir.y, radialDir.x);
+
+        Vector2 vel = ball.getLinearVelocity();
+        float radialComp = vel.dot(radialDir);
+        float tangentComp = vel.dot(tangentDir);
+
+        float tangentialDampingPerSecond = 0.6f;
+        float dampingThisFrame = 1f - (float) Math.pow(1f - tangentialDampingPerSecond, FIXED_TIMESTEP);
+        tangentComp *= (1f - dampingThisFrame);
+
+        Vector2 newVel = radialDir.scl(radialComp).add(tangentDir.scl(tangentComp));
+        ball.setLinearVelocity(newVel);
+    }
+
     private void updateSpinning(float delta) {
-        // Angular velocity from the current tangential speed and radius.
         float angularVelocity = tangentialSpeed / currentRadius;
         currentAngleRad += angularVelocity * delta;
 
         setPositionFromPolar(currentAngleRad, currentRadius);
 
-        // Used power of delta because value is being multiplied
+        float decelerationFactor = 0.5f;
         tangentialSpeed *= (float) Math.pow(decelerationFactor, delta);
 
-        // Switch state once it drops below a certain speed
+        // Speed to enter DROPPING state
+        float dropSpeedThreshold = 400f;
         if (tangentialSpeed <= dropSpeedThreshold) {
+            float targetRadius = innerWheelRadius - (2 * radius);
+            // tune this — how long the drop takes
+            float dropDuration = 0.6f;
+            dropTween = new Tween(dropDuration, currentRadius, targetRadius,
+                    Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
             state = State.DROPPING;
         }
     }
 
     private void updateDropping(float delta) {
-        // Same as SPINNING state but radius decrease over time
         float angularVelocity = tangentialSpeed / currentRadius;
         currentAngleRad += angularVelocity * delta;
-        currentRadius -= radialDropSpeed * delta;
+
+        float previousRadius = currentRadius;
+        currentRadius = dropTween.update(delta);
+        // derived each frame, used for exit velocity
+        float dropRadialSpeed = (previousRadius - currentRadius) / delta; // inward = positive
 
         setPositionFromPolar(currentAngleRad, currentRadius);
 
-        // Different deceleration factor to SPINNING state
+        float dropDecelerationFactor = 0.2f;
         tangentialSpeed *= (float) Math.pow(dropDecelerationFactor, delta);
 
-        if (currentRadius <= innerWheelRadius - (2 * radius)) {
-            // Here we calculate the velocity the ball would have
-            // at this position and give it the ball before switching
-            // to using Box2D for bouncing physics
+        if (dropTween.isComplete() || currentRadius <= innerWheelRadius - (2 * radius)) {
             Vector2 tangentDir = new Vector2(
-                -(float) Math.sin(currentAngleRad),
-                (float) Math.cos(currentAngleRad)
-            );
+                    -(float) Math.sin(currentAngleRad),
+                    (float) Math.cos(currentAngleRad));
             Vector2 radialOutDir = new Vector2(
-                (float) Math.cos(currentAngleRad),
-                (float) Math.sin(currentAngleRad)
-            );
+                    (float) Math.cos(currentAngleRad),
+                    (float) Math.sin(currentAngleRad));
             Vector2 exitVelocity = tangentDir.scl(tangentialSpeed)
-                .add(radialOutDir.scl(-radialDropSpeed));
+                    .add(radialOutDir.scl(-dropRadialSpeed));
             ball.setLinearVelocity(exitVelocity);
 
             state = State.BOUNCING;
+            SoundManager.getInstance().playSound("bounce1");
         }
     }
 
@@ -246,39 +278,60 @@ public class Ball extends GameObject {
         Vector2 toCenter = new Vector2(wheelCenter).sub(ball.getPosition());
         Vector2 radialInward = toCenter.cpy().nor();
 
-        // Apply inwards force to simulate gravity from slope
-        float bowlPullMag = ball.getMass() * 1000f;
+        float bowlPullMag = ball.getMass() * 700f;
         ball.applyForceToCenter(radialInward.scl(bowlPullMag), true);
 
-        // Damp the linear velocity of the ball
         float bounceDampingPerSecond = 0.25f;
         float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP);
         Vector2 vel = ball.getLinearVelocity();
         ball.setLinearVelocity(
-            vel.x * (1f - dampingThisFrame),
-            vel.y * (1f - dampingThisFrame)
-        );
+                vel.x * (1f - dampingThisFrame),
+                vel.y * (1f - dampingThisFrame));
 
-        // When reaching a low enough speed switch to settle state
+        applyTangentialDamping();
+
         float speed = ball.getLinearVelocity().len();
+
+        // Speed to enter SETTLE state
+        float settleSpeedThreshold = 50f;
         if (speed <= settleSpeedThreshold) {
-            settleTimer = 0f;
-            state = State.SETTLING;
+            lowSpeedTimer += FIXED_TIMESTEP;
+
+            // must stay slow this long before settling
+            float lowSpeedTimeRequired = 0.5f;
+            if (lowSpeedTimer >= lowSpeedTimeRequired) {
+                settleTimer = 0f;
+                state = State.SETTLING;
+            }
+        } else {
+            lowSpeedTimer = 0f;
         }
     }
 
     private void updateSettling() {
-        // While settling apply large damping to put it to a complete stop
-        float bounceDampingPerSecond = 0.9f;
+        float speed = ball.getLinearVelocity().len();
+
+        // Got knocked again (e.g. rolled off a fret) — go back to real bounce physics
+        // speed that means "still actually bouncing"
+        float bounceResumeThreshold = 60f;
+        if (speed > bounceResumeThreshold) {
+            lowSpeedTimer = 0f;
+            state = State.BOUNCING;
+            return;
+        }
+
+        float bounceDampingPerSecond = 0.99f;
         float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP);
+
+        applyTangentialDamping();
+
         Vector2 vel = ball.getLinearVelocity();
         ball.setLinearVelocity(
-            vel.x * (1f - dampingThisFrame),
-            vel.y * (1f - dampingThisFrame)
-        );
+                vel.x * (1f - dampingThisFrame),
+                vel.y * (1f - dampingThisFrame));
 
-        // After a fixed amount of time assume fully settled
         settleTimer += Ball.FIXED_TIMESTEP;
+        float settleTimeRequired = 0.5f;
         if (settleTimer >= settleTimeRequired) {
             finalizeStop();
         }
@@ -287,14 +340,36 @@ public class Ball extends GameObject {
     private void finalizeStop() {
         ball.setLinearVelocity(0f, 0f);
         ball.setAngularVelocity(0f);
-        ball.setType(BodyType.StaticBody);
+        ball.setType(BodyType.DynamicBody);
         state = State.STOPPED;
+
+        List<Bet> savedBets = new ArrayList<>(Roulette.getInstance().getRunState().getActiveBets());
 
         Tile tile = getLandedTile();
         if (tile != null) {
-            System.out.println(tile.getNumber());
+            //System.out.println("Landed on tile: " + tile.getNumber());
+            //System.out.println("Tile multiplier: " + tile.getBetMultiplier());
         }
 
+        Roulette.getInstance().getGameScreen().getWheel().resetWheelTweens();
+
+        Roulette.getInstance().getRunState().setLastTile(tile);
+
+        Roulette.getInstance().getRunState().resolveActiveBets();
+
+        Roulette.getInstance().getRoundManager().recordSpin(freeSpin);
+
+        boolean freeSpinRequested = Roulette.getInstance().getRunState().consumeFreeSpinRequest();
+
+        if (Roulette.getInstance().getRunState().getChips() >= Roulette.getInstance().getRoundManager()
+                .getCurrentConfig().getQuota()) {
+            return;
+        }
+
+        if (freeSpinRequested) {
+            Roulette.getInstance().getRunState().getActiveBets().addAll(savedBets);
+            Roulette.getInstance().getGameScreen().freeSpin();
+        }
     }
 
     private Tile getLandedTile() {
@@ -342,17 +417,29 @@ public class Ball extends GameObject {
 
     @Override
     public void render() {
-        SHAPE_RENDERER.begin(ShapeType.Filled);
-        SHAPE_RENDERER.circle(
-            ball.getPosition().x,
-            ball.getPosition().y,
-            radius
-        );
-        SHAPE_RENDERER.end();
+        if (visible) {
+            SHAPE_RENDERER.begin(ShapeType.Filled);
+            SHAPE_RENDERER.circle(
+                    ball.getPosition().x,
+                    ball.getPosition().y,
+                    radius);
+            SHAPE_RENDERER.end();
+        }
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
     }
 
     @Override
     public void dispose() {
         world.destroyBody(ball);
-    }
-}
+    }}
+
+
+
+
+
+
+
+
