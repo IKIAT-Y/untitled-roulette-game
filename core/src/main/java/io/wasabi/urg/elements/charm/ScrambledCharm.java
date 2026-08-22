@@ -29,7 +29,6 @@ public class ScrambledCharm extends AbstractCharm {
                 int randomNumber = random.nextInt(37); // Generates a random number between 0 and 36
                 TileType type = tile.getType();
                 type.setNumber(randomNumber);
-                tile.setType(type);
             }
             Roulette.getInstance().getRunState().clearSelectedTiles();
             removeAndReturnToPool();
