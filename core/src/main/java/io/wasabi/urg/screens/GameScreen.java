@@ -31,23 +31,25 @@ import io.wasabi.urg.elements.game.Wheel;
 import io.wasabi.urg.managers.CardInputHandler;
 import io.wasabi.urg.managers.CharmInputHandler;
 import io.wasabi.urg.managers.FontManager;
-import io.wasabi.urg.managers.RendererManager;import o.wasabi.urg.managers.SoundManager;
+import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.CardLayout;
 import io.wasabi.urg.ui.CharmLayout;
 import io.wasabi.urg.ui.GameOver;
-import io.wasabi.urg.ui.QuotaTracimport io.wasabi.urg.ui.RoundInfoPanel;
+import io.wasabi.urg.ui.QuotaTracker;
+import io.wasabi.urg.ui.RoundInfoPanel;
 import io.wasabi.urg.ui.RoundResult;
-
-import io.wasabi.urg.ui.Shop;import o.wasab i.urg.ui.Tooltip;
+import io.wasabi.urg.ui.Shop;
+import io.wasabi.urg.ui.Tooltip;
 
 public class GameScreen implements Screen {
-    private static final int STA    priate static final float START_ANGLE_RAD = 0f;
+    private static final int STARTING_CHIPS = 100;
+    private static final float START_ANGLE_RAD = 0f;
     private static final float OUTER_TRACK_RADIUS = 325f;
     private static final float INNER_WHEEL_RADIUS = 300f;
     private static final float MIN_INITIAL_SPEED = 5000f;
     private static final float INITIAL_SPEED_RANGE = 1000f;
-    private static final float W _SPIN_
-    URATION = 6.0f;
+    private static final float WHEEL_SPIN_DURATION = 6.0f;
     private static final float WHEEL_SPIN_SPEED = -10f;
     private final Roulette game;
 
@@ -376,21 +378,21 @@ public class GameScreen implements Screen {
         baseButtonHeight = btnHeight;
 
         betButton = new BetScreenButton(
-            betButtonTexture,
-            (game.getWorldWidth() - btnWidth) / 2f, 0,
-            btnWidth, btnHeight,
-            () -> {
-                // DO NOT CALL this.disp
-                    // sprite bat
+                betButtonTexture,
+                (game.getWorldWidth() - btnWidth) / 2f, 0,
+                btnWidth, btnHeight,
+                () -> {
+                    // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
+                    // sprite batch)
                     if (canBet()) {
-                        game.setScre
+                        game.setScreen(Roulette.getInstance().getBettingScreen());
                     }
-                    
-                    tButtonLayout();
-                    
-                        
-                     
-                betButton == null || betButtonTexture == null) {
+                });
+        updateBetButtonLayout();
+    }
+
+    private void updateBetButtonLayout() {
+        if (betButton == null || betButtonTexture == null) {
             return;
         }
 
@@ -548,22 +550,15 @@ public class GameScreen implements Screen {
         world.dispose();
     }
 
-    public Wheel getWheel() { return wheel; }
-    public World getWorld() { return world; }
-    public Shop getShop() { return shop; }
+    public Wheel getWheel() {
+        return wheel;
+    }
+
+    public World getWorld() {
+        return world;
+    }
+
+    public Shop getShop() {
+        return shop;
+    }
 }
-
-        
-    
-
-    
-        
-    
-
-    
-        
-    
-
-
-
- 
