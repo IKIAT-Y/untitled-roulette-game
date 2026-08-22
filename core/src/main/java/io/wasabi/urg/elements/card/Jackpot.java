@@ -8,7 +8,7 @@ public class Jackpot extends Card {
 
     public Jackpot() {
         super(Rarity.COMMON);
-        tooltip.setTitle("JACKPOT");
+        tooltip.setTitle("Jackpot");
         tooltip.setDescription("Every 7th tile you score gives [RED]7x [BLACK]payout");
     }
 

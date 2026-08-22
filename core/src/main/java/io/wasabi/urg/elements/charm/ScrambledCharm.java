@@ -1,14 +1,15 @@
 package io.wasabi.urg.elements.charm;
 
+import java.util.List;
+import java.util.Random;
+
 import com.badlogic.gdx.graphics.Color;
+
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.FloatingText;
-
-import java.util.List;
-import java.util.Random;
 
 public class ScrambledCharm extends AbstractCharm {
 
@@ -21,6 +22,7 @@ public class ScrambledCharm extends AbstractCharm {
     @Override
     public void consume() {
         if (requirements()) {
+            super.consume();
             List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
             Random random = new Random();
             for (Tile tile : selectedTiles) {

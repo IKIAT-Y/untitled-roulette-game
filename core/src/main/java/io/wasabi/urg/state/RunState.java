@@ -399,6 +399,12 @@ public final class RunState {
                             boss.roundEndEffect();
                         }
                         break;
+                    case "charmConsumed":
+                        card.charmConsumedEffect();
+                        if (boss != null) {
+                            boss.charmConsumedEffect();
+                        }
+                        break;
                     default:
                         throw new IllegalArgumentException("Unknown effect type: " + effectType);
                 }
