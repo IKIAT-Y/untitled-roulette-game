@@ -266,25 +266,39 @@ public class Shop extends InputAdapter {
         dragOffset.set(world.x - charm.getX(), world.y - charm.getY());
     }
 
+    public void finishInventoryCardDrag(int x, int y, Card card) {
+        Vector2 world = screenToWorld(x, y);
+        draggedCard = card;
+        draggingOffer = false;
+        finishCardDrag(world);
+    }
+
+    public void finishInventoryCharmDrag(int x, int y, AbstractCharm charm) {
+        Vector2 world = screenToWorld(x, y);
+        draggedCharm = charm;
+        draggingCharmOffer = false;
+        finishCharmDrag(world);
+    }
+
     private void finishCardDrag(Vector2 world) {
         Card card = draggedCard;
         boolean droppedInTarget = draggingOffer ? buyBox.contains(world) : sellBox.contains(world);
+        card.setDragging(false);
         if (droppedInTarget) {
             if (draggingOffer) buy(card);
             else sell(card);
         }
-        card.setDragging(false);
         draggedCard = null;
     }
 
     private void finishCharmDrag(Vector2 world) {
         AbstractCharm charm = draggedCharm;
         boolean droppedInTarget = draggingCharmOffer ? buyBox.contains(world) : sellBox.contains(world);
+        charm.setDragging(false);
         if (droppedInTarget) {
             if (draggingCharmOffer) buyCharm(charm);
             else sellCharm(charm);
         }
-        charm.setDragging(false);
         draggedCharm = null;
     }
 

@@ -127,6 +127,12 @@ public class CardInputHandler extends InputAdapter {
         if (draggedCard == null) return false;
 
         draggedCard.setDragging(false);
+
+        Shop shop = GAME.getGameScreen().getShop();
+        if (shop.isVisible()) {
+            shop.finishInventoryCardDrag(screenX, screenY, draggedCard);
+        }
+
         draggedCard = null;
         return true;
     }

@@ -11,8 +11,10 @@ import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.charm.AbstractCharm;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.ui.CharmLayout;
+import io.wasabi.urg.ui.Shop;
 
 public class CharmInputHandler extends InputAdapter {
+    private final static Roulette GAME = Roulette.getInstance();
     private final RunState runState;
     private final Viewport viewport;
 
@@ -71,12 +73,18 @@ public class CharmInputHandler extends InputAdapter {
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         if (draggedCharm == null) return false;
 
+        draggedCharm.setDragging(false);
+
         Vector2 world = screenToWorld(screenX, screenY);
-        if (Roulette.getInstance().getGameScreen().getWheel().containsPoint(world)) {
+        if (GAME.getGameScreen().getWheel().containsPoint(world)) {
             draggedCharm.consume();
         }
 
-        draggedCharm.setDragging(false);
+        Shop shop = GAME.getGameScreen().getShop();
+        if (shop.isVisible()) {
+            shop.finishInventoryCharmDrag(screenX, screenY, draggedCharm);
+        }
+
         draggedCharm = null;
 
         Roulette.getInstance().getGameScreen().getWheel().setShowConsumeZone(false);
