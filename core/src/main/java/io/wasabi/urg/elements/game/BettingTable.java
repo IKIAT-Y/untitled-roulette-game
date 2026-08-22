@@ -344,6 +344,7 @@ public class BettingTable extends GameObject {
 
         List<BetZone> straightZones = layout.getZonesOfType(BetType.STRAIGHT);
         List<BetZone> outsideZones = outsideCategoryZones();
+        List<BetZone> dozenZones = layout.getZonesOfType(BetType.DOZEN);
 
         SHAPE_RENDERER.begin(ShapeType.Filled);
         for (BetZone zone : straightZones) {
@@ -357,9 +358,14 @@ public class BettingTable extends GameObject {
             Rectangle r = zone.getHitArea().getBoundingRectangle();
             SHAPE_RENDERER.rect(r.x, r.y, r.width, r.height);
         }
+        SHAPE_RENDERER.setColor(Color.FOREST);
+        for (BetZone zone : dozenZones) {
+            Rectangle r = zone.getHitArea().getBoundingRectangle();
+            SHAPE_RENDERER.rect(r.x, r.y, r.width, r.height);
+        }
         SHAPE_RENDERER.end();
 
-        drawZoneLabels(straightZones, outsideZones);
+        drawZoneLabels(straightZones, outsideZones, dozenZones);
 
         SHAPE_RENDERER.begin(ShapeType.Line);
         SHAPE_RENDERER.setColor(Color.WHITE);
@@ -371,13 +377,18 @@ public class BettingTable extends GameObject {
             Rectangle r = zone.getHitArea().getBoundingRectangle();
             SHAPE_RENDERER.rect(r.x, r.y, r.width, r.height);
         }
+        for (BetZone zone : dozenZones) {
+            Rectangle r = zone.getHitArea().getBoundingRectangle();
+            SHAPE_RENDERER.rect(r.x, r.y, r.width, r.height);
+        }
 
         // Snap-point markers for the remaining bet types that don't have a dedicated
-        // shape of their own yet (split/corner/street/six-line/column/dozen) — just
-        // an anchor point to snap a chip to.
+        // shape of their own yet (split/corner/street/six-line/column) — just an
+        // anchor point to snap a chip to.
         SHAPE_RENDERER.setColor(Color.LIGHT_GRAY);
         for (BetZone zone : layout.getBetZones()) {
-            if (zone.getType() == BetType.STRAIGHT || isOutsideCategoryType(zone.getType()))
+            if (zone.getType() == BetType.STRAIGHT || zone.getType() == BetType.DOZEN
+                    || isOutsideCategoryType(zone.getType()))
                 continue;
             Vector2 a = zone.getChipAnchor();
             SHAPE_RENDERER.circle(a.x, a.y, 4f);
@@ -403,15 +414,16 @@ public class BettingTable extends GameObject {
     }
 
     /**
-     * Draws every straight zone's pocket number and every outside zone's label,
-     * shrunk to fit and centered in their box. FONT is shared with other renderers
-     * (e.g. Tile, which draws with it at the default scale/color) — every tweak
-     * made here is saved beforehand and restored afterward so it can't leak into
-     * whatever draws with FONT next. Both groups share one SpriteBatch begin/end —
-     * changing the font's scale mid-batch is fine, it only affects the vertices of
-     * draws that come after it.
+     * Draws every straight zone's pocket number and every outside/dozen zone's
+     * label, shrunk to fit and centered in their box. FONT is shared with other
+     * renderers (e.g. Tile, which draws with it at the default scale/color) —
+     * every tweak made here is saved beforehand and restored afterward so it can't
+     * leak into whatever draws with FONT next. All three groups share one
+     * SpriteBatch begin/end — changing the font's scale mid-batch is fine, it only
+     * affects the vertices of draws that come after it.
      */
-    private void drawZoneLabels(List<BetZone> straightZones, List<BetZone> outsideZones) {
+    private void drawZoneLabels(List<BetZone> straightZones, List<BetZone> outsideZones,
+            List<BetZone> dozenZones) {
         float originalScaleX = FONT.getScaleX();
         float originalScaleY = FONT.getScaleY();
         Color originalColor = FONT.getColor().cpy();
@@ -432,12 +444,20 @@ public class BettingTable extends GameObject {
                     r.y + r.height / 2f + straightHalfHeight, r.width, Align.center, false);
         }
 
+        // Dozen boxes are at least as roomy as outside boxes (see
+        // TableLayoutConfig.DOZEN_STRIP_HEIGHT vs OUTSIDE_BOX_HEIGHT), so both share
+        // the same smaller word-sized scale.
         FONT.getData().setScale(OUTSIDE_LABEL_FONT_SCALE, OUTSIDE_LABEL_FONT_SCALE);
-        float outsideHalfHeight = FONT.getCapHeight() / 2f;
+        float wordHalfHeight = FONT.getCapHeight() / 2f;
         for (BetZone zone : outsideZones) {
             Rectangle r = zone.getHitArea().getBoundingRectangle();
             FONT.draw(SPRITE_BATCH, outsideLabelFor(zone), r.x,
-                    r.y + r.height / 2f + outsideHalfHeight, r.width, Align.center, false);
+                    r.y + r.height / 2f + wordHalfHeight, r.width, Align.center, false);
+        }
+        for (BetZone zone : dozenZones) {
+            Rectangle r = zone.getHitArea().getBoundingRectangle();
+            FONT.draw(SPRITE_BATCH, numberRangeLabel(zone), r.x,
+                    r.y + r.height / 2f + wordHalfHeight, r.width, Align.center, false);
         }
 
         SPRITE_BATCH.end();
@@ -515,7 +535,9 @@ public class BettingTable extends GameObject {
             case BLACK:
                 return Color.BLACK;
             case GREEN:
-                return Color.GREEN;
+                // Placeholder — matches the neutral fill used for outside/dozen zones for
+                // now (see colorForOutsideType).
+                return Color.FOREST;
             default:
                 return Color.GRAY;
         }
