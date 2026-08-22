@@ -6,6 +6,7 @@ import java.util.List;
 import com.badlogic.gdx.utils.IntArray;
 
 import io.wasabi.urg.elements.betting.Bet;
+import io.wasabi.urg.elements.betting.WinBreakdown;
 import io.wasabi.urg.elements.boss.Boss;
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.charm.AbstractCharm;
@@ -20,6 +21,7 @@ public final class RunState {
     private int score;
     private int tickets;
     private boolean freeSpinRequested = false;
+    private int pendingSettlementStake = 0;
 
     private Tile lastTile = null; // The last tile the player landed on, used for certain card effects.
     private Tooltip activeTooltip = null;
@@ -258,6 +260,7 @@ public final class RunState {
         activeTooltip = null;
         boss = null;
         freeSpinRequested = false;
+        pendingSettlementStake = 0;
         activeBets.clear();
         ownedCards.clear();
         ownedCharms.clear();
@@ -336,29 +339,80 @@ public final class RunState {
      * returned stake — see {@link Bet#payout}) are added back.
      */
     public int resolveActiveBets() {
+        WinBreakdown breakdown = resolveActiveBetsDetailed();
+        applyWinBreakdown(breakdown);
+        return breakdown.getFinalTotal();
+    }
+
+    public WinBreakdown resolveActiveBetsDetailed() {
         if (lastTile == null) {
-            return 0;
+            activeBets.clear();
+            return new WinBreakdown(0, 0, 0, 0, 0, 1f, 1f, 0, null);
         }
 
         int totalStaked = 0;
-        int totalPayout = 0;
+        int winningStake = 0;
+        int rawPayout = 0;
         for (Bet bet : activeBets) {
             totalStaked += bet.getAmount();
-            totalPayout += bet.payout(lastTile);
+            if (bet.wins(lastTile)) {
+                winningStake += bet.getAmount();
+            }
+            rawPayout += bet.payout(lastTile);
         }
 
-        float payoutMultiplier = lastTile.getBetMultiplier();
+        float payoutMultiplier = winningStake > 0 ? (float) rawPayout / winningStake : 1f;
+
+        // Flat per-tile increases aren't implemented yet — reserved slot so the
+        // animation and payout math already know how to include them once they
+        // exist, without another refactor.
+        int flatBonus = 0;
+
+        float tileMultiplier = lastTile.getBetMultiplier();
+
+        float globalMultiplier = 1f;
         int triggerCount = getCardEffectTriggerCount();
         for (int trigger = 0; trigger < triggerCount; trigger++) {
             for (Card card : ownedCards) {
-                payoutMultiplier *= card.getPayoutMultiplier(lastTile, totalStaked, chips);
+                globalMultiplier *= card.getPayoutMultiplier(lastTile, totalStaked, chips);
             }
         }
-        totalPayout = Math.round(totalPayout * payoutMultiplier);
 
-        chips = chips - totalStaked + totalPayout;
-        activeBets.clear();
-        return totalPayout;
+        int finalTotal = Math.round((rawPayout + flatBonus) * tileMultiplier * globalMultiplier);
+
+        return new WinBreakdown(totalStaked, rawPayout, winningStake, payoutMultiplier, flatBonus, tileMultiplier, globalMultiplier,
+            finalTotal, lastTile);
+    }
+
+    /**
+     * Actually moves chips for a breakdown previously computed by
+     * {@link #resolveActiveBetsDetailed()}. Split out so a caller driving
+     * {@code WinAnimation} can compute the breakdown immediately (to know what
+     * to reveal) while deferring the real balance change — and therefore
+     * anything reading {@link #getChips()} — until the animation's impact.
+     * Safe to call at most once per breakdown; calling it twice would deduct
+     * the stake and add the payout a second time.
+     */
+    public void applyWinBreakdown(WinBreakdown breakdown) {
+        chips = chips - breakdown.getTotalStaked() + breakdown.getFinalTotal();
+        pendingSettlementStake = 0;
+    }
+
+    /**
+     * Stake that's been resolved (win/loss decided, {@link #activeBets} already
+     * cleared) but not yet reflected in {@link #chips} because
+     * {@code WinAnimation} hasn't reached its impact. Callers that display
+     * "available" balance as chips-minus-committed-bets (e.g. QuotaTracker)
+     * should keep subtracting this too, or the stake will visibly reappear the
+     * instant the ball stops instead of when the animation lands.
+     */
+    public int getPendingSettlementStake() {
+        return pendingSettlementStake;
+    }
+
+    /** True from the moment a spin resolves until {@link #applyWinBreakdown} lands. */
+    public boolean isSettlementPending() {
+        return pendingSettlementStake > 0;
     }
 
     public void setBoss(Boss boss) {

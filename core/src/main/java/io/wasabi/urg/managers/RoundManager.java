@@ -120,8 +120,8 @@ public class RoundManager {
         printQuotaStatus();
 
         // Temp Debug for checking quota and spins remaining
-        // System.out.println("Act: " + act + ", Round: " + round + ", Quota: " + currentConfig.getQuota() + ", Chips: " + runState.getChips() + ", Boss round: " + currentConfig.isBossRound());
-        // System.out.println("Spins remaining: " + spinsRemaining);
+        System.out.println("Act: " + act + ", Round: " + round + ", Quota: " + currentConfig.getQuota() + ", Chips: " + runState.getChips() + ", Boss round: " + currentConfig.isBossRound());
+        System.out.println("Spins remaining: " + spinsRemaining);
 
         if (runState.getChips() >= currentConfig.getQuota()) {
             // System.out.println("winner");
