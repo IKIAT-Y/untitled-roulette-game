@@ -15,5 +15,6 @@ public class Oneshot extends Card {
         if ("roundStart".equals(effectType)) {
             Roulette.getInstance().getRoundManager().setSpinsRemaining(1);
         }
+        triggerDisplay();
     }
 }

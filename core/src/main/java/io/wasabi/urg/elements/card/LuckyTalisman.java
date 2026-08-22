@@ -7,7 +7,8 @@ public class LuckyTalisman extends Card {
 
     @Override
     public float getPayoutMultiplier(Tile winningTile, int totalStaked, int chipBalance) {
+        triggerDisplay();
         return 1.5f;
     }
-    
+
 }

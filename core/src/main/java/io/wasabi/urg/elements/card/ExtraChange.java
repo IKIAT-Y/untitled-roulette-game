@@ -16,6 +16,7 @@ public class ExtraChange extends Card {
     @Override
     public void roundStartEffect() {
         System.out.println("ExtraChange card effect triggered");
+        triggerDisplay();
         runState.addChips((int) Roulette.getInstance().getRoundManager().getCurrentConfig().getQuota()/10);
     }
 }

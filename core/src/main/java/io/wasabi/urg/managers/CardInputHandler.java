@@ -64,16 +64,23 @@ public class CardInputHandler extends InputAdapter {
             cards.addAll(shop.getOffers());
         }
 
+        Card hoveredCard = null;
         for (int i = cards.size() - 1; i >= 0; i--) {
             Card card = cards.get(i);
             if (card.contains(world.x, world.y)) {
-                card.getTooltip().show();
+                hoveredCard = card;
                 break;
+            }
+        }
+        for (Card card : cards) {
+            if (card == hoveredCard) {
+                card.getTooltip().show();
             } else {
                 card.getTooltip().hide();
             }
         }
 
+        Tile hoveredTile = null;
         for (Tile tile : runState.getTiles()) {
             float[] verts = tile.getRegion().getVertices();
             int length = verts.length;
@@ -83,8 +90,13 @@ public class CardInputHandler extends InputAdapter {
                 verts[length - 2], verts[length - 1], verts[2], verts[3]
             };
             if (Intersector.isPointInPolygon(cutVerts, 0, cutVerts.length, world.x, world.y)) {
-                tile.getTooltip().show();
+                hoveredTile = tile;
                 break;
+            }
+        }
+        for (Tile tile : runState.getTiles()) {
+            if (tile == hoveredTile) {
+                tile.getTooltip().show();
             } else {
                 tile.getTooltip().hide();
             }
@@ -95,11 +107,18 @@ public class CardInputHandler extends InputAdapter {
         if (shop.isVisible()) {
             charms.addAll(shop.getCharmOffers());
         }
+      
+        AbstractCharm hoveredCharm = null;
         for (int i = charms.size() - 1; i >= 0; i--) {
             AbstractCharm charm = charms.get(i);
             if (charm.contains(world.x, world.y)) {
-                charm.getTooltip().show();
+                hoveredCharm = charm;
                 break;
+            }
+        }
+        for (AbstractCharm charm : charms) {
+            if (charm == hoveredCharm) {
+                charm.getTooltip().show();
             } else {
                 charm.getTooltip().hide();
             }

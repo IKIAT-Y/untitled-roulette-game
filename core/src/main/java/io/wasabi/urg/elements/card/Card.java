@@ -5,10 +5,13 @@ import java.util.EnumMap;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 
+import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.managers.TextureManager;
+import io.wasabi.urg.ui.FloatingText;
 import io.wasabi.urg.ui.Tooltip;
 import io.wasabi.urg.util.tweens.Tween;
 
@@ -149,5 +152,10 @@ public abstract class Card extends GameObject {
 
     public void updateTooltipPosition() {
         tooltip.setPosition(x + width / 2, y - 5);
+    }
+
+    public void triggerDisplay() {
+        SoundManager.getInstance().playSound("cardTrigger");
+        Roulette.getInstance().getGameScreen().addParticle(new FloatingText("!", x + width / 2, y + height / 2 - 70f, Color.YELLOW, 1f, 1.5f, 0f));
     }
 }

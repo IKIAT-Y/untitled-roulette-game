@@ -225,8 +225,7 @@ public class Wheel {
 
         spinButton.setPosition(position);
 
-        spinButton.draw(spinButtonState, SHAPE_RENDERER, SPRITE_BATCH,
-                FontManager.getInstance().getFontByName("Placeholder"));
+        spinButton.draw(spinButtonState, SHAPE_RENDERER, SPRITE_BATCH, FontManager.getInstance().getFontByName("Placeholder"));
 
         if (showConsumeZone) {
             SHAPE_RENDERER.begin(ShapeType.Filled);
@@ -238,7 +237,7 @@ public class Wheel {
 
             SPRITE_BATCH.begin();
             FontManager.getInstance().getFontByName("Terminus64PXBold")
-                    .draw(SPRITE_BATCH, "Consume", position.x - 100f, position.y + 20f);
+                .draw(SPRITE_BATCH, "Consume", position.x-100f, position.y+20f);
             SPRITE_BATCH.end();
         }
     }
@@ -272,18 +271,10 @@ public class Wheel {
         world.destroyBody(body);
     }
 
-    public Body getBody() {
-        return body;
-    }
-
-    public List<Tile> getTiles() {
-        return tiles;
-    }
-
-    public boolean isSpinning() {
-        return wheelVelocityTween != null && !wheelVelocityTween.isComplete();
-    }
-
+    public Body getBody() { return body; }
+    public List<Tile> getTiles() { return tiles; }
+    public boolean isSpinning() { return wheelVelocityTween != null && !wheelVelocityTween.isComplete(); }
+  
     public void resetWheelTweens() {
         wheelVelocityTween = null;
         tweenY = null;
@@ -341,7 +332,6 @@ public class Wheel {
         }
         return angle >= start || angle <= end; // wraps past 0
     }
-
 }
 
     
