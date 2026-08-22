@@ -354,18 +354,12 @@ public class Ball extends GameObject {
         Roulette.getInstance().getGameScreen().getWheel().resetWheelTweens();
 
         Roulette.getInstance().getRunState().setLastTile(tile);
-        Roulette.getInstance().getRunState().triggerEffects("afterSpin");
-
-        boolean freeSpinRequested = Roulette.getInstance().getRunState().consumeFreeSpinRequest();
 
         Roulette.getInstance().getRunState().resolveActiveBets();
 
-        if (freeSpin) {
-            Roulette.getInstance().getRoundManager().recordFreeSpin();
-        }
-        else {
-            Roulette.getInstance().getRoundManager().recordSpin();
-        }  
+        Roulette.getInstance().getRoundManager().recordSpin(freeSpin);
+
+        boolean freeSpinRequested = Roulette.getInstance().getRunState().consumeFreeSpinRequest();
     
         if (Roulette.getInstance().getRunState().getChips() >= Roulette.getInstance().getRoundManager().getCurrentConfig().getQuota()) {
             return;
