@@ -345,5 +345,5 @@ public class RoundInfoPanel {
     }
 
     public void hide() { tween = new Tween(1f, x, OFFSCREEN_X, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN); }
-    public void show() { tween = new Tween(1f, x, -700f, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT); }
+    public void show() { tween = new Tween(0.7f, x, -700f, Tween.TweenStyle.CIRCULAR, Tween.TweenDirection.OUT); }
 }

@@ -3,13 +3,16 @@ package io.wasabi.urg.util.tweens;
 import java.lang.reflect.InvocationTargetException;
 import java.util.EnumMap;
 
+import io.wasabi.urg.util.tweens.formulae.BackOut;
+import io.wasabi.urg.util.tweens.formulae.CircularOut;
+import io.wasabi.urg.util.tweens.formulae.Linear;
 import io.wasabi.urg.util.tweens.formulae.QuadIn;
 import io.wasabi.urg.util.tweens.formulae.QuadInOut;
 import io.wasabi.urg.util.tweens.formulae.QuadOut;
 
 public class Tween {
     public enum TweenStyle {
-        QUAD,
+        LINEAR, QUAD, CIRCULAR, BACK
     }
     public enum TweenDirection {
         IN, OUT, INOUT
@@ -17,11 +20,33 @@ public class Tween {
 
     private static final EnumMap<TweenStyle, EnumMap<TweenDirection, Class<? extends TweenFormula>>> TWEEN_CLASSES
     = new EnumMap<TweenStyle, EnumMap<TweenDirection, Class<? extends TweenFormula>>>(TweenStyle.class){{
-        put(TweenStyle.QUAD, new EnumMap<TweenDirection, Class<? extends TweenFormula>>(TweenDirection.class) {{
-            put(TweenDirection.IN, QuadIn.class);
-            put(TweenDirection.OUT, QuadOut.class);
-            put(TweenDirection.INOUT, QuadInOut.class);
-        }});
+        put(TweenStyle.LINEAR, new EnumMap<TweenDirection, Class<? extends TweenFormula>>(TweenDirection.class) {
+            {
+                put(TweenDirection.IN, Linear.class);
+                put(TweenDirection.OUT, Linear.class);
+                put(TweenDirection.INOUT, Linear.class);
+            }
+        });
+
+        put(TweenStyle.QUAD, new EnumMap<TweenDirection, Class<? extends TweenFormula>>(TweenDirection.class) {
+            {
+                put(TweenDirection.IN, QuadIn.class);
+                put(TweenDirection.OUT, QuadOut.class);
+                put(TweenDirection.INOUT, QuadInOut.class);
+            }
+        });
+
+        put(TweenStyle.CIRCULAR, new EnumMap<TweenDirection, Class<? extends TweenFormula>>(TweenDirection.class) {
+            {
+                put(TweenDirection.OUT, CircularOut.class);
+            }
+        });
+
+        put(TweenStyle.BACK, new EnumMap<TweenDirection, Class<? extends TweenFormula>>(TweenDirection.class) {
+            {
+                put(TweenDirection.OUT, BackOut.class);
+            }
+        });
     }};
 
     private float duration;

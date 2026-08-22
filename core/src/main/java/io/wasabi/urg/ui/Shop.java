@@ -84,8 +84,8 @@ public class Shop extends InputAdapter {
         drawCharmOffers();
         visible = true;
         continueRequested = false;
-        tween = new Tween(1f, OFFSCREEN_X, -95f, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
-        tweenY = new Tween(1f, OFFSCREEN_Y, 0, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
+        tween = new Tween(0.9f, OFFSCREEN_X, -95f, Tween.TweenStyle.CIRCULAR, Tween.TweenDirection.OUT);
+        tweenY = new Tween(0.7f, OFFSCREEN_Y, 0, Tween.TweenStyle.CIRCULAR, Tween.TweenDirection.OUT);
     }
 
     public void hide() {
