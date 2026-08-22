@@ -45,7 +45,7 @@ public class CardInputHandler extends InputAdapter {
                 dragOffset.set(world.x - card.getX(), world.y - card.getY());
 
                 if (shop.isVisible()) {
-                    shop.beginInventoryDrag();
+                    shop.beginInventoryDrag(card.getSellPrice());
                 }
                 return true;
             }

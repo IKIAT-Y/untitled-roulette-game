@@ -77,6 +77,8 @@ public class Shop extends InputAdapter {
     private final Color sellButtonColor = new Color(0.6f, 0.4f, 0.4f, 1);
     private final Color sellButtonHoverColor = new Color(0.7f, 0.3f, 0.3f, 1);
 
+    private int currentSellPrice = 0;
+
     private Tween tween;
     private Tween tweenY;
     private float x = OFFSCREEN_X;
@@ -182,8 +184,12 @@ public class Shop extends InputAdapter {
         layout.setText(FONT, "BUY", Color.WHITE, buyBox.width, Align.center, false);
         FONT.draw(spriteBatch, "BUY", buyBox.x, buyBox.y + buyBox.height / 2f + layout.height / 2f, buyBox.width, Align.center, false);
 
-        layout.setText(FONT, "SELL", Color.WHITE, buyBox.width, Align.center, false);
-        FONT.draw(spriteBatch, "SELL", sellBox.x, sellBox.y + sellBox.height / 2f + layout.height / 2f, sellBox.width, Align.center, false);
+        String sellText = "SELL";
+        if (currentSellPrice > 0) {
+            sellText = "SELL - $" + currentSellPrice;
+        }
+        layout.setText(FONT, sellText, Color.WHITE, buyBox.width, Align.center, false);
+        FONT.draw(spriteBatch, sellText, sellBox.x, sellBox.y + sellBox.height / 2f + layout.height / 2f, sellBox.width, Align.center, false);
 
         String rerollText = "REROLL - " + REROLL_PRICE;
         layout.setText(FONT, rerollText, Color.WHITE, rerollButton.width, Align.center, false);
@@ -308,6 +314,7 @@ public class Shop extends InputAdapter {
 
         rerollButtonDown = false;
         continueButtonDown = false;
+        currentSellPrice = 0;
 
         if (draggedCard != null) {
             finishCardDrag(world);
@@ -342,8 +349,9 @@ public class Shop extends InputAdapter {
         dragOffset.set(world.x - charm.getX(), world.y - charm.getY());
     }
 
-    public void beginInventoryDrag() {
+    public void beginInventoryDrag(int price) {
         draggingInventory = true;
+        currentSellPrice = price;
     }
 
     public void finishInventoryCardDrag(int x, int y, Card card) {
@@ -351,6 +359,7 @@ public class Shop extends InputAdapter {
         draggedCard = card;
         draggingInventory = false;
         draggingOffer = false;
+        currentSellPrice = 0;
         finishCardDrag(world);
     }
 
@@ -359,6 +368,7 @@ public class Shop extends InputAdapter {
         draggedCharm = charm;
         draggingInventory = false;
         draggingCharmOffer = false;
+        currentSellPrice = 0;
         finishCharmDrag(world);
     }
 
