@@ -20,6 +20,7 @@ public final class RunState {
     private int chips;
     private int score;
     private int tickets;
+    private boolean freeSpinRequested = false;
 
     private Tile lastTile = null; // The last tile the player landed on, used for certain card effects.
     private Tooltip activeTooltip = null;
@@ -29,6 +30,7 @@ public final class RunState {
     private final List<Card> ownedCards = new ArrayList<>();
     private final List<AbstractCharm> ownedCharms = new ArrayList<>();
     private final IntArray chipHistory = new IntArray();
+
 
     private Boss boss = null; // The current boss for the run, if any.
 
@@ -246,6 +248,7 @@ public final class RunState {
         clearSelectedTiles();
         activeTooltip = null;
         boss = null;
+        freeSpinRequested = false;
         activeBets.clear();
         ownedCards.clear();
         ownedCharms.clear();
@@ -266,6 +269,16 @@ public final class RunState {
         if (value < 0) {
             throw new IllegalArgumentException(name + " cannot be negative");
         }
+    }
+
+    public void requestFreeSpin() {
+        freeSpinRequested = true;
+    }
+
+    public boolean consumeFreeSpinRequest() {
+        boolean requested = freeSpinRequested;
+        freeSpinRequested = false;
+        return requested;
     }
 
     public void setLastTile(Tile tile) {
@@ -295,6 +308,8 @@ public final class RunState {
     public List<Bet> getActiveBets() {
         return activeBets;
     }
+
+    
 
     /**
      * Drops every pending bet without touching {@link #chips} — placing a bet never

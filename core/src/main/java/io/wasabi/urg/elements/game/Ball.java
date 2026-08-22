@@ -1,5 +1,6 @@
 package io.wasabi.urg.elements.game;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.badlogic.gdx.graphics.g2d.PolygonRegion;
@@ -18,6 +19,7 @@ import com.badlogic.gdx.physics.box2d.World;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.elements.betting.Bet;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.state.RunState;
@@ -55,6 +57,7 @@ public class Ball extends GameObject {
     // Used during Spin state
     private State state = State.STOPPED;
     private float tangentialSpeed = 0f;
+    private boolean freeSpin = false;
 
     private Tween dropTween;
     private float settleTimer = 0f;
@@ -111,7 +114,18 @@ public class Ball extends GameObject {
      * @param outerTrackRadius radius of the outer track the ball starts on
      * @param innerWheelRadius radius of the inner wheel surface it will drop onto
      */
-    public void launch(float startAngleRad, float initialSpeed,
+    public void launch(float startAngleRad, float initialSpeed, float outerTrackRadius, float innerWheelRadius) {
+        freeSpin = false;
+        launchBall(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
+    }
+
+    public void launchFree(float startAngleRad, float initialSpeed,
+            float outerTrackRadius, float innerWheelRadius) {
+        freeSpin = true;
+        launchBall(startAngleRad, initialSpeed, outerTrackRadius, innerWheelRadius);
+    }
+
+    private void launchBall(float startAngleRad, float initialSpeed,
             float outerTrackRadius, float innerWheelRadius) {
         this.outerTrackRadius = outerTrackRadius;
         this.innerWheelRadius = innerWheelRadius;
@@ -329,6 +343,8 @@ public class Ball extends GameObject {
         ball.setType(BodyType.DynamicBody);
         state = State.STOPPED;
 
+        List<Bet> savedBets = new ArrayList<>(Roulette.getInstance().getRunState().getActiveBets());
+
         Tile tile = getLandedTile();
         if (tile != null) {
             System.out.println("Landed on tile: " + tile.getNumber());
@@ -338,9 +354,21 @@ public class Ball extends GameObject {
         Roulette.getInstance().getGameScreen().getWheel().resetWheelTweens();
 
         Roulette.getInstance().getRunState().setLastTile(tile);
-        Roulette.getInstance().getRunState().triggerEffects("afterSpin");
+
         Roulette.getInstance().getRunState().resolveActiveBets();
-        Roulette.getInstance().getRoundManager().recordSpin();
+
+        Roulette.getInstance().getRoundManager().recordSpin(freeSpin);
+
+        boolean freeSpinRequested = Roulette.getInstance().getRunState().consumeFreeSpinRequest();
+    
+        if (Roulette.getInstance().getRunState().getChips() >= Roulette.getInstance().getRoundManager().getCurrentConfig().getQuota()) {
+            return;
+        }
+
+        if (freeSpinRequested) {
+            Roulette.getInstance().getRunState().getActiveBets().addAll(savedBets);
+            Roulette.getInstance().getGameScreen().freeSpin();
+        }
     }
 
     private Tile getLandedTile() {

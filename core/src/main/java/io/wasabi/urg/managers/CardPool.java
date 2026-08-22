@@ -18,6 +18,7 @@ import io.wasabi.urg.elements.card.MysteriousFragment;
 import io.wasabi.urg.elements.card.OddCard;
 import io.wasabi.urg.elements.card.Oneshot;
 import io.wasabi.urg.elements.card.Ouroboros;
+import io.wasabi.urg.elements.card.BullRush;
 
 /** Owns the available cards and handles rarity-weighted shop draws. */
 public final class CardPool {
@@ -38,6 +39,7 @@ public final class CardPool {
         uncommonCards.add(new FourLeafClover());
         uncommonCards.add(new LuckyTalisman());
         uncommonCards.add(new Ouroboros());
+        uncommonCards.add(new BullRush());
 
         rareCards.add(new Infinite());
         rareCards.add(new MysteriousFragment());
