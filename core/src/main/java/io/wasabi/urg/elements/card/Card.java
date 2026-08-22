@@ -1,19 +1,38 @@
 package io.wasabi.urg.elements.card;
 
+import java.util.EnumMap;
+
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.TextureManager;
+import io.wasabi.urg.ui.Tooltip;
 import io.wasabi.urg.util.tweens.Tween;
 
 public abstract class Card extends GameObject {
 
-    protected enum Rarity {
-        COMMON, UNCOMMON, RARE
+    public enum Rarity {
+        // price in tickets
+        COMMON(10), UNCOMMON(15), RARE(20);
+
+        private final int price;
+
+        Rarity(int price) { this.price = price; }
+
+        public int getPrice() { return price; }
     }
 
+    private static final EnumMap<Rarity, Integer> RARITY_COLOURS = new EnumMap<Rarity, Integer>(Rarity.class) {{
+        put(Rarity.COMMON, 0x007aabFF);
+        put(Rarity.UNCOMMON, 0x00a629FF);
+        put(Rarity.RARE, 0xa61300FF);
+    }};
+
     protected Rarity cardRarity;
+    protected Tooltip tooltip = new Tooltip(0.5f, 1);
     private Texture sprite;
     private float x, y;
     private float width, height;
@@ -33,6 +52,7 @@ public abstract class Card extends GameObject {
         this.width = 96;
         this.height = 128;
 
+        tooltip.addType(rarity.toString(), Color.WHITE, new Color(RARITY_COLOURS.get(rarity)));
         loadSprite();
     }
 
@@ -42,22 +62,34 @@ public abstract class Card extends GameObject {
      * So use the class name of the card as the texture file name (without the .png extension).
      */
     private void loadSprite() {
-        this.sprite = TextureManager.getInstance().getCardTexture(getClass().getSimpleName());
+        this.sprite = TextureManager.getInstance().getTexture(getClass().getSimpleName(), "card");
     }
 
     public void roundStartEffect() {}
     public void beforeSpinEffect() {}
     public void afterSpinEffect() {}
     public void roundEndEffect() {}
+    public float getPayoutMultiplier(Tile winningTile, int totalStaked, int chipBalance) { return 1f; }
+    public int getAdditionalEffectTriggers() { return 0; }
+    public int getEffectTriggerMultiplier() { return 1; }
+    public void afterCardEffects(String effectType) {}
+    public void removedEffect() {}
 
+    @Override
     public void update(float delta) {
         if (dragging) return;
 
+        boolean updated = false;
         if (tweenX != null && !tweenX.isComplete()) {
+            updated = true;
             x = tweenX.update(delta);
         }
         if (tweenY != null && !tweenY.isComplete()) {
+            updated = true;
             y = tweenY.update(delta);
+        }
+        if (updated) {
+            updateTooltipPosition();
         }
     }
 
@@ -87,17 +119,35 @@ public abstract class Card extends GameObject {
 
     public float getX() { return x; }
     public float getY() { return y; }
-    public void setPosition(float x, float y) { this.x = x; this.y = y; }
+    public void setPosition(float x, float y) {
+        this.x = x; this.y = y;
+        updateTooltipPosition();
+    }
     public float getWidth() { return width; }
     public float getHeight() { return height; }
+    public Rarity getRarity() { return cardRarity; }
+    public int getPrice() { return cardRarity.getPrice(); }
+    public int getSellPrice() { return getPrice() / 2; }
+    public String getDisplayName() { return getClass().getSimpleName(); }
     public boolean isDragging() { return dragging; }
+    public Tooltip getTooltip() { return tooltip; }
 
     public void setDragging(boolean dragging) {
         boolean wasDragging = this.dragging;
         this.dragging = dragging;
 
+        if (dragging == true) {
+            tooltip.hide();
+        } else {
+            tooltip.show();
+        }
+
         if (wasDragging && !dragging) {
             hasTarget = false;
         }
+    }
+
+    public void updateTooltipPosition() {
+        tooltip.setPosition(x + width / 2, y - 5);
     }
 }

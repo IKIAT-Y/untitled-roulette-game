@@ -34,8 +34,8 @@ You should see:
 ```bash
 origin  https://github.com/<your-username>/<repository>.git (fetch)
 origin  https://github.com/<your-username>/<repository>.git (push)
-upstream        https://github.com/Yorifuji-T/untitled-roulette-game.git (fetch)
-upstream        https://github.com/Yorifuji-T/untitled-roulette-game.git (push)
+upstream        https://github.com/IKIAT-Y/untitled-roulette-game.git (fetch)
+upstream        https://github.com/IKIAT-Y/untitled-roulette-game.git (push)
 ```
 
 ### 4. Create a feature branch

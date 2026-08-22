@@ -1,17 +1,25 @@
 package io.wasabi.urg.managers;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.card.Card;
-import io.wasabi.urg.screens.CardLayout;
+import io.wasabi.urg.elements.charm.AbstractCharm;
+import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.state.RunState;
-
-import java.util.List;
+import io.wasabi.urg.ui.CardLayout;
+import io.wasabi.urg.ui.Shop;
 
 public class CardInputHandler extends InputAdapter {
+    private static final Roulette GAME = Roulette.getInstance();
+
     private final RunState runState;
     private final Viewport viewport;
 
@@ -41,6 +49,61 @@ public class CardInputHandler extends InputAdapter {
     }
 
     @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        Vector2 world = screenToWorld(screenX, screenY);
+
+        List<Card> cards = new ArrayList<>();
+        cards.addAll(runState.getOwnedCards());
+        Shop shop = GAME.getGameScreen().getShop();
+        if (shop.isVisible()) {
+            cards.addAll(shop.getOffers());
+        }
+
+        for (int i = cards.size() - 1; i >= 0; i--) {
+            Card card = cards.get(i);
+            if (card.contains(world.x, world.y)) {
+                card.getTooltip().show();
+                break;
+            } else {
+                card.getTooltip().hide();
+            }
+        }
+
+        for (Tile tile : runState.getTiles()) {
+            float[] verts = tile.getRegion().getVertices();
+            int length = verts.length;
+            // cut vertices and make anticlockwise
+            float[] cutVerts = new float[] {
+                verts[0], verts[1], verts[length - 4], verts[length - 3],
+                verts[length - 2], verts[length - 1], verts[2], verts[3]
+            };
+            if (Intersector.isPointInPolygon(cutVerts, 0, cutVerts.length, world.x, world.y)) {
+                tile.getTooltip().show();
+                break;
+            } else {
+                tile.getTooltip().hide();
+            }
+        }
+
+        List<AbstractCharm> charms = new ArrayList<>();
+        charms.addAll(runState.getOwnedCharms());
+        if (shop.isVisible()) {
+            charms.addAll(shop.getCharmOffers());
+        }
+        for (int i = charms.size() - 1; i >= 0; i--) {
+            AbstractCharm charm = charms.get(i);
+            if (charm.contains(world.x, world.y)) {
+                charm.getTooltip().show();
+                break;
+            } else {
+                charm.getTooltip().hide();
+            }
+        }
+
+        return true;
+    }
+
+    @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
         if (draggedCard == null) return false;
 
@@ -64,6 +127,12 @@ public class CardInputHandler extends InputAdapter {
         if (draggedCard == null) return false;
 
         draggedCard.setDragging(false);
+
+        Shop shop = GAME.getGameScreen().getShop();
+        if (shop.isVisible()) {
+            shop.finishInventoryCardDrag(screenX, screenY, draggedCard);
+        }
+
         draggedCard = null;
         return true;
     }

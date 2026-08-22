@@ -1,29 +1,31 @@
 package io.wasabi.urg;
 
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import io.wasabi.urg.elements.card.Card;
+import io.wasabi.urg.elements.charm.BlackCharm;
+import io.wasabi.urg.elements.charm.RedCharm;
+import io.wasabi.urg.elements.charm.ScrambledCharm;
 import io.wasabi.urg.managers.*;
+import io.wasabi.urg.screens.BettingScreen;
 import io.wasabi.urg.screens.GameScreen;
 import io.wasabi.urg.state.RunState;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Roulette extends Game {
     private static final Roulette INSTANCE = new Roulette();
     private GameScreen gameScreen;
+    private BettingScreen bettingScreen;
     private final RunState runState = new RunState();
+    private final float MIN_WORLD_WIDTH = 1600f; // Minimum width of the game world
+    private final float MIN_WORLD_HEIGHT = 900f; // Minimum height of the game world
     private final RoundManager roundManager = new RoundManager(runState);
     private final SoundManager soundManager = SoundManager.getInstance();
 
-    private List<Card> commonCards = new ArrayList<>();
-    private List<Card> uncommonCards = new ArrayList<>();
-    private List<Card> rareCards = new ArrayList<>();
+    // Item Pools
+    private CardPool cardPool;
+    private CharmPool charmPool;
 
     // Renderers
     private RendererManager rendererManager;
@@ -45,10 +47,8 @@ public class Roulette extends Game {
     @Override
     public void create() {
         camera = new OrthographicCamera();
-        int VIEWPORT_WIDTH = 1600;
-        int VIEWPORT_HEIGHT = 900;
-        viewport = new ExtendViewport(VIEWPORT_WIDTH, VIEWPORT_HEIGHT, camera); // change this depending on actual game
-                                                                                // size at launch (?)
+        viewport = new ExtendViewport(MIN_WORLD_WIDTH, MIN_WORLD_HEIGHT, camera); // change this depending on actual
+                                                                                  // game size at launch (?)
 
         rendererManager = RendererManager.getInstance();
         rendererManager.initialize(this);
@@ -58,74 +58,28 @@ public class Roulette extends Game {
         soundManager.initialize();
         TextureManager.getInstance().initialize();
 
-        initializeCardPool();
+        cardPool = new CardPool();
+        charmPool = new CharmPool();
+
+        // Temporarily set to 10000 for testing purposes. Change to 100 for final
+        // release.
+        int STARTING_MONEY = 100;
+        runState.reset(STARTING_MONEY);
 
         // Card testing
-        runState.addCard(getRandomCard());
-        runState.addCard(getRandomCard());
-        runState.addCard(getRandomCard());
-        runState.addCard(getRandomCard());
+        runState.addCard(cardPool.getRandomCard());
+
+        // Charm testing
+        // runState.addCharm(new BlackCharm());
+        // runState.addCharm(new RedCharm());
+        // runState.addCharm(new ScrambledCharm());
 
         this.gameScreen = new GameScreen(this);
+        this.bettingScreen = new BettingScreen(this);
+
         this.setScreen(this.gameScreen);
 
         roundManager.startRound();
-    }
-
-    private void initializeCardPool() {
-        // Common Cards
-        commonCards.add(new io.wasabi.urg.elements.card.ExtraChange());
-        commonCards.add(new io.wasabi.urg.elements.card.ExtraCredit());
-        commonCards.add(new io.wasabi.urg.elements.card.BlackCard());
-        commonCards.add(new io.wasabi.urg.elements.card.GreenCard());
-        commonCards.add(new io.wasabi.urg.elements.card.OddCard());
-    }
-
-    public Card getRandomCard() {
-        // 5% chance for rare 25% chance for uncommon 70% chance for common
-        // Moves down in rarity if the pool is empty for that rarity
-        double roll = Math.random();
-
-        if (roll < 0.05 && !rareCards.isEmpty()) {
-            return getRareCard();
-        } else if (roll < 0.3 && !uncommonCards.isEmpty()) {
-            return getUncommonCard();
-        } else {
-            return getCommonCard();
-        }
-    }
-
-    public Card getCommonCard() {
-        if (commonCards.isEmpty()) {
-            return null; // might need to add more error handling
-        }
-        int index = (int) (Math.random() * commonCards.size());
-
-        Card card = commonCards.get(index);
-        commonCards.remove(index);
-        return card;
-    }
-
-    public Card getUncommonCard() {
-        if (uncommonCards.isEmpty()) {
-            return null;
-        }
-        int index = (int) (Math.random() * uncommonCards.size());
-
-        Card card = uncommonCards.get(index);
-        uncommonCards.remove(index);
-        return card;
-    }
-
-    public Card getRareCard() {
-        if (rareCards.isEmpty()) {
-            return null;
-        }
-        int index = (int) (Math.random() * rareCards.size());
-
-        Card card = rareCards.get(index);
-        rareCards.remove(index);
-        return card;
     }
 
     @Override
@@ -142,16 +96,11 @@ public class Roulette extends Game {
 
     @Override
     public void dispose() {
-        if (getScreen() != null) {
-            getScreen().dispose();
+        if (getGameScreen() != null) {
+            getGameScreen().dispose();
         }
         soundManager.dispose();
         TextureManager.getInstance().dispose();
-    }
-
-    @Override
-    public GameScreen getScreen() {
-        return gameScreen;
     }
 
     public RunState getRunState() {
@@ -162,7 +111,31 @@ public class Roulette extends Game {
         return viewport;
     }
 
+    public float getWorldWidth() {
+        return MIN_WORLD_WIDTH;
+    }
+
+    public float getWorldHeight() {
+        return MIN_WORLD_HEIGHT;
+    }
+
+    public GameScreen getGameScreen() {
+        return gameScreen;
+    }
+
+    public BettingScreen getBettingScreen() {
+        return bettingScreen;
+    }
+
     public RoundManager getRoundManager() {
         return roundManager;
+    }
+
+    public CardPool getCardPool() {
+        return cardPool;
+    }
+
+    public CharmPool getCharmPool() {
+        return charmPool;
     }
 }

@@ -9,6 +9,8 @@ public class ExtraChange extends Card {
 
     public ExtraChange() {
         super(Rarity.COMMON);
+        tooltip.setTitle("Extra Change");
+        tooltip.setDescription("Start each round with extra chips equal to 10% of the missing quota");
     }
 
     @Override
