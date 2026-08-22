@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.badlogic.gdx.utils.IntArray;
 
-import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.elements.betting.Bet;
 import io.wasabi.urg.elements.boss.Boss;
 import io.wasabi.urg.elements.card.Card;
@@ -142,6 +141,7 @@ public final class RunState {
 
     public boolean removeCard(Card card) {
         if (ownsCard(card)) {
+            card.getTooltip().hide();
             card.removedEffect();
             return ownedCards.remove(card);
         }
@@ -214,14 +214,15 @@ public final class RunState {
         ownedCharms.add(newIndex, charm);
     }
 
-    public boolean removeCharm(GameObject charm) {
+    public boolean removeCharm(AbstractCharm charm) {
         if (ownsCharm(charm)) {
+            charm.getTooltip().hide();
             return ownedCharms.remove(charm);
         }
         return false;
     }
 
-    public boolean ownsCharm(GameObject charm) {
+    public boolean ownsCharm(AbstractCharm charm) {
         return ownedCharms.contains(charm);
     }
 

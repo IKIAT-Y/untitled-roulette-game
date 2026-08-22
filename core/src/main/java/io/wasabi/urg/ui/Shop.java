@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.Roulette;
@@ -34,6 +35,7 @@ public class Shop extends InputAdapter {
     // Shop appearance settings — adjust these to resize the price text/button.
     private static final float PRICE_FONT_SCALE = 0.6f;
     private static final float REROLL_BUTTON_WIDTH = 260f;
+    private static final BitmapFont FONT = FontManager.getInstance().getFontByName("Placeholder");
 
     private final ShapeRenderer shapeRenderer;
     private final SpriteBatch spriteBatch;
@@ -125,30 +127,39 @@ public class Shop extends InputAdapter {
 
         spriteBatch.begin();
         spriteBatch.setTransformMatrix(new com.badlogic.gdx.math.Matrix4().setToTranslation(0, 0, 0));
-        BitmapFont font = FontManager.getInstance().getFontByName("Placeholder");
-        font.draw(spriteBatch, "SHOP", -30f, bottom + HEIGHT - 30f);
-        font.draw(spriteBatch, "BUY", buyBox.x + 55f, buyBox.y + 85f);
-        font.draw(spriteBatch, "SELL", sellBox.x + 50f, sellBox.y + 85f);
-        font.draw(spriteBatch, "REROLL - " + REROLL_PRICE, rerollButton.x + 30f, rerollButton.y + 43f);
-        font.draw(spriteBatch, "CONTINUE", continueButton.x + 75f, continueButton.y + 43f);
+        FONT.draw(spriteBatch, "SHOP", -30f, bottom + HEIGHT - 30f);
+        FONT.draw(spriteBatch, "BUY", buyBox.x + 55f, buyBox.y + 85f);
+        FONT.draw(spriteBatch, "SELL", sellBox.x + 50f, sellBox.y + 85f);
+        FONT.draw(spriteBatch, "REROLL - " + REROLL_PRICE, rerollButton.x + 30f, rerollButton.y + 43f);
+        FONT.draw(spriteBatch, "CONTINUE", continueButton.x + 75f, continueButton.y + 43f);
 
         for (Card card : offers) {
-            card.render();
-            float previousScaleX = font.getData().scaleX;
-            float previousScaleY = font.getData().scaleY;
-            font.getData().setScale(PRICE_FONT_SCALE);
-            font.draw(spriteBatch, card.getPrice() + " TICKETS", card.getX() + 12f, card.getY() - 18f);
-            font.getData().setScale(previousScaleX, previousScaleY);
+            if (card == draggedCard) continue;
+            renderCard(card);
         }
         for (AbstractCharm charm : charmOffers) {
-            charm.render();
-            float previousScaleX = font.getData().scaleX;
-            float previousScaleY = font.getData().scaleY;
-            font.getData().setScale(PRICE_FONT_SCALE);
-            font.draw(spriteBatch, charm.getPrice() + " TICKETS", charm.getX() + 8f, charm.getY() - 12f);
-            font.getData().setScale(previousScaleX, previousScaleY);
+            if (charm == draggedCharm) continue;
+            renderCharm(charm);
         }
         spriteBatch.end();
+    }
+
+    public void renderCard(Card card) {
+        card.render();
+        float previousScaleX = FONT.getData().scaleX;
+        float previousScaleY = FONT.getData().scaleY;
+        FONT.getData().setScale(PRICE_FONT_SCALE);
+        FONT.draw(spriteBatch, card.getPrice() + " TICKETS", card.getX() - 12f, card.getY() - 18f, 120f, Align.center, false);
+        FONT.getData().setScale(previousScaleX, previousScaleY);
+    }
+
+    public void renderCharm(AbstractCharm charm) {
+        charm.render();
+        float previousScaleX = FONT.getData().scaleX;
+        float previousScaleY = FONT.getData().scaleY;
+        FONT.getData().setScale(PRICE_FONT_SCALE);
+        FONT.draw(spriteBatch, charm.getPrice() + " TICKETS", charm.getX() - 8f, charm.getY() - 12f, charm.getWidth() + 16f, Align.center, false);
+        FONT.getData().setScale(previousScaleX, previousScaleY);
     }
 
     public boolean handleInput() {
@@ -170,15 +181,6 @@ public class Shop extends InputAdapter {
             }
         }
 
-        List<Card> ownedCards = runState.getOwnedCards();
-        for (int i = ownedCards.size() - 1; i >= 0; i--) {
-            Card card = ownedCards.get(i);
-            if (card.contains(world.x, world.y)) {
-                beginCardDrag(card, false, world);
-                return true;
-            }
-        }
-
         for (int i = charmOffers.size() - 1; i >= 0; i--) {
             AbstractCharm charm = charmOffers.get(i);
             if (charm.contains(world.x, world.y)) {
@@ -187,14 +189,6 @@ public class Shop extends InputAdapter {
             }
         }
 
-        List<AbstractCharm> ownedCharms = runState.getOwnedCharms();
-        for (int i = ownedCharms.size() - 1; i >= 0; i--) {
-            AbstractCharm charm = ownedCharms.get(i);
-            if (charm.contains(world.x, world.y)) {
-                beginCharmDrag(charm, false, world);
-                return true;
-            }
-        }
         return false;
     }
 
@@ -272,25 +266,39 @@ public class Shop extends InputAdapter {
         dragOffset.set(world.x - charm.getX(), world.y - charm.getY());
     }
 
+    public void finishInventoryCardDrag(int x, int y, Card card) {
+        Vector2 world = screenToWorld(x, y);
+        draggedCard = card;
+        draggingOffer = false;
+        finishCardDrag(world);
+    }
+
+    public void finishInventoryCharmDrag(int x, int y, AbstractCharm charm) {
+        Vector2 world = screenToWorld(x, y);
+        draggedCharm = charm;
+        draggingCharmOffer = false;
+        finishCharmDrag(world);
+    }
+
     private void finishCardDrag(Vector2 world) {
         Card card = draggedCard;
         boolean droppedInTarget = draggingOffer ? buyBox.contains(world) : sellBox.contains(world);
+        card.setDragging(false);
         if (droppedInTarget) {
             if (draggingOffer) buy(card);
             else sell(card);
         }
-        card.setDragging(false);
         draggedCard = null;
     }
 
     private void finishCharmDrag(Vector2 world) {
         AbstractCharm charm = draggedCharm;
         boolean droppedInTarget = draggingCharmOffer ? buyBox.contains(world) : sellBox.contains(world);
+        charm.setDragging(false);
         if (droppedInTarget) {
             if (draggingCharmOffer) buyCharm(charm);
             else sellCharm(charm);
         }
-        charm.setDragging(false);
         draggedCharm = null;
     }
 
@@ -415,5 +423,10 @@ public class Shop extends InputAdapter {
         return new Vector2(world.x, world.y);
     }
 
+    public List<Card> getOffers() { return offers; }
+    public List<AbstractCharm> getCharmOffers() { return charmOffers; }
     public boolean isVisible() { return visible; }
+
+    public Card getDraggedCard() { return draggedCard; }
+    public AbstractCharm getDraggedCharm() { return draggedCharm; }
 }

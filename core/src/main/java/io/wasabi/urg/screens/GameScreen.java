@@ -202,8 +202,6 @@ public class GameScreen implements Screen {
     private void enterShopScreen() {
         gameState = GameState.SHOP;
 
-        inputMultiplexer.removeProcessor(cardInputHandler);
-        inputMultiplexer.removeProcessor(charmInputHandler);
         roundResult.hide();
         shop.show();
     }
@@ -282,6 +280,7 @@ public class GameScreen implements Screen {
 
         // Card Inventory Rendering
         List<Card> cards = game.getRunState().getOwnedCards();
+        Card draggedCard = null;
         float worldWidth = game.getViewport().getWorldWidth();
         float worldHeight = game.getViewport().getWorldHeight();
 
@@ -292,11 +291,16 @@ public class GameScreen implements Screen {
             Vector2 slot = CardLayout.getSlotPosition(i, cards.size(), worldWidth);
             card.setTargetPosition(slot.x, slot.y);
             card.update(delta);
+            if (card.isDragging()) {
+                draggedCard = card;
+                continue;
+            }
             card.render();
         }
 
         // Charm Inventory Rendering
         List<AbstractCharm> charms = game.getRunState().getOwnedCharms();
+        AbstractCharm draggedCharm = null;
 
         CharmLayout.renderRightBackPanel(batch, worldWidth, worldHeight);
         CharmLayout.renderSlotPanels(batch, worldWidth);
@@ -305,8 +309,18 @@ public class GameScreen implements Screen {
             Vector2 slot = CharmLayout.getSlotPosition(i, charms.size(), worldWidth);
             c.setTargetPosition(slot.x, slot.y);
             c.update(delta);
+            if (c.isDragging()) {
+                draggedCharm = c;
+                continue;
+            }
             c.render();
         }
+
+        // draw dragged elements at the end
+        if (draggedCard != null) draggedCard.render();
+        if (draggedCharm != null) draggedCharm.render();
+        if (shop.getDraggedCard() != null) shop.renderCard(shop.getDraggedCard());
+        if (shop.getDraggedCharm() != null) shop.renderCharm(shop.getDraggedCharm());
 
         batch.end();
 
@@ -516,4 +530,5 @@ public class GameScreen implements Screen {
         return wheel;
     }
     public World getWorld() { return world; }
+    public Shop getShop() { return shop; }
 }
