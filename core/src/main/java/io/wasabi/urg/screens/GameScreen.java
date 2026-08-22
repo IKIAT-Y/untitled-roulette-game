@@ -8,15 +8,14 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.ScreenUtils;
 
@@ -33,14 +32,18 @@ import io.wasabi.urg.managers.CardInputHandler;
 import io.wasabi.urg.managers.CharmInputHandler;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
-import io.wasabi.urg.managers.SoundManager;
-import io.wasabi.urg.ui.*;
+import io.wasabi.urg.managers.SoundManager;import o.wasabi.urg.ui.CardLayout;
+import io.wasabi.urg.ui.Chimport io.wasabi.urg.ui.GameOver;
+import io.wasabi.urg.ui.QuotaTracker;
+import io.wasabi.urg.ui.RoundInfoPanel;
+import io.wasabi.urg.ui.RoundResult;
+import io.wasabi.urg.ui.Shop;
+import io.wasabi.urg.ui.Tooltip;
 
 public class GameScreen implements Screen {
-    private static final int STARTING_CHIPS = 100;
-    private static final float START_ANGLE_RAD = 0f;
-    private static final float OUTER_TRACK_RADIUS = 400f;
-    private static final float INNER_WHEEL_RADIUS = 325f;
+    private static final int STA    priate static final float START_ANGLE_RAD = 0f;
+    private static final float OUTER_TRACK_RADIUS = 325f;
+    private static final float INNER_WHEEL_RADIUS = 300f;
     private static final float MIN_INITIAL_SPEED = 5000f;
     private static final float INITIAL_SPEED_RANGE = 1000f;
     private static final float WHEEL_SPIN_DURATION = 6.0f;
@@ -117,11 +120,12 @@ public class GameScreen implements Screen {
         this.ball = new Ball(world, 6f, wheelCenter);
 
         this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
-        this.shop = new Shop(shapeRenderer, spriteBatch, game.getViewport());
+        this.shop = new Shop(spriteBatch, game.getViewport());
         this.gameOver = new GameOver(shapeRenderer, spriteBatch, game.getViewport());
         this.inputMultiplexer.addProcessor(2, shop);
         this.quotaTracker = new QuotaTracker(shapeRenderer, spriteBatch, game.getRunState(), game.getRoundManager());
         this.roundInfoPanel = new RoundInfoPanel(-700f, 250f);
+        roundInfoPanel.updateRoundType();
     }
 
     public void spin() {
@@ -203,6 +207,12 @@ public class GameScreen implements Screen {
         gameState = GameState.SHOP;
 
         roundResult.hide();
+
+        roundInfoPanel.setRoundType("Shop");
+        roundInfoPanel.setRoundInfo("Enhance your run!", "Drag-n-drop items to the BUY/SELL squares");
+
+        roundInfoPanel.show();
+        quotaTracker.show();
         shop.show();
     }
 
@@ -213,10 +223,13 @@ public class GameScreen implements Screen {
         inputMultiplexer.addProcessor(1, charmInputHandler);
 
         shop.hide();
+
+        Roulette.getInstance().getRoundManager().startRound();
+
         roundInfoPanel.show();
         quotaTracker.show();
 
-        Roulette.getInstance().getRoundManager().startRound();
+        roundInfoPanel.updateRoundType();
 
         wheel.shiftIntoScreen();
     }
@@ -279,8 +292,7 @@ public class GameScreen implements Screen {
         float worldWidth = game.getViewport().getWorldWidth();
         float worldHeight = game.getViewport().getWorldHeight();
 
-        CardLayout.renderRightBackPanel(batch, worldWidth, worldHeight);
-        CardLayout.renderSlotPanels(batch, worldWidth);
+        CardLayout.renderBackPanel(batch, game.getRunState().getMaxHandSize(), cards.size());
         for (int i = 0; i < cards.size(); i++) {
             Card card = cards.get(i);
             Vector2 slot = CardLayout.getSlotPosition(i, cards.size(), worldWidth);
@@ -297,8 +309,7 @@ public class GameScreen implements Screen {
         List<AbstractCharm> charms = game.getRunState().getOwnedCharms();
         AbstractCharm draggedCharm = null;
 
-        CharmLayout.renderRightBackPanel(batch, worldWidth, worldHeight);
-        CharmLayout.renderSlotPanels(batch, worldWidth);
+        CharmLayout.renderBackPanel(batch, game.getRunState().getMaxOwnableCharms(), charms.size());
         for (int i = 0; i < charms.size(); i++) {
             AbstractCharm c = charms.get(i);
             Vector2 slot = CharmLayout.getSlotPosition(i, charms.size(), worldWidth);
@@ -364,16 +375,16 @@ public class GameScreen implements Screen {
         baseButtonHeight = btnHeight;
 
         betButton = new BetScreenButton(
-                betButtonTexture,
-                (game.getWorldWidth() - btnWidth) / 2f, 0,
-                btnWidth, btnHeight,
-                () -> {
-                    // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
-                    // sprite batch)
-                    if (canBet()) {
-                        game.setScreen(Roulette.getInstance().getBettingScreen());
-                    }
-                });
+            betButtonTexture,
+            (game.getWorldWidth() - btnWidth) / 2f, 0,
+            btnWidth, btnHeight,
+            () -> {
+                // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
+                // sprite batch)
+                if (canBet()) {
+                    game.setScreen(Roulette.getInstance().getBettingScreen());
+                }
+            });
         updateBetButtonLayout();
     }
 
@@ -536,15 +547,28 @@ public class GameScreen implements Screen {
         world.dispose();
     }
 
-    public Wheel getWheel() {
-        return wheel;
-    }
-
-    public World getWorld() {
-        return world;
-    }
+    public Wheel getWheel() { return wheel; }
+    public World getWorld() { return world; }
+    public Shop getShop() { return shop; }
+}
 
     public Shop getShop() {
         return shop;
     }
 }
+
+    
+
+    
+
+
+
+    
+        
+    
+
+    
+        
+    
+
+    

@@ -13,9 +13,9 @@ import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 
 public class FloatingText extends GameObject {
-    private static final float DURATION = 1.5f;   // total lifetime, in seconds
-    private static final float RISE_SPEED = 40f;  // world units per second
-    private static final float FADE_START = 0.6f; // fraction of DURATION when fading begins
+    private static final float DEFAULT_DURATION = 1.5f;   // total lifetime, in seconds
+    private static final float DEFAULT_RISE_SPEED = 40f;  // world units per second
+    private static final float FADE_START = 0.6f;         // fraction of duration when fading begins
 
     private static final float PADDING_X = 12f;
     private static final float PADDING_Y = 8f;
@@ -27,17 +27,27 @@ public class FloatingText extends GameObject {
     private final float startX;
     private final float startY;
     private final Color color;
+    private final float size;
+    private final float duration;
+    private final float riseSpeed;
     private float elapsed = 0f;
 
     public FloatingText(String text, float x, float y) {
-        this(text, x, y, Color.WHITE);
+        this(text, x, y, Color.WHITE, 1f, DEFAULT_DURATION, DEFAULT_RISE_SPEED);
     }
 
-    public FloatingText(String text, float x, float y, Color color) {
+    public FloatingText(String text, float x, float y, Color color, float size) {
+        this(text, x, y, color, size, DEFAULT_DURATION, DEFAULT_RISE_SPEED);
+    }
+
+    public FloatingText(String text, float x, float y, Color color, float size, float duration, float riseSpeed) {
         this.text = text;
         this.startX = x;
         this.startY = y;
         this.color = color;
+        this.size = size;
+        this.duration = duration;
+        this.riseSpeed = riseSpeed;
         this.SPRITE_BATCH = RendererManager.getInstance().getSpriteBatch();
         this.SHAPE_RENDERER = RendererManager.getInstance().getShapeRenderer();
     }
@@ -47,22 +57,26 @@ public class FloatingText extends GameObject {
     }
 
     public boolean isExpired() {
-        return elapsed >= DURATION;
+        return elapsed >= duration;
     }
 
     public void render() {
-        float progress = Math.min(1f, elapsed / DURATION);
-        float y = startY + RISE_SPEED * elapsed;
+        float progress = Math.min(1f, elapsed / duration);
+        float y = startY + riseSpeed * elapsed;
 
         float alpha = progress < FADE_START ? 1f : 1f - (progress - FADE_START) / (1f - FADE_START);
 
         BitmapFont font = FontManager.getInstance().getFontByName("Placeholder");
+        font.getData().setScale(size);
         GlyphLayout layout = new GlyphLayout(font, text);
 
-        float bgX = startX - layout.width / 2f - PADDING_X;
-        float bgY = y - layout.height - PADDING_Y;
-        float bgWidth = layout.width + PADDING_X * 2f;
-        float bgHeight = layout.height + PADDING_Y * 2f;
+        float paddingX = PADDING_X * size;
+        float paddingY = PADDING_Y * size;
+
+        float bgX = startX - layout.width / 2f - paddingX;
+        float bgY = y - layout.height - paddingY;
+        float bgWidth = layout.width + paddingX * 2f;
+        float bgHeight = layout.height + paddingY * 2f;
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -82,5 +96,6 @@ public class FloatingText extends GameObject {
         SPRITE_BATCH.end();
 
         font.setColor(previous);
+        font.getData().setScale(1f);
     }
 }

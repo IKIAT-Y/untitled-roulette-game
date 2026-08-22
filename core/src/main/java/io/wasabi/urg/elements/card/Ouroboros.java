@@ -38,6 +38,7 @@ public class Ouroboros extends Card {
 
     @Override
     public void afterSpinEffect() {
+        triggerDisplay();
         clearBoostedTile();
         boostedTile = Roulette.getInstance().getRunState().getLastTile();
         if (boostedTile != null) {

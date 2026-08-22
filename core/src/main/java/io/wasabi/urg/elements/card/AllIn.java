@@ -7,6 +7,7 @@ public class AllIn extends Card {
 
     @Override
     public float getPayoutMultiplier(Tile winningTile, int totalStaked, int chipBalance) {
+        triggerDisplay();
         return chipBalance > 0 && totalStaked == chipBalance ? 2f : 1f;
     }
 }
