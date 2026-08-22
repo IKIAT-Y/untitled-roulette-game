@@ -147,8 +147,7 @@ public class GameScreen implements Screen {
 
         if (free) {
             ball.launchFree(START_ANGLE_RAD, initialSpeed, OUTER_TRACK_RADIUS, INNER_WHEEL_RADIUS);
-        }
-        else {
+        } else {
             ball.launch(START_ANGLE_RAD, initialSpeed, OUTER_TRACK_RADIUS, INNER_WHEEL_RADIUS);
         }
 
@@ -257,9 +256,7 @@ public class GameScreen implements Screen {
 
         if (ball.getState() != Ball.State.STOPPED) {
             spinButtonState = SpinButton.State.SPINNING;
-        }
-        else if (game.getRunState().getActiveBets().isEmpty())
-        {
+        } else if (game.getRunState().getActiveBets().isEmpty()) {
             spinButtonState = SpinButton.State.NO_BET;
         } else {
             spinButtonState = SpinButton.State.READY;
@@ -329,10 +326,14 @@ public class GameScreen implements Screen {
         }
 
         // draw dragged elements at the end
-        if (draggedCard != null) draggedCard.render();
-        if (draggedCharm != null) draggedCharm.render();
-        if (shop.getDraggedCard() != null) shop.renderCard(shop.getDraggedCard());
-        if (shop.getDraggedCharm() != null) shop.renderCharm(shop.getDraggedCharm());
+        if (draggedCard != null)
+            draggedCard.render();
+        if (draggedCharm != null)
+            draggedCharm.render();
+        if (shop.getDraggedCard() != null)
+            shop.renderCard(shop.getDraggedCard());
+        if (shop.getDraggedCharm() != null)
+            shop.renderCharm(shop.getDraggedCharm());
 
         batch.end();
 
@@ -377,16 +378,16 @@ public class GameScreen implements Screen {
         baseButtonHeight = btnHeight;
 
         betButton = new BetScreenButton(
-            betButtonTexture,
-            (game.getWorldWidth() - btnWidth) / 2f, 0,
-            btnWidth, btnHeight,
-            () -> {
-                // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
-                // sprite batch)
-                if (canBet()) {
-                    game.setScreen(Roulette.getInstance().getBettingScreen());
-                }
-            });
+                betButtonTexture,
+                (game.getWorldWidth() - btnWidth) / 2f, 0,
+                btnWidth, btnHeight,
+                () -> {
+                    // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
+                    // sprite batch)
+                    if (canBet()) {
+                        game.setScreen(Roulette.getInstance().getBettingScreen());
+                    }
+                });
         updateBetButtonLayout();
     }
 
@@ -445,7 +446,7 @@ public class GameScreen implements Screen {
 
         Vector2 wheelPos = wheel.getPosition();
         float currentAngleDeg = MathUtils.atan2(touchPoint.y - wheelPos.y, touchPoint.x - wheelPos.x)
-            * MathUtils.radiansToDegrees;
+                * MathUtils.radiansToDegrees;
 
         if (draggingWheelRotation) {
             float deltaDeg = wrapDegrees(currentAngleDeg - lastWheelRotationAngle);
@@ -458,8 +459,10 @@ public class GameScreen implements Screen {
 
     private float wrapDegrees(float degrees) {
         degrees %= 360f;
-        if (degrees > 180f) degrees -= 360f;
-        if (degrees < -180f) degrees += 360f;
+        if (degrees > 180f)
+            degrees -= 360f;
+        if (degrees < -180f)
+            degrees += 360f;
         return degrees;
     }
 
@@ -493,7 +496,7 @@ public class GameScreen implements Screen {
         Matrix4 previousSpriteProjection = new Matrix4(spriteBatch.getProjectionMatrix());
         Matrix4 previousSpriteTransform = new Matrix4(spriteBatch.getTransformMatrix());
         Matrix4 screenProjection = new Matrix4().setToOrtho2D(
-            0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+                0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         shapeRenderer.setProjectionMatrix(screenProjection);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
@@ -505,7 +508,7 @@ public class GameScreen implements Screen {
         spriteBatch.setTransformMatrix(new Matrix4().idt());
         spriteBatch.begin();
         FontManager.getInstance().getFontByName("Placeholder")
-            .draw(spriteBatch, "DEBUG WIN", buttonX + 42f, buttonY + 35f);
+                .draw(spriteBatch, "DEBUG WIN", buttonX + 42f, buttonY + 35f);
         spriteBatch.end();
 
         shapeRenderer.setProjectionMatrix(previousShapeProjection);
@@ -547,7 +550,15 @@ public class GameScreen implements Screen {
         world.dispose();
     }
 
-    public Wheel getWheel() { return wheel; }
-    public World getWorld() { return world; }
-    public Shop getShop() { return shop; }
+    public Wheel getWheel() {
+        return wheel;
+    }
+
+    public World getWorld() {
+        return world;
+    }
+
+    public Shop getShop() {
+        return shop;
+    }
 }

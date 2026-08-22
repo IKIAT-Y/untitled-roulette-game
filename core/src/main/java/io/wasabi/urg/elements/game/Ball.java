@@ -360,8 +360,9 @@ public class Ball extends GameObject {
         Roulette.getInstance().getRoundManager().recordSpin(freeSpin);
 
         boolean freeSpinRequested = Roulette.getInstance().getRunState().consumeFreeSpinRequest();
-    
-        if (Roulette.getInstance().getRunState().getChips() >= Roulette.getInstance().getRoundManager().getCurrentConfig().getQuota()) {
+
+        if (Roulette.getInstance().getRunState().getChips() >= Roulette.getInstance().getRoundManager()
+                .getCurrentConfig().getQuota()) {
             return;
         }
 

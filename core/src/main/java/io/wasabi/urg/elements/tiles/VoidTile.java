@@ -31,10 +31,9 @@ public class VoidTile extends TileType {
         tooltip.addType("VOID", Color.WHITE, RIM_COLOR);
 
         mesh = new Mesh(false, 2000, 2000,
-			new VertexAttribute(Usage.Position, 2, ShaderProgram.POSITION_ATTRIBUTE),
-			new VertexAttribute(Usage.ColorPacked, 4, ShaderProgram.COLOR_ATTRIBUTE),
-			new VertexAttribute(Usage.TextureCoordinates, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + "0")
-        );
+                new VertexAttribute(Usage.Position, 2, ShaderProgram.POSITION_ATTRIBUTE),
+                new VertexAttribute(Usage.ColorPacked, 4, ShaderProgram.COLOR_ATTRIBUTE),
+                new VertexAttribute(Usage.TextureCoordinates, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + "0"));
     }
 
     @Override
@@ -83,7 +82,9 @@ public class VoidTile extends TileType {
     }
 
     @Override
-    public float getBetMultiplier() { return 3f; }
+    public float getBetMultiplier() {
+        return 3f;
+    }
 
     @Override
     public void dispose() {

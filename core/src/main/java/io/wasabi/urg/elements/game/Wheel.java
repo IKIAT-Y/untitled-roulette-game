@@ -333,22 +333,3 @@ public class Wheel {
         return angle >= start || angle <= end; // wraps past 0
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

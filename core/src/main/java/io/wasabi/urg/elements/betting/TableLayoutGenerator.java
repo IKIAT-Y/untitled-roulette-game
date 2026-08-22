@@ -39,16 +39,15 @@ import io.wasabi.urg.elements.game.Tile;
  * </p>
  *
  * <p>
- * <b>Note on Tile:</b> Tile currently only exposes {@link Tile#getNumber()} —
- * no colour or
- * zero/type flag. {@link #getColor} and {@link #isZeroTile} derive that here
- * rather than on
- * Tile itself, mirroring the parity logic Tile already bakes into its texture
- * (even → red,
- * odd → black) but correcting zero to GREEN for betting purposes. If Tile grows
- * a real
- * colour/type field later, these two methods are the only place that needs to
- * change.
+ * <b>Note on Tile colour:</b> {@link #getColor} summarises a tile down to one
+ * {@link PocketColor} (used for straight-zone texture selection — see
+ * {@code BettingTable#pickStraightZoneTexture}), derived from
+ * {@link Tile#isRed()}/{@code isBlack()}/{@code isGreen()} — each tile's own
+ * TileType decides those independently, so this reflects whatever colour(s)
+ * that tile actually reports rather than being computed from its number.
+ * {@link #isZeroTile} is unrelated to colour — it's still number-based, since
+ * zero's grid placement/payout structure is about the NUMBER, not its display
+ * colour.
  * </p>
  */
 public class TableLayoutGenerator {
@@ -117,11 +116,25 @@ public class TableLayoutGenerator {
         return tile.getNumber() == 0;
     }
 
+    /**
+     * One summarising colour for a tile. GREEN and RED are checked before BLACK
+     * so a tile that (unusually) reports more than one — e.g. a striped tile,
+     * which counts as both red and black — still resolves to a single answer;
+     * that's fine for texture selection, but RED/BLACK outside-bet membership
+     * must NOT go through this (see {@link #buildOutsideCategoryZones}), since a
+     * striped tile genuinely belongs in both buckets at once.
+     */
     public PocketColor getColor(Tile tile) {
-        if (isZeroTile(tile)) {
+        if (tile.isGreen()) {
             return PocketColor.GREEN;
         }
-        return tile.getNumber() % 2 == 0 ? PocketColor.RED : PocketColor.BLACK;
+        if (tile.isRed()) {
+            return PocketColor.RED;
+        }
+        if (tile.isBlack()) {
+            return PocketColor.BLACK;
+        }
+        return PocketColor.SPECIAL;
     }
 
     // ---------------------------------------------------------------------------------------
@@ -401,15 +414,18 @@ public class TableLayoutGenerator {
 
         // Colour/parity are per-tile attributes, so bucketing every physical tile
         // (duplicates included) already covers every duplicate correctly — no need to
-        // go through tilesByNumber here.
+        // go through tilesByNumber here. RED/BLACK check Tile#isRed()/isBlack()
+        // directly rather than the single-value getColor() — a tile can count as
+        // both (a striped tile) or, if it shares a number with a differently-coloured
+        // duplicate, only one of them, neither of which getColor() alone can express.
         List<Tile> red = new ArrayList<>();
         List<Tile> black = new ArrayList<>();
         List<Tile> odd = new ArrayList<>();
         List<Tile> even = new ArrayList<>();
         for (Tile t : standard) {
-            if (getColor(t) == PocketColor.RED)
+            if (t.isRed())
                 red.add(t);
-            if (getColor(t) == PocketColor.BLACK)
+            if (t.isBlack())
                 black.add(t);
             if (t.getNumber() % 2 != 0)
                 odd.add(t);

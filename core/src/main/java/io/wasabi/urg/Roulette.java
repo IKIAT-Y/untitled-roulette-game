@@ -74,9 +74,9 @@ public class Roulette extends Game {
         // runState.addCard(new Oneshot());
 
         // Charm testing
-        //runState.addCharm(new BlackCharm());
-        //runState.addCharm(new RedCharm());
-        //runState.addCharm(new ScrambledCharm());
+        // runState.addCharm(new BlackCharm());
+        // runState.addCharm(new RedCharm());
+        // runState.addCharm(new ScrambledCharm());
 
         this.gameScreen = new GameScreen(this);
         this.bettingScreen = new BettingScreen(this);
@@ -138,5 +138,8 @@ public class Roulette extends Game {
     public CardPool getCardPool() {
         return cardPool;
     }
-    public CharmPool getCharmPool() { return charmPool; }
+
+    public CharmPool getCharmPool() {
+        return charmPool;
+    }
 }
