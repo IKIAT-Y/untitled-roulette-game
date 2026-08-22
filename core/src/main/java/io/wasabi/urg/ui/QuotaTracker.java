@@ -4,9 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.math.Matrix4;
 
 import io.wasabi.urg.elements.betting.Bet;
 import io.wasabi.urg.managers.FontManager;
@@ -192,5 +191,5 @@ public final class QuotaTracker {
     }
 
     public void hide() { tween = new Tween(1f, BAR_X, OFFSCREEN_X, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN); }
-    public void show() { tween = new Tween(1f, BAR_X, 22f, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT); }
+    public void show() { tween = new Tween(0.7f, BAR_X, 22f, Tween.TweenStyle.CIRCULAR, Tween.TweenDirection.OUT); }
 }

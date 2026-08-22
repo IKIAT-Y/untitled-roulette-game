@@ -35,6 +35,7 @@ public class CardInputHandler extends InputAdapter {
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         Vector2 world = screenToWorld(screenX, screenY);
 
+        Shop shop = GAME.getGameScreen().getShop();
         List<Card> cards = runState.getOwnedCards();
         for (int i = cards.size() - 1; i >= 0; i--) {
             Card card = cards.get(i);
@@ -42,6 +43,10 @@ public class CardInputHandler extends InputAdapter {
                 draggedCard = card;
                 draggedCard.setDragging(true);
                 dragOffset.set(world.x - card.getX(), world.y - card.getY());
+
+                if (shop.isVisible()) {
+                    shop.beginInventoryDrag(card.getSellPrice());
+                }
                 return true;
             }
         }
@@ -100,7 +105,7 @@ public class CardInputHandler extends InputAdapter {
             }
         }
 
-        return true;
+        return false;
     }
 
     @Override
