@@ -429,13 +429,13 @@ public class BettingTable extends GameObject {
 
     /**
      * Picks which of a straight zone's covered tiles (more than one when its
-     * number is duplicated — see TableLayoutGenerator's class javadoc) supplies
+     * number is duplicated, see TableLayoutGenerator's class javadoc) supplies
      * the texture drawn for the whole zone:
      * <ol>
-     * <li>If any covered tile is "special" (not conventionally red/black/green —
+     * <li>If any covered tile is "special"
      * {@link TableLayoutGenerator#getColor} returns {@link PocketColor#SPECIAL}),
      * use the LATEST such tile (last one in the zone's covered-tile order, which
-     * follows tile-list order — i.e. the most recently added).</li>
+     * follows tile-list order).</li>
      * <li>Otherwise use whichever base colour (RED/BLACK/GREEN) has the most
      * covered tiles, breaking ties by whichever colour reaches that count
      * first.</li>
@@ -475,11 +475,10 @@ public class BettingTable extends GameObject {
     /**
      * Draws every straight zone's pocket number and every outside/dozen zone's
      * label, shrunk to fit and centered in their box. FONT is shared with other
-     * renderers (e.g. Tile, which draws with it at the default scale/color) —
-     * every tweak made here is saved beforehand and restored afterward so it can't
+     * renderers (e.g. Tile, which draws with it at the default scale/color).
+     * Every tweak made here is saved beforehand and restored afterward so it can't
      * leak into whatever draws with FONT next. All three groups share one
-     * SpriteBatch begin/end — changing the font's scale mid-batch is fine, it only
-     * affects the vertices of draws that come after it.
+     * SpriteBatch begin/end pair for efficiency, since they all draw with the same font and color.
      */
     private void drawZoneLabels(List<BetZone> straightZones, List<BetZone> outsideZones,
             List<BetZone> dozenZones) {

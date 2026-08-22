@@ -99,11 +99,10 @@ public class Tile extends GameObject {
 
         PolygonShape fretShape = new PolygonShape();
         fretShape.setAsBox(
-            height/2,
-            2.0f,
-            new Vector2(0, 0),
-            0
-        );
+                height / 2,
+                2.0f,
+                new Vector2(0, 0),
+                0);
 
         FixtureDef fretFixture = new FixtureDef();
         fretFixture.shape = fretShape;
@@ -244,11 +243,11 @@ public class Tile extends GameObject {
         float startRot = rotation;
         float endRot = rotation + radians;
         SHAPE_RENDERER.line(
-            position.x + r1 * MathUtils.cos(startRot), position.y + r1 * MathUtils.sin(startRot),
-            position.x + r2 * MathUtils.cos(startRot), position.y + r2 * MathUtils.sin(startRot));
+                position.x + r1 * MathUtils.cos(startRot), position.y + r1 * MathUtils.sin(startRot),
+                position.x + r2 * MathUtils.cos(startRot), position.y + r2 * MathUtils.sin(startRot));
         SHAPE_RENDERER.line(
-            position.x + r1 * MathUtils.cos(endRot), position.y + r1 * MathUtils.sin(endRot),
-            position.x + r2 * MathUtils.cos(endRot), position.y + r2 * MathUtils.sin(endRot));
+                position.x + r1 * MathUtils.cos(endRot), position.y + r1 * MathUtils.sin(endRot),
+                position.x + r2 * MathUtils.cos(endRot), position.y + r2 * MathUtils.sin(endRot));
 
         SHAPE_RENDERER.end();
         Gdx.gl.glLineWidth(1);
@@ -262,12 +261,29 @@ public class Tile extends GameObject {
         return type.getTooltip();
     }
 
-    public float getSize() { return size; }
-    public PolygonRegion getRegion() { return type.getRegion(); }
-    public Vector2 getPosition() { return position; }
-    public int getNumber() { return type.getNumber(); }
-    public boolean isSelected() { return selected; }
-    public void setSelected(boolean selected) { this.selected = selected; }
+    public float getSize() {
+        return size;
+    }
+
+    public PolygonRegion getRegion() {
+        return type.getRegion();
+    }
+
+    public Vector2 getPosition() {
+        return position;
+    }
+
+    public int getNumber() {
+        return type.getNumber();
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
 
     public void setPosition(Vector2 position) {
         this.position = position;
@@ -294,15 +310,30 @@ public class Tile extends GameObject {
         update();
     }
 
-    public TileType getType() { return type; }
+    public TileType getType() {
+        return type;
+    }
+
     public void setType(TileType type) {
         this.type = type;
         update();
     }
-    public void setBetMultiplier(float betMultiplier) { type.setBetMultiplier(betMultiplier); }
-    public float getBetMultiplier() { return type.getBetMultiplier(); }
-    public TileType.TileColour getColor() { return type.getColour(); }
-    public void setColor(TileType.TileColour color) { type.setColour(color); }
+
+    public void setBetMultiplier(float betMultiplier) {
+        type.setBetMultiplier(betMultiplier);
+    }
+
+    public float getBetMultiplier() {
+        return type.getBetMultiplier();
+    }
+
+    public TileType.TileColour getColor() {
+        return type.getColour();
+    }
+
+    public void setColor(TileType.TileColour color) {
+        type.setColour(color);
+    }
 
     /**
      * The texture this pocket renders itself with — whatever {@link #type}
@@ -310,16 +341,21 @@ public class Tile extends GameObject {
      * "this tile's look" (e.g. the betting table matching its straight-bet cells
      * to the wheel) can call this without knowing or caring which {@link TileType}
      * subclass is involved, so a new tile type never needs its own rendering
-     * function elsewhere — it only needs to override this (or the colour/texture
-     * it derives from) on TileType itself.
+     * function elsewhere
      */
-    public Texture getTexture() { return type.getTexture(); }
+    public Texture getTexture() {
+        return type.getTexture();
+    }
 
-    // Independent of getColor()/getColour() on purpose — a tile type can count as
-    // more than one (e.g. a striped tile is both red and black) or none (a tile
-    // type with its own distinct look, not conventionally red/black/green) at
-    // once, which a single colour value can't represent.
-    public boolean isRed() { return type.isRed(); }
-    public boolean isBlack() { return type.isBlack(); }
-    public boolean isGreen() { return type.isGreen(); }
+    public boolean isRed() {
+        return type.isRed();
+    }
+
+    public boolean isBlack() {
+        return type.isBlack();
+    }
+
+    public boolean isGreen() {
+        return type.isGreen();
+    }
 }
