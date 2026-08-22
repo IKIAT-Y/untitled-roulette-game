@@ -1,3 +1,7 @@
+/*
+Refer to easings.net for the formulae!
+*/
+
 package io.wasabi.urg.util.tweens;
 
 import java.lang.reflect.InvocationTargetException;

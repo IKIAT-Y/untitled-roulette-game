@@ -10,9 +10,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.managers.FontManager;
@@ -20,14 +18,15 @@ import io.wasabi.urg.managers.RendererManager;
 
 public class Tooltip {
     private static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
-    private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
     private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
 
     private static final Roulette GAME = Roulette.getInstance();
-    private static final Viewport VIEWPORT = GAME.getViewport();
 
     private static final Texture TEXTURE = new Texture(Gdx.files.internal("ui/CorneredPatch.png"));
 
+    /**
+     * Helper class for rendering text on Tooltips
+     */
     public class Line {
         private String text;
         private Color col;
@@ -45,6 +44,13 @@ public class Tooltip {
             this.font = font;
         }
 
+        /**
+         * Updates the GlyphLayout and returns it.
+         * Used for alignment as a GlyphLayout automatically calculates the position & size for alignment.
+         * @param lineWidth
+         * @param wrap
+         * @return
+         */
         public GlyphLayout update(float lineWidth, boolean wrap) {
             layout.setText(font, text, col, lineWidth, Align.center, wrap);
             return layout;
@@ -70,11 +76,12 @@ public class Tooltip {
     private float padding = 2.5f;
     private float innerPadding = 10f;
     private float elementPadding = 5.0f;
+    private float minWidth = 0;
 
     private BitmapFont font_16px = FontManager.getInstance().getFontByName("Terminus16PXBold");
     private BitmapFont font_12px = FontManager.getInstance().getFontByName("Terminus12PXBold");
-    private float fontPaddingX = 5f;
-    private float fontPaddingY = 4f;
+    private float fontPaddingX = 10f;
+    private float fontPaddingY = 8f;
 
     private NinePatch patch;
 
@@ -91,6 +98,11 @@ public class Tooltip {
 
         this.anchorX = anchorX;
         this.anchorY = anchorY;
+    }
+
+    public void setMinWidth(float width) {
+        this.minWidth = width;
+        updateSizes();
     }
 
     public void setPosition(float x, float y) {
@@ -142,17 +154,18 @@ public class Tooltip {
 
     private void updateSizes() {
         GlyphLayout titleLayout = title.update(width, false);
-        width = titleLayout.width + fontPaddingX * 2 + innerPadding * 2 + padding * 2;
+        float currentWidth = Math.max(minWidth, titleLayout.width);
+        width = currentWidth + fontPaddingX * 2 + innerPadding * 2 + padding * 2;
         height = titleLayout.height + fontPaddingY * 2 + innerPadding * 2 + padding * 2;
 
         if (descVisible) {
-            GlyphLayout descriptionLayout = description.update(titleLayout.width, true);
+            GlyphLayout descriptionLayout = description.update(currentWidth, true);
             height += descriptionLayout.height + fontPaddingY * 2 + elementPadding;
         }
 
         for (Line line : types) {
             height += elementPadding;
-            GlyphLayout layout = line.update(titleLayout.width, false);
+            GlyphLayout layout = line.update(currentWidth, false);
             width = Math.max(width, layout.width + fontPaddingX * 2 + innerPadding * 2 + padding * 2);
             height += layout.height + fontPaddingY * 2;
         }

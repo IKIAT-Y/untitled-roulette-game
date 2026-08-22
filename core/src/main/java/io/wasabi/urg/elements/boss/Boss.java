@@ -15,6 +15,7 @@ public class Boss {
     public void beforeSpinEffect() {}
     public void afterSpinEffect() {}
     public void roundEndEffect() {}
+    public void charmConsumedEffect() {}
 
     public String getName() {
         return name;

@@ -9,11 +9,12 @@ import com.badlogic.gdx.graphics.g2d.PolygonRegion;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.utils.Disposable;
 
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.ui.Tooltip;
 
-public abstract class TileType {
+public abstract class TileType implements Disposable {
     protected  static final RendererManager RENDERER_MANAGER = RendererManager.getInstance();
     protected static final PolygonSpriteBatch POLY_BATCH = RENDERER_MANAGER.getPolygonSpriteBatch();
     protected static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
@@ -36,6 +37,7 @@ public abstract class TileType {
     protected TileColour colour;
     protected PolygonRegion region;
     protected float textureColor = Color.WHITE_FLOAT_BITS;
+    protected float textureVerticalSteps = 1;
 
     public TileType() {
         tooltip.setDescriptionVisible(false);
@@ -101,10 +103,15 @@ public abstract class TileType {
             resultVerts[vertexIndex++] = vertices[i + 1];
             resultVerts[vertexIndex++] = textureColor;
             resultVerts[vertexIndex++] = u + uvWidth * ((float) i / regionVerticesLength);
-            resultVerts[vertexIndex++] = bottom ? v : v + uvHeight;
+            resultVerts[vertexIndex++] = bottom ? v : v + uvHeight * textureVerticalSteps;
             bottom = !bottom;
         }
         return resultVerts;
+    }
+
+    @Override
+    public void dispose() {
+        texture.dispose();
     }
 
     public boolean isRed() { return colour == TileColour.RED; }
