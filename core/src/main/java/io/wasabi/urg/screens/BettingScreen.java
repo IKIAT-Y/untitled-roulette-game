@@ -148,5 +148,6 @@ public class BettingScreen implements Screen {
         spriteBatch.dispose();
         bettingTable.dispose();
         betButtonTexture.dispose();
+        backgroundImg.dispose();
     }
 }
