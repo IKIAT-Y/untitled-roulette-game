@@ -1,6 +1,7 @@
 package io.wasabi.urg.elements.charm;
 
 import com.badlogic.gdx.graphics.Color;
+
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.elements.tiles.TileType;
@@ -15,7 +16,7 @@ public class ScrambledCharm extends AbstractCharm {
     public ScrambledCharm() {
         super();
         tooltip.setTitle("Scrambled Charm");
-        tooltip.setDescription("Choose up to four tiles, randomise their number between 0 and 36");
+        tooltip.setDescription("Choose up to four tiles, randomise their number between 0 and 36.");
     }
 
     @Override

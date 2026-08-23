@@ -4,18 +4,19 @@ import com.badlogic.gdx.graphics.Color;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.game.Tile;
+import io.wasabi.urg.elements.tiles.MetallicTile;
 import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.FloatingText;
 
 import java.util.List;
 
-public class RedCharm extends AbstractCharm {
+public class MetallicCharm extends AbstractCharm {
 
-    public RedCharm() {
+    public MetallicCharm() {
         super();
-        tooltip.setTitle("Red Charm");
-        tooltip.setDescription("Choose up to two tiles, turn them into red tiles.");
+        tooltip.setTitle("Metallic Charm");
+        tooltip.setDescription("Choose one tile and enchant it with Metallic. Gain [RED]1.5x [BLACK]winnings from this tile.");
     }
 
     @Override
@@ -23,7 +24,12 @@ public class RedCharm extends AbstractCharm {
         if (requirements()) {
             List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
             for (Tile tile : selectedTiles) {
-                tile.setColor(TileType.TileColour.RED);
+                TileType originalType = tile.getType();
+                MetallicTile metallicType = new MetallicTile();
+                metallicType.setColour(originalType.getColour());
+                metallicType.setNumber(originalType.getNumber());
+                metallicType.setBetMultiplier(originalType.getBetMultiplier() * 1.5f);
+                tile.setType(metallicType);
             }
             Roulette.getInstance().getRunState().clearSelectedTiles();
             removeAndReturnToPool();
@@ -41,10 +47,13 @@ public class RedCharm extends AbstractCharm {
 
         List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
         if (selectedTiles.isEmpty()) {
-            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("Select at least one tile!", getX(), getY(), Color.RED, 1f));
+            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("Select one tile!", getX(), getY(), Color.RED, 1f));
             SoundManager.getInstance().playSound("error");
-        } else if (selectedTiles.size() > 2) {
-            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("You can only select up to two tiles!", getX(), getY(), Color.RED, 1f));
+        } else if (selectedTiles.size() > 1) {
+            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("You can only select one tile!", getX(), getY(), Color.RED, 1f));
+            SoundManager.getInstance().playSound("error");
+        } else if (selectedTiles.get(0).getType() instanceof MetallicTile) {
+            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("This tile is already metallic!", getX(), getY(), Color.RED, 1f));
             SoundManager.getInstance().playSound("error");
         } else {
             return true;
