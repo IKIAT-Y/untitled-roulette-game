@@ -15,7 +15,6 @@ public class OddCard extends Card {
 
     @Override
     public void roundStartEffect() {
-        //System.out.println("OddCard card effect triggered");
         triggerDisplay();
         List<Tile> tiles = Roulette.getInstance().getGameScreen().getWheel().getTiles();
         for (Tile tile : tiles) {

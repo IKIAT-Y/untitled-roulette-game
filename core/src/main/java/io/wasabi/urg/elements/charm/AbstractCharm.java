@@ -12,10 +12,13 @@ import io.wasabi.urg.util.tweens.Tween;
 public class AbstractCharm extends GameObject{
 
     private Texture texture;
-    private float x, y;
-    private float width, height;
+    private float x;
+    private float y;
+    private float width;
+    private float height;
     private boolean dragging = false;
-    private float targetX, targetY;
+    private float targetX;
+    private float targetY;
     private boolean hasTarget = false;
     protected Tooltip tooltip = new Tooltip(0.5f, 1);
 
@@ -118,7 +121,7 @@ public class AbstractCharm extends GameObject{
         boolean wasDragging = this.dragging;
         this.dragging = dragging;
 
-        if (dragging == true) {
+        if (dragging) {
             tooltip.hide();
         } else { tooltip.show(); }
 

@@ -20,7 +20,7 @@ public class LuckyTalisman extends Card {
     @Override
     public void charmConsumedEffect() {
         mult += 0.1f;
-        tooltip.setDescription(String.format("All tiles gain [RED]+0.1x [BLACK]payout every time a charm is used\nCurrently [RED]%.1fx", mult));
+        tooltip.setDescription(String.format("All tiles gain [RED]+0.1x [BLACK]payout every time a charm is used%nCurrently [RED]%.1fx", mult));
     }
 
 }

@@ -29,21 +29,25 @@ public abstract class Card extends GameObject {
         public int getPrice() { return price; }
     }
 
-    private static final EnumMap<Rarity, Integer> RARITY_COLOURS = new EnumMap<Rarity, Integer>(Rarity.class) {{
-        put(Rarity.COMMON, 0x007aabFF);
-        put(Rarity.UNCOMMON, 0x00a629FF);
-        put(Rarity.RARE, 0xa61300FF);
-    }};
+    private static final EnumMap<Rarity, Integer> RARITY_COLOURS = new EnumMap<Rarity, Integer>(Rarity.class);
+    static {
+        RARITY_COLOURS.put(Rarity.COMMON, 0x007aabFF);
+        RARITY_COLOURS.put(Rarity.UNCOMMON, 0x00a629FF);
+        RARITY_COLOURS.put(Rarity.RARE, 0xa61300FF);
+    }
 
     private static final Texture DROP_SHADOW = new Texture(Gdx.files.internal("cards/DropShadow.png"));
 
     protected Rarity cardRarity;
     protected Tooltip tooltip = new Tooltip(0.5f, 1);
     private Texture sprite;
-    private float x, y;
-    private float width, height;
+    private float x;
+    private float y;
+    private float width;
+    private float height;
     private boolean dragging = false;
-    private float targetX, targetY;
+    private float targetX;
+    private float targetY;
     private boolean hasTarget = false;
 
     private Tween tweenX;
@@ -147,7 +151,7 @@ public abstract class Card extends GameObject {
         boolean wasDragging = this.dragging;
         this.dragging = dragging;
 
-        if (dragging == true) {
+        if (dragging) {
             tooltip.hide();
         } else {
             tooltip.show();
