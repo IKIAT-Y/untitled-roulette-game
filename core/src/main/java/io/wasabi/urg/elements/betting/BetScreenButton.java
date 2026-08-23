@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 
+
+
 public class BetScreenButton {
 
     private final Texture texture; // Uses whatever texture you pass in

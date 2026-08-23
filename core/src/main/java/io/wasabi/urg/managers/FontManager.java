@@ -17,16 +17,16 @@ public class FontManager {
     private boolean initialized;
 
     // Fonts
-    private Map<String, String> fontPaths = new HashMap<String, String>() {{
-        put("Placeholder", "fonts/placeholder.fnt");
-        put("Terminus64PXBold", "fonts/terminus64pxBold.fnt");
-        put("Terminus16PXBold", "fonts/terminus16pxBold.fnt");
-        put("Terminus12PXBold", "fonts/terminus12pxBold.fnt");
-    }};
+    private final Map<String, String> fontPaths = new HashMap<>();
 
     private Map<String, BitmapFont> fonts = new HashMap<>();
 
-    private FontManager() {}
+    private FontManager() {
+        fontPaths.put("Placeholder", "fonts/placeholder.fnt");
+        fontPaths.put("Terminus64PXBold", "fonts/terminus64pxBold.fnt");
+        fontPaths.put("Terminus16PXBold", "fonts/terminus16pxBold.fnt");
+        fontPaths.put("Terminus12PXBold", "fonts/terminus12pxBold.fnt");
+    }
 
     public static FontManager getInstance() {
         return INSTANCE;

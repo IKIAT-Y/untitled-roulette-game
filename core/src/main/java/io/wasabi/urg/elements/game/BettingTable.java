@@ -150,6 +150,7 @@ public class BettingTable extends GameObject {
      * TableLayoutGenerator) list more than one covered tile for that single
      * number — losing one duplicate shouldn't drop the bet as long as another tile
      * with that number is still on the wheel.
+     * @param zone The bet zone to check for orphaned status.
      */
     private boolean isOrphaned(BetZone zone) {
         Map<Integer, Boolean> numberSurvives = new HashMap<>();
@@ -214,7 +215,9 @@ public class BettingTable extends GameObject {
         return nearest;
     }
 
-    /** Spawns a fresh chip for dragging — the tray itself is never depleted. */
+    /** Spawns a fresh chip for dragging — the tray itself is never depleted.   
+     * @param denomination The denomination of the chip to spawn.
+    */
     public Chip beginDragFromTray(ChipDenomination denomination, Vector2 point) {
         Chip chip = new Chip(denomination, point.x, point.y, CHIP_RADIUS);
         chip.setDragging(true);
@@ -227,6 +230,7 @@ public class BettingTable extends GameObject {
      * deducted chips in the first place, see {@link #placeBet}. If the player drops
      * it back on a zone it's re-tracked there; if they drop it off the table it's
      * simply gone from {@link #activeBets}.
+     * @param chip The chip to pick up.
      */
     public Chip beginDragFromPlaced(Chip chip) {
         Bet bet = chip.getBet();
@@ -251,6 +255,8 @@ public class BettingTable extends GameObject {
      * — placing a bet here only ever reserves against the player's real balance
      * minus what's already reserved by other pending bets, it never mutates
      * {@link RunState#getChips()} itself.
+     * @param zone The bet zone to place the bet on.
+     * @param chip The chip representing the bet's denomination and stake.
      */
     public void placeBet(BetZone zone, Chip chip) {
         int balance = runState.getChips();
@@ -295,6 +301,7 @@ public class BettingTable extends GameObject {
      * chips picked
      * up from an existing bet were already refunded in
      * {@link #beginDragFromPlaced}.
+     * @param chip The chip to discard.
      */
     public void discardChip(Chip chip) {
         chip.setDragging(false);
@@ -416,6 +423,7 @@ public class BettingTable extends GameObject {
      * when its number is duplicated. Generic on purpose: whatever texture a tile
      * reports (see {@link Tile#getTexture()}) is what gets drawn, so a new tile
      * type never needs a new branch here to render correctly on the table.
+     * @param straightZones The list of straight zones to draw textures for.
      */
     private void drawStraightZoneTextures(List<BetZone> straightZones) {
         SPRITE_BATCH.begin();
@@ -445,6 +453,7 @@ public class BettingTable extends GameObject {
      * sharing this zone stay independently betable via the RED/BLACK outside
      * zones (see TableLayoutGenerator#buildOutsideCategoryZones) regardless of
      * which one's texture wins here.
+     * @param zone The straight bet zone to pick a texture for.
      */
     private Texture pickStraightZoneTexture(BetZone zone) {
         List<Tile> covered = zone.getCoveredTiles();
@@ -482,6 +491,9 @@ public class BettingTable extends GameObject {
      * Every tweak made here is saved beforehand and restored afterward so it can't
      * leak into whatever draws with FONT next. All three groups share one
      * SpriteBatch begin/end pair for efficiency, since they all draw with the same font and color.
+     * @param straightZones The list of straight zones to label.
+     * @param outsideZones The list of outside-category zones to label.
+     * @param dozenZones The list of "thirds" zones to label.
      */
     private void drawZoneLabels(List<BetZone> straightZones, List<BetZone> outsideZones,
             List<BetZone> dozenZones) {
@@ -536,6 +548,7 @@ public class BettingTable extends GameObject {
      * they cover (derived from the zone's own covered tiles) rather than a
      * hardcoded "1-18"/"19-36", since that range is rank-based and shifts as the
      * roguelike layer changes what numbers exist — see TableLayoutGenerator.
+     * @param zone The outside-category bet zone to get a label for.
      */
     private String outsideLabelFor(BetZone zone) {
         switch (zone.getType()) {
@@ -592,6 +605,7 @@ public class BettingTable extends GameObject {
     /**
      * Returns the color to fill an outside-category zone with. RED/BLACK are
      * colored, everything else is dark green.
+     * @param type The outside-category bet type to get a color for.
      */
     private Color colorForOutsideType(BetType type) {
         switch (type) {

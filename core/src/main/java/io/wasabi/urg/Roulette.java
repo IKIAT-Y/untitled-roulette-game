@@ -50,8 +50,7 @@ public class Roulette extends Game {
     @Override
     public void create() {
         camera = new OrthographicCamera();
-        viewport = new ExtendViewport(MIN_WORLD_WIDTH, MIN_WORLD_HEIGHT, camera); // change this depending on actual
-                                                                                  // game size at launch (?)
+        viewport = new ExtendViewport(MIN_WORLD_WIDTH, MIN_WORLD_HEIGHT, camera);
 
         rendererManager = RendererManager.getInstance();
         rendererManager.initialize(this);
@@ -64,19 +63,8 @@ public class Roulette extends Game {
         cardPool = new CardPool();
         charmPool = new CharmPool();
 
-        // Temporarily set to 10000 for testing purposes. Change to 100 for final
-        // release.
         int STARTING_MONEY = 100;
         runState.reset(STARTING_MONEY);
-
-        // Card testing
-        // runState.addCard(cardPool.getRandomCard());
-        // runState.addCard(new Oneshot());
-
-        // Charm testing
-        // runState.addCharm(new BlackCharm());
-        // runState.addCharm(new RedCharm());
-        // runState.addCharm(new ScrambledCharm());
 
         this.gameScreen = new GameScreen(this);
         this.bettingScreen = new BettingScreen(this);

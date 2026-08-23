@@ -65,6 +65,16 @@ public class ChipDragController extends InputAdapter {
         return true;
     }
 
+    
+    /** 
+     * Handles the touch up event when the user releases a chip.
+     * If the chip is released over a valid bet zone, it places the bet; otherwise, it discards the chip.
+     * @param x The x-coordinate of the touch event.
+     * @param y The y-coordinate of the touch event.   
+     * @param pointer The pointer index of the touch event.
+     * @param button The button that was pressed during the touch event.
+     * @return boolean indicating whether the event was handled.
+     */
     @Override
     public boolean touchUp(int x, int y, int pointer, int button) {
         if (activeChip == null)

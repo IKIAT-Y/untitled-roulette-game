@@ -116,6 +116,11 @@ public class Tile extends GameObject {
         fretShape.dispose();
     }
 
+    /**
+     * Updates the tile's geometry and rendering data based on its current properties.
+     * This method should be called whenever the tile's position, rotation, radius, height,
+     * or size changes to ensure that the visual representation is accurate.
+     */
     private void update() {
         float x = position.x;
         float y = position.y;
@@ -217,7 +222,6 @@ public class Tile extends GameObject {
         }
     }
 
-    // Temp selection indicator
     private void renderSelectionOutline() {
         float r1 = radius;
         float r2 = radius + height + numHeight;

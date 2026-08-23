@@ -248,6 +248,9 @@ public final class RunState {
         return new IntArray(chipHistory);
     }
 
+    /** Resets the run state to its initial values.
+     * @param startingChips The number of chips to start with.
+     */
     public void reset(int startingChips) {
         requireNonNegative(startingChips, "startingChips");
 
@@ -266,6 +269,11 @@ public final class RunState {
         chipHistory.add(startingChips);
     }
 
+    /** Adds an item to a collection if it is not already present.
+     * @param collection The collection to add the item to.
+     * @param gameObject The item to add.
+     * @param <T> The type of the item.
+     */
     private <T> void addUnique(List<T> collection, T gameObject) {
         if (gameObject == null) {
             throw new IllegalArgumentException("gameObject cannot be null");
@@ -370,6 +378,12 @@ public final class RunState {
         return boss;
     }
 
+    /**
+     * Triggers the effects of all owned cards and the boss
+     * (if present) for a given effect type.
+     *
+     * @param effectType The type of effect to trigger.
+     */
     public void triggerEffects(String effectType) {
         int triggerCount = getCardEffectTriggerCount();
 

@@ -70,9 +70,12 @@ public class Tooltip {
     }
 
     private boolean visible = false;
-    private float x, y;
-    private float anchorX, anchorY;
-    private float width, height;
+    private float x;
+    private float y;
+    private float anchorX;
+    private float anchorY;
+    private float width;
+    private float height;
     private float padding = 2.5f;
     private float innerPadding = 10f;
     private float elementPadding = 5.0f;

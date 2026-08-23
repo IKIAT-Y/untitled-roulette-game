@@ -56,7 +56,9 @@ public final class QuotaTracker {
         this.roundManager = roundManager;
     }
 
-    /** Advances the bar towards the player's current quota progress. */
+    /** Advances the bar towards the player's current quota progress. 
+    * @param delta The time elapsed since the last update, in seconds. 
+    */
     public void update(float delta) {
 
         int quota = roundManager.getCurrentConfig().getQuota();
@@ -132,6 +134,9 @@ public final class QuotaTracker {
 
     }
 
+    /** Renders the vertical progress bar indicating the player's current quota progress.
+     * @param screenHeight The height of the game screen, used to determine the height of the bar.
+     */
     private void renderProgressBar(float screenHeight) {
         float barHeight = Math.max(100f, screenHeight - BAR_HEIGHT_PADDING);
         float fillHeight = barHeight * displayedProgress;
@@ -153,6 +158,11 @@ public final class QuotaTracker {
         shapeRenderer.end();
     }
 
+    /** Renders the quota text beside the progress bar, 
+     * showing the current chips, target quota, and percentage achieved.
+     * @param screenWidth The width of the game screen, used to position the text.
+     * @param screenHeight The height of the game screen, used to position the text.
+     */
     private void renderQuotaText(float screenWidth, float screenHeight) {
         int chips = getAvailableChips();
         int quota = roundManager.getCurrentConfig().getQuota();

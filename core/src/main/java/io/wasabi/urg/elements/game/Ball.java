@@ -147,13 +147,13 @@ public class Ball extends GameObject {
 
     /**
      * Updates the ball using different behaviour depending on the state it is in
+     * @param delta The time in seconds since the last update
      */
     @Override
     public void update(float delta) {
         // Clamp so a lag spike doesn't destroy the simulation
         float dt = Math.min(delta, MAX_DELTA);
 
-        // System.out.println(state.toString());
         switch (state) {
             case SPINNING:
                 updateSpinning(dt);
@@ -175,8 +175,8 @@ public class Ball extends GameObject {
 
     /**
      * Advances BOUNCING/SETTLING physics in fixed-size chunks, accumulating
-     * leftover real
-     * time between calls.
+     * leftover real time between calls.
+     * @param dt The time in seconds since the last update
      */
     private void stepPhysicsFixed(float dt) {
         physicsAccumulator += dt;
@@ -199,6 +199,8 @@ public class Ball extends GameObject {
     /**
      * Used to set position of the ball from the wheel center using angle in radian
      * and distance
+     * @param angleRad The angle in radians from the wheel center
+     * @param radialDist The distance from the wheel center
      */
     private void setPositionFromPolar(float angleRad, float radialDist) {
         Vector2 pos = new Vector2(
@@ -223,6 +225,10 @@ public class Ball extends GameObject {
         ball.setLinearVelocity(newVel);
     }
 
+    /**
+     * Updates the ball's position and speed while it is in the SPINNING state.
+     * @param delta The time in seconds since the last update
+     */
     private void updateSpinning(float delta) {
         float angularVelocity = tangentialSpeed / currentRadius;
         currentAngleRad += angularVelocity * delta;
@@ -244,6 +250,10 @@ public class Ball extends GameObject {
         }
     }
 
+    /**
+     * Updates the ball's position and speed while it is in the DROPPING state.
+     * @param delta The time in seconds since the last update
+     */
     private void updateDropping(float delta) {
         float angularVelocity = tangentialSpeed / currentRadius;
         currentAngleRad += angularVelocity * delta;
@@ -274,6 +284,9 @@ public class Ball extends GameObject {
         }
     }
 
+    /**
+     * Updates the ball's position and speed while it is in the BOUNCING state.
+     */
     private void updateBouncing() {
         Vector2 toCenter = new Vector2(wheelCenter).sub(ball.getPosition());
         Vector2 radialInward = toCenter.cpy().nor();
@@ -307,7 +320,9 @@ public class Ball extends GameObject {
             lowSpeedTimer = 0f;
         }
     }
-
+    /**
+     * Updates the ball's position and speed while it is in the SETTLING state.
+     */
     private void updateSettling() {
         float speed = ball.getLinearVelocity().len();
 
@@ -336,7 +351,9 @@ public class Ball extends GameObject {
             finalizeStop();
         }
     }
-
+    /**
+     * Finalizes the ball's stop, resolving bets and triggering any necessary game state changes.
+     */
     private void finalizeStop() {
         ball.setLinearVelocity(0f, 0f);
         ball.setAngularVelocity(0f);
@@ -346,10 +363,6 @@ public class Ball extends GameObject {
         List<Bet> savedBets = new ArrayList<>(Roulette.getInstance().getRunState().getActiveBets());
 
         Tile tile = getLandedTile();
-        if (tile != null) {
-            //System.out.println("Landed on tile: " + tile.getNumber());
-            //System.out.println("Tile multiplier: " + tile.getBetMultiplier());
-        }
 
         Roulette.getInstance().getGameScreen().getWheel().resetWheelTweens();
 
@@ -371,7 +384,11 @@ public class Ball extends GameObject {
             Roulette.getInstance().getGameScreen().freeSpin();
         }
     }
-
+    /**
+     * Determines which tile the ball has landed on by
+     * checking for overlaps between the ball's circular area 
+     * and the polygons of each tile.
+     */
     private Tile getLandedTile() {
         List<Tile> tiles = RUN_STATE.getTiles();
 

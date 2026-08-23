@@ -90,7 +90,8 @@ public class BettingScreen implements Screen {
 
         updateBetButtonLayout();
     }
-
+    
+    /** Updates the layout of the bet button based on the current screen size. */
     private void updateBetButtonLayout() {
         if (betButton == null || betButtonTexture == null) {
             return;

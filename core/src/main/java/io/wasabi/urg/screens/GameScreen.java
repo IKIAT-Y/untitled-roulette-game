@@ -134,6 +134,11 @@ public class GameScreen implements Screen {
         launchSpin(true);
     }
 
+    /**
+     * Launches the ball and spins the wheel. If freeSpin is true, it will not consume a spin.
+     *
+     * @param free Whether this spin is a free spin (does not consume a spin).
+     */
     private void launchSpin(boolean free) {
         float initialSpeed = random.nextFloat() * INITIAL_SPEED_RANGE + MIN_INITIAL_SPEED;
         Roulette.getInstance().getRunState().triggerEffects("beforeSpin");
@@ -150,6 +155,9 @@ public class GameScreen implements Screen {
         quotaTracker.onSpinStarted();
     }
 
+    /**
+     * Handles input for the game screen, including UI interactions and game state transitions.
+     */
     private void handleUIInput() {
 
         if (gameState == GameState.RESULT) {
@@ -166,6 +174,15 @@ public class GameScreen implements Screen {
         }
     }
 
+    /**
+     * Updates the game state to the result screen 
+     * after a round is completed, showing the results and rewards.
+     * @param chips The number of chips the player has at the end of the round.
+     * @param quota The quota that was set for the round.
+     * @param baseReward The base reward for completing the round.
+     * @param unusedSpinBonus The bonus for any unused spins.
+     * @param totalReward The total reward calculated from the base reward and any bonuses.
+     */
     public void enterResultScreen(int chips, int quota, int baseReward, int unusedSpinBonus, int totalReward) {
         this.gameState = GameState.RESULT;
         wheel.shiftOutOfScreen();
@@ -290,7 +307,12 @@ public class GameScreen implements Screen {
         gameOver.update(delta);
         gameOver.render();
     }
-
+    
+    /**
+     * Determines the current state of the spin button based on the game state and wheel status.
+     *
+     * @return The current state of the spin button.
+     */
     private SpinButton.State getSpinButtonState() {
         if (ball.getState() != Ball.State.STOPPED) {
             return SpinButton.State.SPINNING;
@@ -299,6 +321,13 @@ public class GameScreen implements Screen {
                 ? SpinButton.State.NO_BET : SpinButton.State.READY;
     }
 
+    /**
+     * Renders the player's inventory of cards and charms
+     *
+     * @param batch The SpriteBatch used for rendering.
+     * @param delta The time elapsed since the last frame.
+     * @param worldWidth The width of the game world for layout calculations.
+     */
     private void renderInventory(SpriteBatch batch, float delta, float worldWidth) {
         List<Card> cards = game.getRunState().getOwnedCards();
         Card draggedCard = null;
@@ -330,6 +359,11 @@ public class GameScreen implements Screen {
         if (shop.getDraggedCharm() != null) shop.renderCharm(shop.getDraggedCharm());
     }
 
+    /**
+     * Renders any active particles in the game world.
+     *
+     * @param delta The time elapsed since the last frame.
+     */
     private void renderParticles(float delta) {
         for (GameObject particle : particles) {
             particle.update(delta);
@@ -435,6 +469,12 @@ public class GameScreen implements Screen {
         lastWheelRotationAngle = currentAngleDeg;
     }
 
+    /**
+     * Wraps an angle in degrees to the range [-180, 180].
+     *
+     * @param degrees The angle in degrees to wrap.
+     * @return The wrapped angle in degrees.
+     */
     private float wrapDegrees(float degrees) {
         degrees %= 360f;
         if (degrees > 180f)

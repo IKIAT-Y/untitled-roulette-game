@@ -64,7 +64,6 @@ public class Wheel {
         this.wheelBackground = new Texture(Gdx.files.internal("ui/WheelBack.png"));
         this.spinButton = new SpinButton(position, 160f);
 
-        // Testing
         radius = 200f;
         tileSize = 50;
 
@@ -148,6 +147,15 @@ public class Wheel {
         return ang;
     }
 
+    /**
+     * Adds a ring-shaped fixture to the wheel's body. The ring is defined by a series of points forming a loop.
+     *
+     * @param radius The radius of the ring.
+     * @param friction The friction coefficient for the fixture.
+     * @param restitution The restitution (bounciness) for the fixture.
+     * @param startAsSensor Whether the fixture should start as a sensor (non-colliding).
+     * @return The created Fixture object representing the ring.
+     */
     private Fixture addRing(float radius, float friction, float restitution, boolean startAsSensor) {
         int segments = 64;
         Vector2[] points = new Vector2[segments];
@@ -181,6 +189,12 @@ public class Wheel {
         }
     }
 
+    /**
+     * Updates the spin button's state and position based on the provided state and camera.
+     *
+     * @param state The new state of the spin button (e.g., NO_BET, BET_PLACED, SPINNING).
+     * @param camera The OrthographicCamera used for rendering, which may affect the button's position.
+     */
     public void updateSpinButton(SpinButton.State state, OrthographicCamera camera) {
 
         spinButtonState = state;
@@ -317,6 +331,12 @@ public class Wheel {
         return null;
     }
 
+    /**
+     * Normalizes an angle to the range of [0, 2π).
+     *
+     * @param angle The angle in radians to normalize.
+     * @return The normalized angle in the range [0, 2π).
+     */
     private float normalizeAngle(float angle) {
         float twoPi = MathUtils.PI2;
         angle %= twoPi;

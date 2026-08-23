@@ -31,6 +31,7 @@ public class Bet {
      * return"
      * multiplier convention already used in {@link BetType} (e.g. STRAIGHT = 36f,
      * not 35f).
+     * @param winningTile The tile that won the round.
      */
     public int payout(Tile winningTile) {
         if (!wins(winningTile)) {

@@ -59,6 +59,11 @@ public final class CardLayout {
         return CARD_WIDTH + gap;
     }
 
+    /** Renders the background panel for the player's card slots.
+     * @param spriteBatch The sprite batch to use for rendering.
+     * @param maxHandSize The maximum number of cards that can be in the hand.
+     * @param handSize The current number of cards in the hand.
+     */
     public static void renderBackPanel(SpriteBatch spriteBatch, int maxHandSize, int handSize) {
         float panelX = HAND_X - 20f;
         float panelY = HAND_Y - 20f;
@@ -77,6 +82,12 @@ public final class CardLayout {
         }
     }
 
+    /** Determines the index of the closest card slot to a given x-coordinate.
+     * @param cardX The x-coordinate of the card.
+     * @param count The number of card slots.
+     * @param worldWidth The width of the game world (not used in this calculation).
+     * @return The index of the closest card slot.
+     */
     public static int getClosestIndex(float cardX, int count, float worldWidth) {
         if (count <= 1) {
             return 0;
@@ -87,30 +98,4 @@ public final class CardLayout {
         return Math.max(0, Math.min(count - 1, index));
     }
 
-    /* Deprecated
-    public static void renderSlotPanels(SpriteBatch spriteBatch, float worldWidth) {
-        for (int i = 0; i < MAX_HAND_SIZE; i++) {
-            Vector2 slot = getSlotPosition(i, MAX_HAND_SIZE, worldWidth);
-            drawSlotPanel(spriteBatch, slot.x, slot.y, CARD_WIDTH, CARD_HEIGHT);
-        }
-    }
-
-    private static void drawSlotPanel(SpriteBatch spriteBatch, float x, float y, float width, float height) {
-        spriteBatch.setColor(COL_SHADOW);
-        SLOT_PATCH.draw(spriteBatch, x, y - OUTLINE_PADDING, width, height);
-
-        spriteBatch.setColor(COL_OUTLINE);
-        SLOT_PATCH.draw(spriteBatch, x, y, width, height);
-
-        spriteBatch.setColor(COL_FILL);
-        SLOT_PATCH.draw(
-            spriteBatch,
-            x + OUTLINE_PADDING,
-            y + OUTLINE_PADDING,
-            width - OUTLINE_PADDING * 2,
-            height - OUTLINE_PADDING * 2
-        );
-        spriteBatch.setColor(Color.WHITE);
-    }
-    */
 }

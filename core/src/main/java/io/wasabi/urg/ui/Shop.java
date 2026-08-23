@@ -132,7 +132,7 @@ public class Shop extends InputAdapter {
         float left = x - WIDTH / 2f;
         float bottom = y - HEIGHT / 2f;
         layoutControls(bottom, left);
-        layoutOffers(left);
+        layoutCardOffers(left);
         layoutCharmOffers(left);
 
         spriteBatch.begin();
@@ -164,7 +164,7 @@ public class Shop extends InputAdapter {
         renderBox(rerollButton, boxPadding, getButtonColor(rerollButtonDown, rerollButtonHover,
             rerollButtonDownColor, rerollButtonHoverColor, rerollButtonColor));
     }
-
+    
     private void renderBox(Rectangle box, float padding, Color color) {
         spriteBatch.setColor(1, 1, 1, 1);
         patch.draw(spriteBatch, box.x - padding / 2, box.y - padding / 2,
@@ -179,6 +179,10 @@ public class Shop extends InputAdapter {
         return hover ? hoverColor : normalColor;
     }
 
+    /** Renders the text labels for the shop controls, 
+     * including "SHOP", "BUY", "SELL", "REROLL", and "CONTINUE".
+     * @param left The x-coordinate of the left side of the shop panel, used to position the text.
+     */
     private void renderShopText(float left) {
         spriteBatch.setColor(1, 1, 1, 1);
         FONT_64PX.draw(spriteBatch, "SHOP", left + 30f, HEIGHT / 2 - 30f);
@@ -191,6 +195,11 @@ public class Shop extends InputAdapter {
         drawCenteredText(layout, "CONTINUE", continueButton);
     }
 
+    /** Draws text centered within a given rectangle.
+     * @param layout The GlyphLayout used for measuring text dimensions.
+     * @param text The text to draw.
+     * @param box The rectangle within which to center the text.
+     */
     private void drawCenteredText(GlyphLayout layout, String text, Rectangle box) {
         layout.setText(FONT, text, Color.WHITE, box.width, Align.center, false);
         FONT.draw(spriteBatch, text, box.x, box.y + box.height / 2f + layout.height / 2f,
@@ -332,6 +341,12 @@ public class Shop extends InputAdapter {
         return false;
     }
 
+    /** Called when the user starts dragging a card. 
+     * Sets the draggedCard field and calculates the drag offset.
+     * @param card The card to drag.
+     * @param offer Whether the card is being dragged from the offer list.
+     * @param world The world coordinates of the mouse pointer.
+     */
     private void beginCardDrag(Card card, boolean offer, Vector2 world) {
         draggedCard = card;
         draggingOffer = offer;
@@ -339,6 +354,12 @@ public class Shop extends InputAdapter {
         dragOffset.set(world.x - card.getX(), world.y - card.getY());
     }
 
+    /** Called when the user starts dragging a charm. 
+     * Sets the draggedCharm field and calculates the drag offset.
+     * @param charm The charm to drag.
+     * @param offer Whether the charm is being dragged from the offer list.
+     * @param world The world coordinates of the mouse pointer.
+     */
     private void beginCharmDrag(AbstractCharm charm, boolean offer, Vector2 world) {
         draggedCharm = charm;
         draggingCharmOffer = offer;
@@ -346,6 +367,10 @@ public class Shop extends InputAdapter {
         dragOffset.set(world.x - charm.getX(), world.y - charm.getY());
     }
 
+    /** Called when the user starts dragging an item from the inventory. 
+     * Sets the draggingInventory field and calculates the current sell price.
+     * @param price The price at which the item is being sold.
+     */
     public void beginInventoryDrag(int price) {
         draggingInventory = true;
         currentSellPrice = price;
@@ -359,7 +384,7 @@ public class Shop extends InputAdapter {
         currentSellPrice = 0;
         finishCardDrag(world);
     }
-
+    
     public void finishInventoryCharmDrag(int x, int y, AbstractCharm charm) {
         Vector2 world = screenToWorld(x, y);
         draggedCharm = charm;
@@ -419,6 +444,9 @@ public class Shop extends InputAdapter {
         }
     }
 
+    /** Rerolls the shop offers, returning the current offers to their respective pools
+     * and drawing new offers for both cards and charms.
+     */
     private void reroll() {
         if (!runState.spendTickets(REROLL_PRICE)) return;
 
@@ -463,6 +491,12 @@ public class Shop extends InputAdapter {
         }
     }
 
+    /** Checks if the given list of offered charms contains a charm of the same type as the specified charm.
+     *
+     * @param offerList The list of offered charms to check.
+     * @param charm The charm to check for in the offer list.
+     * @return True if the offer list contains a charm of the same type, false otherwise.
+     */
     private boolean offersContainType(List<AbstractCharm> offerList, AbstractCharm charm) {
         for (AbstractCharm offered : offerList) {
             if (offered.getClass() == charm.getClass()) {
@@ -482,6 +516,13 @@ public class Shop extends InputAdapter {
         charmOffers.clear();
     }
 
+    /** Lays out the positions of the shop controls 
+     * (buy/sell boxes, reroll button, continue button) 
+     * based on the bottom and left coordinates of the shop panel.
+     *
+     * @param bottom The y-coordinate of the bottom of the shop panel.
+     * @param left The x-coordinate of the left side of the shop panel.
+     */
     private void layoutControls(float bottom, float left) {
         buyBox.set(280f, bottom + 150f, 225f, 300f);
         sellBox.set(550f, bottom + 150f, 225f, 300f);
@@ -489,7 +530,12 @@ public class Shop extends InputAdapter {
         continueButton.set(280f, bottom + 30f, 495f, 65f);
     }
 
-    private void layoutOffers(float left) {
+    /** Lays out the positions of the card offers within the shop panel.
+     * The offers are spaced evenly across the width of the shop panel.
+     *
+     * @param left The x-coordinate of the left side of the shop panel.
+     */
+    private void layoutCardOffers(float left) {
         int size = OFFER_COUNT; // offers.size();
         float spacing = (OFFER_TARGET_WIDTH - (size * 96f)) / size;
         float targetX = spacing / 2 + left + WIDTH / 2 - OFFER_TARGET_WIDTH / 2;
@@ -502,6 +548,11 @@ public class Shop extends InputAdapter {
         }
     }
 
+    /** Lays out the positions of the charm offers within the shop panel.
+     * The charm offers are spaced evenly across the width of the shop panel.
+     *
+     * @param left The x-coordinate of the left side of the shop panel.
+     */
     private void layoutCharmOffers(float left) {
         int size = CHARM_OFFER_COUNT; // offers.size();
         float spacing = (OFFER_TARGET_WIDTH - (size * 64f)) / size;
