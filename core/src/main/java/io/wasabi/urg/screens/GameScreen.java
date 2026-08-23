@@ -518,37 +518,6 @@ public class GameScreen implements Screen {
         game.getRoundManager().advance();
     }
 
-    private void renderDebugWinButton() {
-        float buttonWidth = 250f;
-        float buttonHeight = 55f;
-        float buttonX = 20f;
-        float buttonY = 75f;
-        debugWinButton.set(buttonX, buttonY, buttonWidth, buttonHeight);
-
-        Matrix4 previousShapeProjection = new Matrix4(shapeRenderer.getProjectionMatrix());
-        Matrix4 previousSpriteProjection = new Matrix4(spriteBatch.getProjectionMatrix());
-        Matrix4 previousSpriteTransform = new Matrix4(spriteBatch.getTransformMatrix());
-        Matrix4 screenProjection = new Matrix4().setToOrtho2D(
-                0f, 0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
-        shapeRenderer.setProjectionMatrix(screenProjection);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(0.65f, 0.25f, 0.25f, 1f);
-        shapeRenderer.rect(buttonX, buttonY, buttonWidth, buttonHeight);
-        shapeRenderer.end();
-
-        spriteBatch.setProjectionMatrix(screenProjection);
-        spriteBatch.setTransformMatrix(new Matrix4().idt());
-        spriteBatch.begin();
-        //FontManager.getInstance().getFontByName("Terminus32PX")
-        //        .draw(spriteBatch, "DEBUG WIN", buttonX + 42f, buttonY + 35f);
-        spriteBatch.end();
-
-        shapeRenderer.setProjectionMatrix(previousShapeProjection);
-        spriteBatch.setProjectionMatrix(previousSpriteProjection);
-        spriteBatch.setTransformMatrix(previousSpriteTransform);
-    }
-
     private boolean canBet() {
         return gameState != GameState.SHOP
             && !wheel.isSpinning()
