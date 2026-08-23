@@ -58,6 +58,8 @@ public class Roulette extends Game {
         FontManager.getInstance().initialize(this);
 
         soundManager.initialize();
+        soundManager.setMusicVolume(0.4f);
+        soundManager.playMusic("bgMusic", true);
         TextureManager.getInstance().initialize();
 
         cardPool = new CardPool();
@@ -65,6 +67,12 @@ public class Roulette extends Game {
 
         int STARTING_MONEY = 100;
         runState.reset(STARTING_MONEY);
+
+        runState.addCard(cardPool.getRandomCard());
+        runState.addCard(cardPool.getRandomCard());
+        runState.addCard(cardPool.getRandomCard());
+        runState.addCard(cardPool.getRandomCard());
+        runState.addCard(cardPool.getRandomCard());
 
         this.gameScreen = new GameScreen(this);
         this.bettingScreen = new BettingScreen(this);

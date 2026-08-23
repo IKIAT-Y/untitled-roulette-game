@@ -259,7 +259,7 @@ public final class RunState {
 
         chips = startingChips;
         score = 0;
-        tickets = 0;
+        tickets = 5;
         lastTile = null;
         clearSelectedTiles();
         activeTooltip = null;
@@ -450,38 +450,30 @@ public final class RunState {
     public void triggerEffects(String effectType) {
         int triggerCount = getCardEffectTriggerCount();
 
+        triggerCardEffects(effectType);
+        triggerBossEffects(effectType);
+    }
+
+    private void triggerCardEffects(String effectType) {
+        int triggerCount = getCardEffectTriggerCount();
+
         for (int trigger = 0; trigger < triggerCount; trigger++) {
             for (Card card : ownedCards) {
                 switch (effectType) {
                     case "roundStart":
                         card.roundStartEffect();
-                        if (boss != null) {
-                            boss.roundStartEffect();
-                        }
                         break;
                     case "beforeSpin":
                         card.beforeSpinEffect();
-                        if (boss != null) {
-                            boss.beforeSpinEffect();
-                        }
                         break;
                     case "afterSpin":
                         card.afterSpinEffect();
-                        if (boss != null) {
-                            boss.afterSpinEffect();
-                        }
                         break;
                     case "roundEnd":
                         card.roundEndEffect();
-                        if (boss != null) {
-                            boss.roundEndEffect();
-                        }
                         break;
                     case "charmConsumed":
                         card.charmConsumedEffect();
-                        if (boss != null) {
-                            boss.charmConsumedEffect();
-                        }
                         break;
                     default:
                         throw new IllegalArgumentException("Unknown effect type: " + effectType);
@@ -491,6 +483,32 @@ public final class RunState {
 
         for (Card card : ownedCards) {
             card.afterCardEffects(effectType);
+        }
+    }
+
+    private void triggerBossEffects(String effectType) {
+        if (boss == null) {
+            return;
+        }
+
+        switch (effectType) {
+            case "roundStart":
+                boss.roundStartEffect();
+                break;
+            case "beforeSpin":
+                boss.beforeSpinEffect();
+                break;
+            case "afterSpin":
+                boss.afterSpinEffect();
+                break;
+            case "roundEnd":
+                boss.roundEndEffect();
+                break;
+            case "charmConsumed":
+                boss.charmConsumedEffect();
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown effect type: " + effectType);
         }
     }
 

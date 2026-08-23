@@ -8,6 +8,8 @@ public class BlackCard extends Card {
 
     public BlackCard() {
         super(Rarity.COMMON);
+        this.price = 4;
+        this.sellPrice = 2;
         tooltip.setTitle("Black Card");
         tooltip.setDescription("Black tiles give [RED]1.5x [BLACK]payout");
     }

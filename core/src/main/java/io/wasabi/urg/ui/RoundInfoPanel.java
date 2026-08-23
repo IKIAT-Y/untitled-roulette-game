@@ -50,7 +50,7 @@ public class RoundInfoPanel {
 
     // Layout
     private float x;
-    private float y; 
+    private float y;
     private float width = 240f;
     private float padding = 2.5f;     // outline thickness
     private float sectionGap = 12f;   // gap between stacked boxes
@@ -128,9 +128,11 @@ public class RoundInfoPanel {
         Boss boss = this.runState.getBoss();
         RoundConfig config = this.roundManager.getCurrentConfig();
 
+        System.out.println("Updating round type: act=" + this.roundManager.getAct() + ", round=" + this.roundManager.getRound() + ", isBossRound=" + config.isBossRound());
         if (config.isBossRound() && boss != null) {
             setRoundType(boss.getName());
             setBossInfo(boss.getPhrase(), boss.getDescription());
+            System.out.println("Boss round detected: " + boss.getName() + " - " + boss.getPhrase());
         } else {
             setRoundType("Normal Round");
             setRoundInfo("A normal round of roulette.", "Reach the quota before you run out of spins.");
@@ -284,7 +286,7 @@ public class RoundInfoPanel {
         return boxY;
     }
 
-    /** Draws a row of two stat boxes, one for the bet amount 
+    /** Draws a row of two stat boxes, one for the bet amount
      * and one for the remaining spins.
      *
      * @param topY The y-coordinate of the top of the row.
@@ -369,7 +371,7 @@ public class RoundInfoPanel {
         return boxY;
     }
 
-    /** Draws a row of two boxes, one for the current act 
+    /** Draws a row of two boxes, one for the current act
      * and one for the current round.
      *
      * @param topY The y-coordinate of the top of the row.

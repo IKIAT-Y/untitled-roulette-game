@@ -7,6 +7,8 @@ public class LuckyTalisman extends Card {
 
     public LuckyTalisman() {
         super(Rarity.UNCOMMON);
+        this.price = 10;
+        this.sellPrice = 5;
         tooltip.setTitle("Lucky Talisman");
         tooltip.setDescription("All tiles gain [RED]+0.1x [BLACK]payout every time a charm is used\nCurrently [RED]1.0x");
     }

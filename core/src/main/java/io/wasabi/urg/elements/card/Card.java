@@ -20,14 +20,7 @@ import io.wasabi.urg.util.tweens.Tween;
 public abstract class Card extends GameObject {
 
     public enum Rarity {
-        // price in tickets
-        COMMON(10), UNCOMMON(15), RARE(20);
-
-        private final int price;
-
-        Rarity(int price) { this.price = price; }
-
-        public int getPrice() { return price; }
+        COMMON, UNCOMMON, RARE
     }
 
     private static final EnumMap<Rarity, Integer> RARITY_COLOURS = new EnumMap<Rarity, Integer>(Rarity.class);
@@ -36,6 +29,9 @@ public abstract class Card extends GameObject {
         RARITY_COLOURS.put(Rarity.UNCOMMON, 0x00a629FF);
         RARITY_COLOURS.put(Rarity.RARE, 0xa61300FF);
     }
+
+    protected int price = 4; // Default price for cards, can be overridden in subclasses
+    protected int sellPrice = 2; // Default sell price for cards, can be overridden in subclasses
 
     protected Rarity cardRarity;
     protected Tooltip tooltip = new Tooltip(0.5f, 1);
@@ -143,8 +139,8 @@ public abstract class Card extends GameObject {
     public float getWidth() { return width; }
     public float getHeight() { return height; }
     public Rarity getRarity() { return cardRarity; }
-    public int getPrice() { return cardRarity.getPrice(); }
-    public int getSellPrice() { return getPrice() / 2; }
+    public int getPrice() { return price; }
+    public int getSellPrice() { return sellPrice; }
     public String getDisplayName() { return getClass().getSimpleName(); }
     public boolean isDragging() { return dragging; }
     public Tooltip getTooltip() { return tooltip; }

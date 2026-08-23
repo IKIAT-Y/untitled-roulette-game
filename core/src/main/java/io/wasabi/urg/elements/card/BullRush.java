@@ -8,6 +8,8 @@ public class BullRush extends Card {
 
     public BullRush() {
         super(Rarity.UNCOMMON);
+        this.price = 5;
+        this.sellPrice = 3;
         tooltip.setTitle("Bull Rush");
         tooltip.setDescription(
             "Landing on [RED]6 [BLACK]grants the payout immediately and grants a free re-spin"

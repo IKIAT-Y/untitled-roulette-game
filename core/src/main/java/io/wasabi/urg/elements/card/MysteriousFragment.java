@@ -12,6 +12,8 @@ import io.wasabi.urg.elements.tiles.VoidTile;
 public class MysteriousFragment extends Card {
     public MysteriousFragment() {
         super(Rarity.RARE);
+        this.price = 15;
+        this.sellPrice = 7;
         tooltip.setTitle("Mysterious Fragment");
         tooltip.setDescription(
                 "At round start, turn a random tile [PURPLE]VOID[BLACK]. "

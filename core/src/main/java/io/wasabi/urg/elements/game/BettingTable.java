@@ -29,6 +29,7 @@ import io.wasabi.urg.elements.betting.PocketColor;
 import io.wasabi.urg.elements.betting.TableLayoutGenerator;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.state.RunState;
 
 public class BettingTable extends GameObject {
@@ -215,7 +216,7 @@ public class BettingTable extends GameObject {
         return nearest;
     }
 
-    /** Spawns a fresh chip for dragging — the tray itself is never depleted.   
+    /** Spawns a fresh chip for dragging — the tray itself is never depleted.
      * @param denomination The denomination of the chip to spawn.
     */
     public Chip beginDragFromTray(ChipDenomination denomination, Vector2 point) {
@@ -274,6 +275,8 @@ public class BettingTable extends GameObject {
         Bet bet = new Bet(zone, amount);
         chip.setBet(bet);
         chip.setDragging(false);
+
+        SoundManager.getInstance().playSound("chipPlace");
 
         int stackIndex = countChipsOnZone(zone);
         Vector2 anchor = zone.getChipAnchor();

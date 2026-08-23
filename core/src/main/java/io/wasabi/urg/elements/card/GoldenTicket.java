@@ -19,6 +19,8 @@ public class GoldenTicket extends Card {
 
     public GoldenTicket() {
         super(Rarity.COMMON);
+        this.price = 5;
+        this.sellPrice = 3;
         tooltip.setTitle("Golden Ticket");
         tooltip.setDescription(
                 "At round start, enchant 2 tiles. Gain 4 [#FFCB1FFF]TICKETS "
