@@ -61,9 +61,13 @@ public class Tile extends GameObject {
 
     private boolean selected = false;
 
-    // Used to track changes in the tile's color. Incremented whenever the color is changed.
-    // This way we can detect in-place color changes without needing to compare TileType references.
-    private int colorVersion = 0;
+    // Used to track changes to this tile's colour or number — the two attributes
+    // {@link io.wasabi.urg.elements.betting.BettingTable}'s cached layout keys bet
+    // zones on. Incremented whenever either is changed in place (setColor/setType/
+    // setNumber), even though the Tile reference itself never changes, so staleness
+    // can be detected without needing to compare TileType references or diff every
+    // tile's live state every frame.
+    private int layoutVersion = 0;
 
     public Tile(World world, TileType type, Vector2 position, float radius, float height) {
         this.world = world;
@@ -287,6 +291,19 @@ public class Tile extends GameObject {
         return type.getNumber();
     }
 
+    /**
+     * Rerolls this tile's number in place (e.g. ScrambledCharm). Routed through
+     * here rather than callers reaching into {@link #getType()} directly so the
+     * change bumps {@link #layoutVersion} — a tile's number decides which grid
+     * cell/straight zone it belongs to and whether it counts as the special "0"
+     * pocket (see TableLayoutGenerator#isZeroTile), so betting layouts need to
+     * know this happened just as much as a colour change.
+     */
+    public void setNumber(int number) {
+        type.setNumber(number);
+        layoutVersion++;
+    }
+
     public boolean isSelected() {
         return selected;
     }
@@ -327,7 +344,7 @@ public class Tile extends GameObject {
     public void setType(TileType type) {
         this.type.dispose();
         this.type = type;
-        colorVersion++;
+        layoutVersion++;
         update();
     }
 
@@ -344,23 +361,23 @@ public class Tile extends GameObject {
     }
 
     /**
-     * Sets the color of the tile and increments the color version to indicate a change.
-     * See {@link #colorVersion}.
-     * 
+     * Sets the color of the tile and increments the layout version to indicate a change.
+     * See {@link #layoutVersion}.
+     *
      * @param color
      */
     public void setColor(TileType.TileColour color) {
         type.setColour(color);
-        colorVersion++;
+        layoutVersion++;
     }
 
     /**
-     * See {@link #colorVersion}. Compare this against a previously-recorded value
-     * to detect an in-place colour change that a reference-equality check on the
-     * tile itself (or a list of tiles) would miss.
+     * See {@link #layoutVersion}. Compare this against a previously-recorded value
+     * to detect an in-place colour or number change that a reference-equality
+     * check on the tile itself (or a list of tiles) would miss.
      */
-    public int getColorVersion() {
-        return colorVersion;
+    public int getLayoutVersion() {
+        return layoutVersion;
     }
 
     /**

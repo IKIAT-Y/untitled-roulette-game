@@ -86,7 +86,7 @@ public class TableLayoutGenerator {
         zones.addAll(buildSixLineZones(numberPositions, tilesByNumber, columns, rows, originX, originY));
         zones.addAll(buildColumnZones(numberPositions, tilesByNumber, columns, rows, originX, originY));
         zones.addAll(buildDozenZones(uniqueNumbers, tilesByNumber, columns, rows, originX, originY));
-        zones.addAll(buildOutsideCategoryZones(standard, uniqueNumbers, tilesByNumber, originX, originY));
+        zones.addAll(buildOutsideCategoryZones(standard, zeros, uniqueNumbers, tilesByNumber, originX, originY));
         zones.addAll(buildZeroZones(zeros, rows, originX, originY));
 
         Rectangle bounds = new Rectangle(
@@ -408,8 +408,8 @@ public class TableLayoutGenerator {
         return zones;
     }
 
-    private List<BetZone> buildOutsideCategoryZones(List<Tile> standard, List<Integer> uniqueNumbers,
-            Map<Integer, List<Tile>> tilesByNumber, float originX, float originY) {
+    private List<BetZone> buildOutsideCategoryZones(List<Tile> standard, List<Tile> zeros,
+            List<Integer> uniqueNumbers, Map<Integer, List<Tile>> tilesByNumber, float originX, float originY) {
         List<BetZone> zones = new ArrayList<>();
 
         // Colour/parity are per-tile attributes, so bucketing every physical tile
@@ -431,6 +431,13 @@ public class TableLayoutGenerator {
                 odd.add(t);
             else
                 even.add(t);
+        }
+
+        for (Tile t : zeros) {
+            if (t.isRed())
+                red.add(t);
+            if (t.isBlack())
+                black.add(t);
         }
 
         // "High/low" generalised to rank-based halves of the UNIQUE numbers in play
