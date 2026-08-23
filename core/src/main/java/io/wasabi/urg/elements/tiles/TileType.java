@@ -69,6 +69,7 @@ public abstract class TileType implements Disposable {
     }
 
     public void drawTextures() {
+        POLY_BATCH.setColor(1, 1, 1, 1);
         POLY_BATCH.draw(region, 0, 0);
     }
 
