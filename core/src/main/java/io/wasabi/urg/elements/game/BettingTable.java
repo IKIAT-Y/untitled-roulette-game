@@ -63,6 +63,12 @@ public class BettingTable extends GameObject {
     private BettingTableLayout layout;
     private List<Tile> lastKnownTiles;
 
+    // Snapshot of Tile#getLayoutVersion() as of the last rebuild, keyed by tile
+    // identity. tiles.equals(lastKnownTiles) only catches tiles being added/
+    // removed/reordered, but not in-place changes to a tile's colour or number.
+    // This map lets us detect those changes without needing to compare every tile's live state every frame.
+    private Map<Tile, Integer> lastKnownLayoutVersions = new HashMap<>();
+
     // Backed by RunState, not owned here — see the comment on RunState.activeBets.
     // This
     // BettingTable instance is screen-local and gets recreated on screen
@@ -126,6 +132,10 @@ public class BettingTable extends GameObject {
     public void rebuildLayout() {
         this.layout = generator.generate(tiles, posX, posY);
         this.lastKnownTiles = new ArrayList<>(tiles);
+        this.lastKnownLayoutVersions = new HashMap<>();
+        for (Tile tile : tiles) {
+            lastKnownLayoutVersions.put(tile, tile.getLayoutVersion());
+        }
         invalidateOrphanedBets();
         rebuildTray();
     }
@@ -182,9 +192,30 @@ public class BettingTable extends GameObject {
         // Cheap change-detection placeholder until the roguelike layer has a proper
         // "pockets changed" event to push. Fine at the tile counts this game deals
         // with.
-        if (!tiles.equals(lastKnownTiles)) {
+        if (layoutIsStale()) {
             rebuildLayout();
         }
+    }
+
+    /**
+     * True if the tile list has been structurally changed (add/remove/reorder) or
+     * any surviving tile's colour or number has changed since the layout was last
+     * built — any of those means the zone membership baked into {@link #layout}
+     * (which straight zone/number a tile occupies, whether it's the special "0"
+     * pocket, which RED/BLACK/ODD/EVEN/etc. bucket it falls in) no longer matches
+     * reality. See {@link #lastKnownLayoutVersions}.
+     */
+    private boolean layoutIsStale() {
+        if (!tiles.equals(lastKnownTiles)) {
+            return true;
+        }
+        for (Tile tile : tiles) {
+            Integer knownVersion = lastKnownLayoutVersions.get(tile);
+            if (knownVersion == null || knownVersion != tile.getLayoutVersion()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Chip getTrayChipAt(Vector2 point) {

@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.Color;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.game.Tile;
-import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.FloatingText;
 
@@ -30,8 +29,12 @@ public class ScrambledCharm extends Charm {
             List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
             for (Tile tile : selectedTiles) {
                 int randomNumber = random.nextInt(37); // Generates a random number between 0 and 36
-                TileType type = tile.getType();
-                type.setNumber(randomNumber);
+                // Routed through Tile#setNumber (not tile.getType().setNumber(...)
+                // directly) so the change bumps Tile's layout version — otherwise
+                // BettingTable never notices a reroll changed which grid cell/zero
+                // pocket this tile belongs to and keeps rendering/paying out a stale
+                // layout. See Tile#setNumber.
+                tile.setNumber(randomNumber);
             }
             Roulette.getInstance().getRunState().clearSelectedTiles();
             removeAndReturnToPool();

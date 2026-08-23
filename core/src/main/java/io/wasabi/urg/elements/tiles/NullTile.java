@@ -23,6 +23,13 @@ public class NullTile extends TileType {
             new VertexAttribute(Usage.ColorPacked, 4, ShaderProgram.COLOR_ATTRIBUTE),
             new VertexAttribute(Usage.TextureCoordinates, 2, ShaderProgram.TEXCOORD_ATTRIBUTE + "0")
         );
+
+        updateTooltipTitle();
+    }
+
+    @Override
+    protected void updateTooltipTitle() {
+        tooltip.setTitle(String.format("[BLACK]N[MAGENTA]U[BLACK]L[MAGENTA]L[BLACK] %d", getNumber()));
     }
 
     @Override
@@ -54,10 +61,6 @@ public class NullTile extends TileType {
         return false;
     }
 
-    // The base texture field is never actually drawn (drawTextures() is a no-op
-    // here; the real look comes from the NULL_TEXTURE mesh in drawOverlay()), so
-    // anything pulling "this tile's texture" generically (e.g. the betting table)
-    // needs this override to see the real pattern instead of a flat placeholder.
     @Override
     public Texture getTexture() {
         return NULL_TEXTURE;

@@ -58,6 +58,8 @@ public abstract class TileType implements Disposable {
         updateTooltipTitle();
     }
 
+    // Protected (not private) so subclasses whose actual on-screen look isn't
+    // driven by the colour field can override this to set a more appropriate title for the tooltip.
     protected void updateTooltipTitle() {
         tooltip.setTitle(String.format("[#%08X]%s %d", tileColourMap.get(colour), colour.toString().toUpperCase(), number));
     }
@@ -67,6 +69,7 @@ public abstract class TileType implements Disposable {
     }
 
     public void drawTextures() {
+        POLY_BATCH.setColor(1, 1, 1, 1);
         POLY_BATCH.draw(region, 0, 0);
     }
 
