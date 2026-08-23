@@ -23,6 +23,7 @@ public class BettingScreen implements Screen {
     // Elements
     private BettingTable bettingTable;
     private Texture betButtonTexture;
+    private Texture backgroundImg;
     private BetScreenButton betButton;
     private float baseWindowWidth;
     private float baseWindowHeight;
@@ -37,6 +38,8 @@ public class BettingScreen implements Screen {
 
         this.bettingTable = new BettingTable();
 
+        backgroundImg = new Texture(Gdx.files.internal("ui/BettingBoard.png"));
+
         // Absolute value for now. Consider making this relative to table size and world
         // coords.
         this.bettingTable.setPosition(-640f, -48f);
@@ -47,6 +50,16 @@ public class BettingScreen implements Screen {
     @Override
     public void render(float delta) {
         ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
+
+        // Draw the background
+        spriteBatch.begin();
+        spriteBatch.draw(
+            backgroundImg,
+            -game.getWorldWidth() / 2f,
+            -game.getWorldHeight() / 2f,
+            game.getWorldWidth(),
+            game.getWorldHeight());
+        spriteBatch.end();
 
         // ShapeRenderer renders
         shapeRenderer.setColor(1f, 1f, 1f, 1f);
@@ -135,5 +148,6 @@ public class BettingScreen implements Screen {
         spriteBatch.dispose();
         bettingTable.dispose();
         betButtonTexture.dispose();
+        backgroundImg.dispose();
     }
 }
