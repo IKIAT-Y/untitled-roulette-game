@@ -7,12 +7,20 @@ import java.util.function.Supplier;
 
 import io.wasabi.urg.elements.charm.Charm;
 import io.wasabi.urg.elements.charm.BlackCharm;
+import io.wasabi.urg.elements.charm.EraserCharm;
+import io.wasabi.urg.elements.charm.GoldCharm;
+import io.wasabi.urg.elements.charm.MetallicCharm;
+import io.wasabi.urg.elements.charm.MirrorCharm;
 import io.wasabi.urg.elements.charm.RedCharm;
 import io.wasabi.urg.elements.charm.ScrambledCharm;
 
 public class CharmPool {
     private static final List<Supplier<Charm>> CHARM_SUPPLIERS = List.of(
         BlackCharm::new,
+        EraserCharm::new,
+        GoldCharm::new,
+        MetallicCharm::new,
+        MirrorCharm::new,
         RedCharm::new,
         ScrambledCharm::new
     );
