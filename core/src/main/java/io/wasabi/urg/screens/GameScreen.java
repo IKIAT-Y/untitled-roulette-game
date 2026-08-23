@@ -31,14 +31,7 @@ import io.wasabi.urg.managers.CardInputHandler;
 import io.wasabi.urg.managers.CharmInputHandler;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
-import io.wasabi.urg.ui.CardLayout;
-import io.wasabi.urg.ui.CharmLayout;
-import io.wasabi.urg.ui.GameOver;
-import io.wasabi.urg.ui.QuotaTracker;
-import io.wasabi.urg.ui.RoundInfoPanel;
-import io.wasabi.urg.ui.RoundResult;
-import io.wasabi.urg.ui.Shop;
-import io.wasabi.urg.ui.Tooltip;
+import io.wasabi.urg.ui.*;
 
 public class GameScreen implements Screen {
     private static final int STARTING_CHIPS = 100;
@@ -83,6 +76,7 @@ public class GameScreen implements Screen {
     private GameOver gameOver;
     private QuotaTracker quotaTracker;
     private RoundInfoPanel roundInfoPanel;
+    private final WinAnimation winAnimation = new WinAnimation();
 
     // Handlers
     private CardInputHandler cardInputHandler = new CardInputHandler(Roulette.getInstance().getRunState(),
@@ -291,6 +285,9 @@ public class GameScreen implements Screen {
         renderInventory(batch, delta, worldWidth);
         batch.end();
 
+        winAnimation.update(delta);
+        winAnimation.render();
+
         quotaTracker.render();
         // render tooltip at very end
         Tooltip activeTooltip = game.getRunState().getActiveTooltip();
@@ -448,7 +445,7 @@ public class GameScreen implements Screen {
     }
 
     private void handleWheelRotationInput() {
-        if (gameState != GameState.ROUND || wheel.isSpinning() || !Gdx.input.isButtonPressed(Input.Buttons.MIDDLE)) {
+        if (gameState != GameState.ROUND || wheel.isSpinning() || winAnimation.isActive() || !Gdx.input.isButtonPressed(Input.Buttons.MIDDLE)) {
             draggingWheelRotation = false;
             return;
         }
@@ -536,7 +533,8 @@ public class GameScreen implements Screen {
 
     private boolean canBet() {
         return gameState != GameState.SHOP
-                && !wheel.isSpinning();
+                && !wheel.isSpinning()
+                && !winAnimation.isActive();
     }
 
     public void addParticle(GameObject particle) {
@@ -579,4 +577,7 @@ public class GameScreen implements Screen {
     public Shop getShop() {
         return shop;
     }
+
+    public QuotaTracker getQuotaTracker() { return quotaTracker; }
+    public WinAnimation getWinAnimation() { return winAnimation; }
 }

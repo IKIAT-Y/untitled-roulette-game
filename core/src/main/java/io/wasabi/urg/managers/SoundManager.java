@@ -35,6 +35,12 @@ public final class SoundManager implements Disposable {
         loadSound("tileSelect", "sfx/tileSelect.wav");
         loadSound("tileDeselect", "sfx/tileDeselect.wav");
         loadSound("cardTrigger", "sfx/cardTrigger.wav");
+        loadSound("score1", "sfx/score1.wav");
+        loadSound("score2", "sfx/score2.wav");
+        loadSound("score3", "sfx/score3.wav");
+        loadSound("score4", "sfx/score4.wav");
+        loadSound("winBet", "sfx/winBet.wav");
+        loadSound("loseBet", "sfx/loseBet.wav");
     }
 
     // ---- Loading ----
