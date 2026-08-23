@@ -5,6 +5,7 @@ import java.util.EnumMap;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
@@ -34,8 +35,6 @@ public abstract class Card extends GameObject {
         put(Rarity.UNCOMMON, 0x00a629FF);
         put(Rarity.RARE, 0xa61300FF);
     }};
-
-    private static final Texture DROP_SHADOW = new Texture(Gdx.files.internal("cards/DropShadow.png"));
 
     protected Rarity cardRarity;
     protected Tooltip tooltip = new Tooltip(0.5f, 1);
@@ -103,7 +102,10 @@ public abstract class Card extends GameObject {
     @Override
     public void render() {
         float mult = isDragging() ? 1.05f : 1.0f;
-        RendererManager.getInstance().getSpriteBatch().draw(DROP_SHADOW, x, y - (isDragging() ? 10 : 5), width, height);
+        SpriteBatch spriteBatch = RendererManager.getInstance().getSpriteBatch();
+        spriteBatch.setColor(0, 0, 0, 0.3f);
+        spriteBatch.draw(sprite, x, y - (isDragging() ? 10 : 5), width, height);
+        spriteBatch.setColor(1, 1, 1, 1);
         float nWidth = width * mult;
         float nHeight = height * mult;
         RendererManager.getInstance().getSpriteBatch().draw(sprite, x - width/2 * (mult - 1), y - height/2 * (mult - 1), nWidth, nHeight);
