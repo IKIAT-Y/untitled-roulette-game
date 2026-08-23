@@ -11,27 +11,25 @@ import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.FloatingText;
 
-public class ScrambledCharm extends Charm {
+public class WeakeningCharm extends Charm {
 
     private static final String ERROR_SOUND = "error";
-    private final Random random = new Random();
 
-    public ScrambledCharm() {
+    public WeakeningCharm() {
         super();
-        tooltip.setTitle("Scrambled Charm");
-        tooltip.setDescription("Choose up to four tiles, randomise their number between 0 and 36.");
+        tooltip.setTitle("Weakening Charm");
+        tooltip.setDescription("Choose up to four tiles, decrease their number by 1 (min 0).");
     }
 
     @Override
     public void consume() {
-        
+
         if (requirements()) {
             super.consume();
             List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
             for (Tile tile : selectedTiles) {
-                int randomNumber = random.nextInt(37); // Generates a random number between 0 and 36
                 TileType type = tile.getType();
-                type.setNumber(randomNumber);
+                type.setNumber(Math.max(type.getNumber() - 1, 0));
             }
             Roulette.getInstance().getRunState().clearSelectedTiles();
             removeAndReturnToPool();

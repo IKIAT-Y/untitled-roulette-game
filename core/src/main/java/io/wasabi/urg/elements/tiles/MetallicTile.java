@@ -32,8 +32,8 @@ public class MetallicTile extends TileType {
     @Override
     public void drawTextures() {
         super.drawTextures();
-        //POLY_BATCH.setColor(1, 1, 1, 0.6f);
-        POLY_BATCH.setBlendFunction(GL20.GL_ZERO, GL20.GL_SRC_COLOR);
+        POLY_BATCH.setColor(1, 1, 1, 0.6f);
+        //POLY_BATCH.setBlendFunction(GL20.GL_ZERO, GL20.GL_SRC_COLOR);
         POLY_BATCH.draw(metallicRegion, 0, 0);
         POLY_BATCH.setColor(1, 1, 1, 1);
         POLY_BATCH.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);

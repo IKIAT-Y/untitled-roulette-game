@@ -23,6 +23,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Align;
 
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.elements.tiles.NumberlessTile;
 import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
@@ -213,7 +214,9 @@ public class Tile extends GameObject {
         SPRITE_BATCH.begin();
         previousSpriteTransform.set(SPRITE_BATCH.getTransformMatrix());
         SPRITE_BATCH.setTransformMatrix(fontMatrix4);
-        FONT.draw(SPRITE_BATCH, Integer.toString(type.getNumber()), 0, 0, 16, Align.center, true);
+        if (!(type instanceof NumberlessTile)) {
+            FONT.draw(SPRITE_BATCH, Integer.toString(type.getNumber()), 0, 0, 16, Align.center, true);
+        }
         SPRITE_BATCH.setTransformMatrix(previousSpriteTransform);
         SPRITE_BATCH.end();
 
@@ -333,6 +336,10 @@ public class Tile extends GameObject {
     public float getBetMultiplier() {
         return type.getBetMultiplier();
     }
+
+    public void setFlatBonus(float flatBonus) { type.setFlatBonus(flatBonus); }
+
+    public float getFlatBonus() { return type.getFlatBonus(); }
 
     public TileType.TileColour getColor() {
         return type.getColour();
