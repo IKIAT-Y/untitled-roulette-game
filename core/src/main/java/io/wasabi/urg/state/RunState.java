@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.badlogic.gdx.utils.IntArray;
 
+import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.betting.Bet;
 import io.wasabi.urg.elements.betting.WinBreakdown;
 import io.wasabi.urg.elements.boss.Boss;
@@ -262,6 +263,14 @@ public final class RunState {
         freeSpinRequested = false;
         pendingSettlementStake = 0;
         activeBets.clear();
+
+        for (Card card : ownedCards) {
+            Roulette.getInstance().getCardPool().returnCard(card);
+        }
+        for (AbstractCharm charm : ownedCharms) {
+            Roulette.getInstance().getCharmPool().returnCharm(charm);
+        }
+
         ownedCards.clear();
         ownedCharms.clear();
         chipHistory.clear();
