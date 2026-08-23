@@ -6,6 +6,8 @@ import io.wasabi.urg.elements.game.Tile;
 public class FourLeafClover extends Card {
     public FourLeafClover() {
         super(Rarity.UNCOMMON);
+        this.price = 4;
+        this.sellPrice = 2;
         tooltip.setTitle("Four Leaf Clover");
         tooltip.setDescription("Landing on a 7 pays out [#A37800]7 [BLACK]tickets");
     }

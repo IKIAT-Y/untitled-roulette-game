@@ -58,6 +58,8 @@ public class Roulette extends Game {
         FontManager.getInstance().initialize(this);
 
         soundManager.initialize();
+        soundManager.setMusicVolume(0.4f);
+        soundManager.playMusic("bgMusic", true);
         TextureManager.getInstance().initialize();
 
         cardPool = new CardPool();

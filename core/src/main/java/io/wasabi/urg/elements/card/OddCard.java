@@ -9,6 +9,8 @@ public class OddCard extends Card {
 
     public OddCard() {
         super(Rarity.COMMON);
+        this.price = 3;
+        this.sellPrice = 1;
         tooltip.setTitle("Odd Card");
         tooltip.setDescription("Odd numbered tiles give [RED]1.5x[BLACK] payout");
     }

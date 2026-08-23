@@ -128,9 +128,11 @@ public class RoundInfoPanel {
         Boss boss = this.runState.getBoss();
         RoundConfig config = this.roundManager.getCurrentConfig();
 
+        System.out.println("Updating round type: act=" + this.roundManager.getAct() + ", round=" + this.roundManager.getRound() + ", isBossRound=" + config.isBossRound());
         if (config.isBossRound() && boss != null) {
             setRoundType(boss.getName());
             setBossInfo(boss.getPhrase(), boss.getDescription());
+            System.out.println("Boss round detected: " + boss.getName() + " - " + boss.getPhrase());
         } else {
             setRoundType("Normal Round");
             setRoundInfo("A normal round of roulette.", "Reach the quota before you run out of spins.");

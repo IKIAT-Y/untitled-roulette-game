@@ -21,6 +21,7 @@ import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.charm.Charm;
 import io.wasabi.urg.managers.FontManager;
+import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.util.tweens.Tween;
 
@@ -420,6 +421,7 @@ public class Shop extends InputAdapter {
         if (!runState.canAddCard(card) || runState.getTickets() < card.getPrice()) return;
         if (runState.spendTickets(card.getPrice()) && runState.addCard(card)) {
             offers.remove(card);
+            SoundManager.getInstance().playSound("buy");
         }
     }
 
@@ -427,6 +429,7 @@ public class Shop extends InputAdapter {
         if (runState.removeCard(card)) {
             runState.addTickets(card.getSellPrice());
             Roulette.getInstance().getCardPool().returnCard(card);
+            SoundManager.getInstance().playSound("sell");
         }
     }
 
@@ -435,12 +438,14 @@ public class Shop extends InputAdapter {
         if (runState.spendTickets(charm.getPrice()) && runState.addCharm(charm)) {
             charmOffers.remove(charm);
         }
-    }
+              SoundManager.getInstance().playSound("buy");
+  }
 
     private void sellCharm(Charm charm) {
         if (runState.removeCharm(charm)) {
             runState.addTickets(charm.getSellPrice());
             Roulette.getInstance().getCharmPool().returnCharm(charm);
+            SoundManager.getInstance().playSound("sell");
         }
     }
 

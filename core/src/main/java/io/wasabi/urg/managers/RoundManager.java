@@ -15,8 +15,8 @@ public class RoundManager {
     private static final int SPINS_PER_ROUND = 5;
     private static final int ROUNDS_PER_ACT = 5;
     private static final int TOTAL_ACTS = 3;
-    private static final int BASE_TICKET_REWARD = 20;
-    private static final int TICKETS_PER_UNUSED_SPIN = 2;
+    private static final int BASE_TICKET_REWARD = 4;
+    private static final int TICKETS_PER_UNUSED_SPIN = 1;
     private static final int STARTING_CHIPS = 100;
 
     private int act = 1;
@@ -104,6 +104,7 @@ public class RoundManager {
         if (currentConfig.isBossRound()) {
             Boss boss = selectRandomBossForAct(act);
             runState.setBoss(boss);
+            System.out.println("Starting boss round against: " + (boss != null ? boss.getName() : "No Boss"));
         } else {
             runState.setBoss(null);
         }
@@ -113,8 +114,8 @@ public class RoundManager {
     }
 
     /**
-     * Records the result of a spin to the game state, updating the spins 
-     * remaining and triggering any effects. If the round is over 
+     * Records the result of a spin to the game state, updating the spins
+     * remaining and triggering any effects. If the round is over
      * (no spins remaining), it will not allow further spins.
      *
      * @param freeSpin Whether this spin is a free spin (does not consume a spin).

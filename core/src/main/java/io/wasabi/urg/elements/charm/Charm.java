@@ -26,8 +26,8 @@ public class Charm extends GameObject{
     private Tween tweenY;
     private static final float SNAP_DURATION = 0.25f;
 
-    private int price = 4;
-    private int sellPrice = 2;
+    private int price = 3;
+    private int sellPrice = 1;
 
     protected Charm() {
         this.x = 0;

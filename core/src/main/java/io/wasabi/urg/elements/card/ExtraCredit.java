@@ -7,6 +7,8 @@ public class ExtraCredit extends Card {
 
     public ExtraCredit() {
         super(Rarity.COMMON);
+        this.price = 3;
+        this.sellPrice = 1;
         tooltip.setTitle("Extra Credit");
         tooltip.setDescription("+1 spin each round");
     }

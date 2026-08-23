@@ -21,6 +21,8 @@ public class Ouroboros extends Card {
 
     public Ouroboros() {
         super(Rarity.UNCOMMON);
+        this.price = 8;
+        this.sellPrice = 4;
         tooltip.setTitle("Ouroboros");
         tooltip.setDescription("The tile landed on gives [RED]3x [BLACK]payout on the next spin");
 
