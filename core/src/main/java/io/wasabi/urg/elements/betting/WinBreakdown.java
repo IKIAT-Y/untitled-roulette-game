@@ -1,6 +1,7 @@
 package io.wasabi.urg.elements.betting;
 
 import io.wasabi.urg.elements.game.Tile;
+import io.wasabi.urg.state.RunState;
 
 /**
  * Staged result of one {@link RunState#resolveActiveBetsDetailed()} call, in
