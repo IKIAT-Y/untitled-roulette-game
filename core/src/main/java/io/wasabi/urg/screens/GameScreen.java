@@ -380,7 +380,7 @@ public class GameScreen implements Screen {
     public void show() {
         Gdx.input.setInputProcessor(inputMultiplexer);
 
-        betButtonTexture = new Texture(Gdx.files.internal("buttons/TEX_BUTTON_64x32_BetUp.png"));
+        betButtonTexture = new Texture(Gdx.files.internal("buttons/TEX_Button_64x32_BetUp.png"));
 
         float btnWidth = betButtonTexture.getWidth();
         float btnHeight = betButtonTexture.getHeight();
