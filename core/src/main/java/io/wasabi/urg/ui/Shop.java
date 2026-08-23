@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -454,6 +455,8 @@ public class Shop extends InputAdapter {
      */
     private void reroll() {
         if (!runState.spendTickets(REROLL_PRICE)) return;
+
+        SoundManager.getInstance().playSound("tileSelect");
 
         List<Card> previousOffers = new ArrayList<>(offers);
         offers.clear();

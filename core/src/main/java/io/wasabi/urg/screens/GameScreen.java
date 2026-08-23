@@ -8,6 +8,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -159,10 +160,12 @@ public class GameScreen implements Screen {
         if (gameState == GameState.RESULT) {
             if (roundResult.handleInput()) {
                 Roulette.getInstance().getRoundManager().awardTickets();
+                SoundManager.getInstance().playSound("tileSelect");
                 enterShopScreen();
             }
         } else if (gameState == GameState.SHOP) {
             if (shop.handleInput()) {
+                SoundManager.getInstance().playSound("tileSelect");
                 enterRoundScreen();
             }
         } else if (gameState == GameState.GAME_OVER && gameOver.isVisible() && Gdx.input.justTouched()) {
