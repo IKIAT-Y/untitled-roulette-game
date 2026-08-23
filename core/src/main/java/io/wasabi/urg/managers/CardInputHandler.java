@@ -11,7 +11,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.card.Card;
-import io.wasabi.urg.elements.charm.AbstractCharm;
+import io.wasabi.urg.elements.charm.Charm;
 import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.ui.CardLayout;
@@ -120,21 +120,21 @@ public class CardInputHandler extends InputAdapter {
     }
 
     private void updateHoveredCharms(Vector2 world) {
-        List<AbstractCharm> charms = new ArrayList<>(runState.getOwnedCharms());
+        List<Charm> charms = new ArrayList<>(runState.getOwnedCharms());
         Shop shop = GAME.getGameScreen().getShop();
         if (shop.isVisible()) {
             charms.addAll(shop.getCharmOffers());
         }
 
-        AbstractCharm hoveredCharm = null;
+        Charm hoveredCharm = null;
         for (int i = charms.size() - 1; i >= 0; i--) {
-            AbstractCharm charm = charms.get(i);
+            Charm charm = charms.get(i);
             if (charm != null && charm.contains(world.x, world.y)) {
                 hoveredCharm = charm;
                 break;
             }
         }
-        for (AbstractCharm charm : charms) {
+        for (Charm charm : charms) {
             if (charm != null && charm == hoveredCharm) {
                 charm.getTooltip().show();
             } else if (charm != null) {

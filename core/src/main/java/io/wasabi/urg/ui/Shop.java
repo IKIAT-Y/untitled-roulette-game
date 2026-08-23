@@ -19,7 +19,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.card.Card;
-import io.wasabi.urg.elements.charm.AbstractCharm;
+import io.wasabi.urg.elements.charm.Charm;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.util.tweens.Tween;
@@ -50,7 +50,7 @@ public class Shop extends InputAdapter {
     private final Viewport viewport;
     private final RunState runState;
     private final List<Card> offers = new ArrayList<>();
-    private final List<AbstractCharm> charmOffers = new ArrayList<>();
+    private final List<Charm> charmOffers = new ArrayList<>();
     private final NinePatch patch = new NinePatch(PATCH_TEXTURE, 10, 10, 10, 10);
 
     private final Rectangle continueButton = new Rectangle();
@@ -88,7 +88,7 @@ public class Shop extends InputAdapter {
 
     private Card draggedCard;
     private boolean draggingOffer;
-    private AbstractCharm draggedCharm;
+    private Charm draggedCharm;
     private boolean draggingCharmOffer;
     private final Vector2 dragOffset = new Vector2();
 
@@ -210,7 +210,7 @@ public class Shop extends InputAdapter {
         for (Card card : offers) {
             if (card != draggedCard) renderCard(card);
         }
-        for (AbstractCharm charm : charmOffers) {
+        for (Charm charm : charmOffers) {
             if (charm != draggedCharm) renderCharm(charm);
         }
     }
@@ -224,7 +224,7 @@ public class Shop extends InputAdapter {
         FONT.getData().setScale(previousScaleX, previousScaleY);
     }
 
-    public void renderCharm(AbstractCharm charm) {
+    public void renderCharm(Charm charm) {
         charm.render();
         float previousScaleX = FONT.getData().scaleX;
         float previousScaleY = FONT.getData().scaleY;
@@ -253,7 +253,7 @@ public class Shop extends InputAdapter {
         }
 
         for (int i = charmOffers.size() - 1; i >= 0; i--) {
-            AbstractCharm charm = charmOffers.get(i);
+            Charm charm = charmOffers.get(i);
             if (charm.contains(world.x, world.y)) {
                 beginCharmDrag(charm, true, world);
                 return true;
@@ -299,7 +299,7 @@ public class Shop extends InputAdapter {
         if (draggedCharm != null) {
             draggedCharm.setPosition(world.x - dragOffset.x, world.y - dragOffset.y);
             if (!draggingCharmOffer) {
-                List<AbstractCharm> ownedCharms = runState.getOwnedCharms();
+                List<Charm> ownedCharms = runState.getOwnedCharms();
                 int currentIndex = ownedCharms.indexOf(draggedCharm);
                 int closestIndex = CharmLayout.getClosestIndex(
                     draggedCharm.getX(), ownedCharms.size(), viewport.getWorldWidth());
@@ -360,7 +360,7 @@ public class Shop extends InputAdapter {
      * @param offer Whether the charm is being dragged from the offer list.
      * @param world The world coordinates of the mouse pointer.
      */
-    private void beginCharmDrag(AbstractCharm charm, boolean offer, Vector2 world) {
+    private void beginCharmDrag(Charm charm, boolean offer, Vector2 world) {
         draggedCharm = charm;
         draggingCharmOffer = offer;
         charm.setDragging(true);
@@ -385,7 +385,7 @@ public class Shop extends InputAdapter {
         finishCardDrag(world);
     }
     
-    public void finishInventoryCharmDrag(int x, int y, AbstractCharm charm) {
+    public void finishInventoryCharmDrag(int x, int y, Charm charm) {
         Vector2 world = screenToWorld(x, y);
         draggedCharm = charm;
         draggingInventory = false;
@@ -406,7 +406,7 @@ public class Shop extends InputAdapter {
     }
 
     private void finishCharmDrag(Vector2 world) {
-        AbstractCharm charm = draggedCharm;
+        Charm charm = draggedCharm;
         boolean droppedInTarget = draggingCharmOffer ? buyBox.contains(world) : sellBox.contains(world);
         charm.setDragging(false);
         if (droppedInTarget) {
@@ -430,14 +430,14 @@ public class Shop extends InputAdapter {
         }
     }
 
-    private void buyCharm(AbstractCharm charm) {
+    private void buyCharm(Charm charm) {
         if (!runState.canAddCharm(charm) || runState.getTickets() < charm.getPrice()) return;
         if (runState.spendTickets(charm.getPrice()) && runState.addCharm(charm)) {
             charmOffers.remove(charm);
         }
     }
 
-    private void sellCharm(AbstractCharm charm) {
+    private void sellCharm(Charm charm) {
         if (runState.removeCharm(charm)) {
             runState.addTickets(charm.getSellPrice());
             Roulette.getInstance().getCharmPool().returnCharm(charm);
@@ -457,10 +457,10 @@ public class Shop extends InputAdapter {
             Roulette.getInstance().getCardPool().returnCard(card);
         }
 
-        List<AbstractCharm> previousCharmOffers = new ArrayList<>(charmOffers);
+        List<Charm> previousCharmOffers = new ArrayList<>(charmOffers);
         charmOffers.clear();
         drawCharmOffers();
-        for (AbstractCharm charm : previousCharmOffers) {
+        for (Charm charm : previousCharmOffers) {
             Roulette.getInstance().getCharmPool().returnCharm(charm);
         }
     }
@@ -481,7 +481,7 @@ public class Shop extends InputAdapter {
     private void drawCharmOffers() {
         int attempts = 0;
         while (charmOffers.size() < CHARM_OFFER_COUNT && attempts++ < 30) {
-            AbstractCharm charm = Roulette.getInstance().getCharmPool().getRandomCharm();
+            Charm charm = Roulette.getInstance().getCharmPool().getRandomCharm();
             if (charm == null) break;
             if (runState.ownsCharmType(charm) || offersContainType(charmOffers, charm)) {
                 Roulette.getInstance().getCharmPool().returnCharm(charm);
@@ -497,8 +497,8 @@ public class Shop extends InputAdapter {
      * @param charm The charm to check for in the offer list.
      * @return True if the offer list contains a charm of the same type, false otherwise.
      */
-    private boolean offersContainType(List<AbstractCharm> offerList, AbstractCharm charm) {
-        for (AbstractCharm offered : offerList) {
+    private boolean offersContainType(List<Charm> offerList, Charm charm) {
+        for (Charm offered : offerList) {
             if (offered.getClass() == charm.getClass()) {
                 return true;
             }
@@ -512,7 +512,7 @@ public class Shop extends InputAdapter {
     }
 
     private void returnCharmOffersToPool() {
-        for (AbstractCharm charm : charmOffers) Roulette.getInstance().getCharmPool().returnCharm(charm);
+        for (Charm charm : charmOffers) Roulette.getInstance().getCharmPool().returnCharm(charm);
         charmOffers.clear();
     }
 
@@ -558,7 +558,7 @@ public class Shop extends InputAdapter {
         float spacing = (OFFER_TARGET_WIDTH - (size * 64f)) / size;
         float targetX = spacing / 2 + left + WIDTH / 2 - OFFER_TARGET_WIDTH / 2;
         for (int i = 0; i < charmOffers.size(); i++) {
-            AbstractCharm charm = charmOffers.get(i);
+            Charm charm = charmOffers.get(i);
             if (!charm.isDragging()) {
                 charm.setPosition(targetX, CHARM_OFFER_START_Y);
             }
@@ -572,9 +572,9 @@ public class Shop extends InputAdapter {
     }
 
     public List<Card> getOffers() { return offers; }
-    public List<AbstractCharm> getCharmOffers() { return charmOffers; }
+    public List<Charm> getCharmOffers() { return charmOffers; }
     public boolean isVisible() { return visible; }
 
     public Card getDraggedCard() { return draggedCard; }
-    public AbstractCharm getDraggedCharm() { return draggedCharm; }
+    public Charm getDraggedCharm() { return draggedCharm; }
 }

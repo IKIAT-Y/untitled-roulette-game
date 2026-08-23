@@ -10,7 +10,7 @@ import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.FloatingText;
 
-public class RedCharm extends AbstractCharm {
+public class RedCharm extends Charm {
 
     private static final String ERROR_SOUND = "error";
 

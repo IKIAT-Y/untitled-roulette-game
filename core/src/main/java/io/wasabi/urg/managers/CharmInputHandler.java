@@ -8,7 +8,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.Roulette;
-import io.wasabi.urg.elements.charm.AbstractCharm;
+import io.wasabi.urg.elements.charm.Charm;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.ui.CharmLayout;
 import io.wasabi.urg.ui.Shop;
@@ -18,7 +18,7 @@ public class CharmInputHandler extends InputAdapter {
     private final RunState runState;
     private final Viewport viewport;
 
-    private AbstractCharm draggedCharm;
+    private Charm draggedCharm;
     private final Vector2 dragOffset = new Vector2();
 
     public CharmInputHandler(RunState runState, Viewport viewport) {
@@ -31,9 +31,9 @@ public class CharmInputHandler extends InputAdapter {
         Vector2 world = screenToWorld(screenX, screenY);
 
         Shop shop = GAME.getGameScreen().getShop();
-        List<AbstractCharm> charms = runState.getOwnedCharms();
+        List<Charm> charms = runState.getOwnedCharms();
         for (int i = charms.size() - 1; i >= 0; i--) {
-            AbstractCharm charm = charms.get(i);
+            Charm charm = charms.get(i);
             if (charm.contains(world.x, world.y)) {
                 draggedCharm = charm;
                 draggedCharm.setDragging(true);
@@ -63,7 +63,7 @@ public class CharmInputHandler extends InputAdapter {
         draggedCharm.setPosition(world.x - dragOffset.x, world.y - dragOffset.y);
 
         // Reorder the hand live so other cards shift to make space
-        List<AbstractCharm> charms = runState.getOwnedCharms();
+        List<Charm> charms = runState.getOwnedCharms();
         int currentIndex = charms.indexOf(draggedCharm);
         int closestIndex = CharmLayout.getClosestIndex(
             draggedCharm.getX(), charms.size(), viewport.getWorldWidth());

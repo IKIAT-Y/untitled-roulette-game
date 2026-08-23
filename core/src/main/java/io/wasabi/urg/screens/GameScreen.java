@@ -22,7 +22,7 @@ import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.elements.betting.BetScreenButton;
 import io.wasabi.urg.elements.card.Card;
-import io.wasabi.urg.elements.charm.AbstractCharm;
+import io.wasabi.urg.elements.charm.Charm;
 import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.elements.game.SpinButton;
 import io.wasabi.urg.elements.game.Tile;
@@ -338,11 +338,11 @@ public class GameScreen implements Screen {
             else card.render();
         }
 
-        List<AbstractCharm> charms = game.getRunState().getOwnedCharms();
-        AbstractCharm draggedCharm = null;
+        List<Charm> charms = game.getRunState().getOwnedCharms();
+        Charm draggedCharm = null;
         CharmLayout.renderBackPanel(batch, game.getRunState().getMaxOwnableCharms(), charms.size());
         for (int i = 0; i < charms.size(); i++) {
-            AbstractCharm charm = charms.get(i);
+            Charm charm = charms.get(i);
             Vector2 slot = CharmLayout.getSlotPosition(i, charms.size(), worldWidth);
             charm.setTargetPosition(slot.x, slot.y);
             charm.update(delta);

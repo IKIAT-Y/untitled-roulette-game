@@ -11,7 +11,7 @@ import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.FloatingText;
 
 
-public class BlackCharm extends AbstractCharm {
+public class BlackCharm extends Charm {
 
     private static final String ERROR_SOUND = "error";
 

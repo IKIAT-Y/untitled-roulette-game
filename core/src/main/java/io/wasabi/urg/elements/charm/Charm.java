@@ -9,7 +9,7 @@ import io.wasabi.urg.managers.TextureManager;
 import io.wasabi.urg.ui.Tooltip;
 import io.wasabi.urg.util.tweens.Tween;
 
-public class AbstractCharm extends GameObject{
+public class Charm extends GameObject{
 
     private Texture texture;
     private float x;
@@ -29,7 +29,7 @@ public class AbstractCharm extends GameObject{
     private int price = 4;
     private int sellPrice = 2;
 
-    protected AbstractCharm() {
+    protected Charm() {
         this.x = 0;
         this.y = 0;
         this.width = 64;

@@ -10,7 +10,7 @@ import io.wasabi.urg.elements.betting.Bet;
 import io.wasabi.urg.elements.betting.WinBreakdown;
 import io.wasabi.urg.elements.boss.Boss;
 import io.wasabi.urg.elements.card.Card;
-import io.wasabi.urg.elements.charm.AbstractCharm;
+import io.wasabi.urg.elements.charm.Charm;
 import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.ui.Tooltip;
 
@@ -31,7 +31,7 @@ public final class RunState {
     private final List<Tile> tiles = new ArrayList<>();
     private final List<Tile> selectedTiles = new ArrayList<>();
     private final List<Card> ownedCards = new ArrayList<>();
-    private final List<AbstractCharm> ownedCharms = new ArrayList<>();
+    private final List<Charm> ownedCharms = new ArrayList<>();
     private final IntArray chipHistory = new IntArray();
 
 
@@ -193,7 +193,7 @@ public final class RunState {
         return ownedCards;
     }
 
-    public boolean addCharm(AbstractCharm charm) {
+    public boolean addCharm(Charm charm) {
         if (charm == null || ownedCharms.size() >= MAX_OWNED_CHARMS || ownsCharmType(charm)) {
             return false;
         }
@@ -201,11 +201,11 @@ public final class RunState {
         return true;
     }
 
-    public boolean ownsCharmType(AbstractCharm charm) {
+    public boolean ownsCharmType(Charm charm) {
         if (charm == null) {
             return false;
         }
-        for (AbstractCharm owned : ownedCharms) {
+        for (Charm owned : ownedCharms) {
             if (owned.getClass() == charm.getClass()) {
                 return true;
             }
@@ -213,11 +213,11 @@ public final class RunState {
         return false;
     }
 
-    public boolean canAddCharm(AbstractCharm charm) {
+    public boolean canAddCharm(Charm charm) {
         return ownedCharms.size() < MAX_OWNED_CHARMS && !ownsCharmType(charm);
     }
 
-    public void reorderCharm(AbstractCharm charm, int newIndex) {
+    public void reorderCharm(Charm charm, int newIndex) {
         if (!ownedCharms.contains(charm)) {
             return;
         }
@@ -226,7 +226,7 @@ public final class RunState {
         ownedCharms.add(newIndex, charm);
     }
 
-    public boolean removeCharm(AbstractCharm charm) {
+    public boolean removeCharm(Charm charm) {
         if (ownsCharm(charm)) {
             charm.getTooltip().hide();
             return ownedCharms.remove(charm);
@@ -234,11 +234,11 @@ public final class RunState {
         return false;
     }
 
-    public boolean ownsCharm(AbstractCharm charm) {
+    public boolean ownsCharm(Charm charm) {
         return ownedCharms.contains(charm);
     }
 
-    public List<AbstractCharm> getOwnedCharms() {
+    public List<Charm> getOwnedCharms() {
         return ownedCharms;
     }
 
@@ -271,7 +271,7 @@ public final class RunState {
         for (Card card : ownedCards) {
             Roulette.getInstance().getCardPool().returnCard(card);
         }
-        for (AbstractCharm charm : ownedCharms) {
+        for (Charm charm : ownedCharms) {
             Roulette.getInstance().getCharmPool().returnCharm(charm);
         }
 
