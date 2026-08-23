@@ -3,22 +3,7 @@ package io.wasabi.urg.managers;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.wasabi.urg.elements.card.AllIn;
-import io.wasabi.urg.elements.card.BlackCard;
-import io.wasabi.urg.elements.card.BullRush;
-import io.wasabi.urg.elements.card.Card;
-import io.wasabi.urg.elements.card.ExtraChange;
-import io.wasabi.urg.elements.card.ExtraCredit;
-import io.wasabi.urg.elements.card.FourLeafClover;
-import io.wasabi.urg.elements.card.GoldenTicket;
-import io.wasabi.urg.elements.card.GreenCard;
-import io.wasabi.urg.elements.card.Infinite;
-import io.wasabi.urg.elements.card.Jackpot;
-import io.wasabi.urg.elements.card.LuckyTalisman;
-import io.wasabi.urg.elements.card.MysteriousFragment;
-import io.wasabi.urg.elements.card.OddCard;
-import io.wasabi.urg.elements.card.Oneshot;
-import io.wasabi.urg.elements.card.Ouroboros;
+import io.wasabi.urg.elements.card.*;
 
 /** Owns the available cards and handles rarity-weighted shop draws. */
 public final class CardPool {
@@ -30,8 +15,10 @@ public final class CardPool {
         commonCards.add(new ExtraChange());
         commonCards.add(new ExtraCredit());
         commonCards.add(new BlackCard());
+        commonCards.add(new RedCard());
         commonCards.add(new GreenCard());
         commonCards.add(new OddCard());
+        commonCards.add(new EvenCard());
         commonCards.add(new Jackpot());
         commonCards.add(new GoldenTicket());
 

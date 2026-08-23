@@ -150,4 +150,6 @@ public class BettingScreen implements Screen {
         betButtonTexture.dispose();
         backgroundImg.dispose();
     }
+
+    public BettingTable getBettingTable() { return bettingTable; }
 }

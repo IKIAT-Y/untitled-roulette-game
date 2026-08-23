@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Color;
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.elements.tiles.NumberlessTile;
+import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.FloatingText;
 
@@ -24,7 +25,10 @@ public class EraserCharm extends Charm {
             super.consume();
             List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
             for (Tile tile : selectedTiles) {
-                tile.setType(new NumberlessTile(tile.getType()));
+                TileType numberless = new NumberlessTile();
+                numberless.setColour(tile.getType().getColour());
+                numberless.getTooltip().setTitle("NUMBERLESS");
+                tile.setType(numberless);
             }
             Roulette.getInstance().getRunState().clearSelectedTiles();
             removeAndReturnToPool();

@@ -147,6 +147,7 @@ public class GameScreen implements Screen {
         }
 
         wheel.spin(WHEEL_SPIN_DURATION, WHEEL_SPIN_SPEED);
+        game.getBettingScreen().getBettingTable().rebuildLayout();
         quotaTracker.onSpinStarted();
     }
 

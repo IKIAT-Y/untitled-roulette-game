@@ -337,6 +337,10 @@ public class Tile extends GameObject {
         return type.getBetMultiplier();
     }
 
+    public void setFlatBonus(float flatBonus) { type.setFlatBonus(flatBonus); }
+
+    public float getFlatBonus() { return type.getFlatBonus(); }
+
     public TileType.TileColour getColor() {
         return type.getColour();
     }

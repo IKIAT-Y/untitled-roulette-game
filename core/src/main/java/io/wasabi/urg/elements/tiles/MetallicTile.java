@@ -1,28 +1,41 @@
 package io.wasabi.urg.elements.tiles;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.PolygonRegion;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public class MetallicTile extends TileType {
-    private static final int METALLIC_COLOUR = 0x999999FF;
+    protected Texture metallicTexture;
+    protected PolygonRegion metallicRegion;
 
     public MetallicTile() {
         super();
+        this.betMultiplier = 1.5f;
         tooltip.setDescriptionVisible(true);
         tooltip.setDescription("Gain [RED]1.5x [BLACK]winnings from this tile");
-        tooltip.addType("METALLIC", Color.WHITE, new Color(METALLIC_COLOUR));
+        tooltip.addType("METALLIC", Color.WHITE, new Color(0x999999FF));
+
+        metallicTexture = new Texture(Gdx.files.internal("tiles/MetallicTile.png"));
+        metallicTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.Repeat);
     }
 
     @Override
-    public void setColour(TileColour colour) {
-        super.setColour(colour);
-        texture.dispose();
+    public void setRegion(float[] vertices, short[] indices) {
+        super.setRegion(vertices, indices);
+        TextureRegion texRegion = new TextureRegion(metallicTexture);
+        metallicRegion = new PolygonRegion(texRegion, vertices, indices);
+    }
 
-        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        pixmap.setColor(METALLIC_COLOUR);
-        pixmap.fill();
-        texture = new Texture(pixmap);
-        pixmap.dispose();
+    @Override
+    public void drawTextures() {
+        super.drawTextures();
+        POLY_BATCH.setColor(1, 1, 1, 0.6f);
+        //POLY_BATCH.setBlendFunction(GL20.GL_ZERO, GL20.GL_SRC_COLOR);
+        POLY_BATCH.draw(metallicRegion, 0, 0);
+        POLY_BATCH.setColor(1, 1, 1, 1);
+        POLY_BATCH.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
     }
 }

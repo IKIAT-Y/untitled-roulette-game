@@ -15,6 +15,7 @@ import io.wasabi.urg.elements.tiles.VoidTile;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.FloatingText;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Random;
 
@@ -36,7 +37,16 @@ public class MirrorCharm extends Charm {
             Tile source = selectedTiles.get(random.nextBoolean() ? 0 : 1);
             Tile target = source == selectedTiles.get(0) ? selectedTiles.get(1) : selectedTiles.get(0);
 
-            target.setType(copyTileType(source.getType(), target));
+            TileType sourceType = source.getType();
+            try {
+                TileType targetType = sourceType.getClass().getDeclaredConstructor().newInstance();
+                targetType.setColour(sourceType.getColour());
+                targetType.setNumber(sourceType.getNumber());
+                target.setType(targetType);
+            } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException |
+                     InvocationTargetException e) {
+                throw new IllegalArgumentException("Failed to create a new instance of " + sourceType.getClass().getSimpleName(), e);
+            }
 
             Roulette.getInstance().getRunState().clearSelectedTiles();
             removeAndReturnToPool();
@@ -63,36 +73,5 @@ public class MirrorCharm extends Charm {
             return true;
         }
         return false;
-    }
-
-    private TileType copyTileType(TileType sourceType, Tile target) {
-        if (sourceType instanceof NumberlessTile) {
-            NumberlessTile numberless = (NumberlessTile) sourceType;
-            return new NumberlessTile(copyTileType(numberless.getOriginalType(), target));
-        }
-        if (sourceType instanceof VoidTile) {
-            TileType original = new DefaultTile();
-            original.setColour(sourceType.getColour());
-            original.setNumber(sourceType.getNumber());
-            return new VoidTile(original, target);
-        }
-
-        TileType copy;
-        if (sourceType instanceof GoldTile) {
-            copy = new GoldTile();
-        } else if (sourceType instanceof MetallicTile) {
-            copy = new MetallicTile();
-        } else if (sourceType instanceof NullTile) {
-            copy = new NullTile();
-        } else if (sourceType instanceof StripedTile) {
-            copy = new StripedTile();
-        } else {
-            copy = new DefaultTile();
-        }
-
-        copy.setColour(sourceType.getColour());
-        copy.setNumber(sourceType.getNumber());
-        copy.setBetMultiplier(sourceType.getBetMultiplier());
-        return copy;
     }
 }

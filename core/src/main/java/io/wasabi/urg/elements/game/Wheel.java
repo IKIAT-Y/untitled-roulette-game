@@ -21,6 +21,7 @@ import com.badlogic.gdx.physics.box2d.World;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.tiles.DefaultTile;
+import io.wasabi.urg.elements.tiles.NumberlessTile;
 import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
