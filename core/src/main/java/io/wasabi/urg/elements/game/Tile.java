@@ -35,7 +35,7 @@ public class Tile extends GameObject {
     private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
 
     private static final FontManager FONT_MANAGER = FontManager.getInstance();
-    private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Placeholder");
+    private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Terminus32PX");
 
     private final World world;
 

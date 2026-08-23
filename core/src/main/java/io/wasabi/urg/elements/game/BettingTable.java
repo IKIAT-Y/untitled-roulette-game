@@ -37,7 +37,7 @@ public class BettingTable extends GameObject {
     private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
     private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
     private static final FontManager FONT_MANAGER = FontManager.getInstance();
-    private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Placeholder");
+    private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Terminus32PX");
 
     private static final float CHIP_RADIUS = 32f;
     private static final float CHIP_STACK_OFFSET = 10f;
@@ -624,19 +624,19 @@ public class BettingTable extends GameObject {
     private Texture textureFor(ChipDenomination denomination) {
         switch (denomination) {
             case ONE:
-                return new Texture(Gdx.files.internal("chips/TEX_Chip_64x64_1White.png"));
+                return new Texture(Gdx.files.internal("chips/ChipWhite.png"));
             case FIVE:
-                return new Texture(Gdx.files.internal("chips/TEX_Chip_64x64_5Red.png"));
+                return new Texture(Gdx.files.internal("chips/ChipRed.png"));
             case TEN:
-                return new Texture(Gdx.files.internal("chips/TEX_Chip_64x64_10Green.png"));
+                return new Texture(Gdx.files.internal("chips/ChipGreen.png"));
             case TWENTY_FIVE:
-                return new Texture(Gdx.files.internal("chips/TEX_Chip_64x64_25Blue.png"));
+                return new Texture(Gdx.files.internal("chips/ChipBlue.png"));
             case FIFTY:
-                return new Texture(Gdx.files.internal("chips/TEX_Chip_64x64_50Black.png"));
+                return new Texture(Gdx.files.internal("chips/ChipBlack.png"));
             case HUNDRED:
-                return new Texture(Gdx.files.internal("chips/TEX_Chip_64x64_100Purple.png"));
+                return new Texture(Gdx.files.internal("chips/ChipPurple.png"));
             default:
-                return new Texture(Gdx.files.internal("chips/TEX_Chip_64x64_Default.png"));
+                return new Texture(Gdx.files.internal("chips/ChipDefault.png"));
         }
     }
 

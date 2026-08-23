@@ -12,12 +12,11 @@ public final class Background {
     private final Matrix4 previousTransform = new Matrix4();
     private final Matrix4 screenProjection = new Matrix4();
     private final Matrix4 identityTransform = new Matrix4().idt();
-    private float time = 0f;
 
     public Background(SpriteBatch batch) {
         this.batch = batch;
 
-        backgroundImg = new Texture(Gdx.files.internal("ui/board.png"));
+        backgroundImg = new Texture(Gdx.files.internal("ui/GameBoard.png"));
     }
 
     public void render(float delta) {
@@ -27,8 +26,6 @@ public final class Background {
 
         batch.setProjectionMatrix(screenProjection);
         batch.setTransformMatrix(identityTransform);
-
-        time += delta;
 
         batch.begin();
         batch.draw(backgroundImg, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
