@@ -1,8 +1,7 @@
 package io.wasabi.urg.managers;
 
 public final class QuotaCalculator {
-    // We can change this as we see fit, but this is the starting point for the quota calculation.
-    private static final int STARTING_QUOTA = 120;
+
     private static final int ROUNDS_PER_ACT = 5;
 
     static int[] actBaseQuotas = {100, 300, 1000}; // Base quotas for each act

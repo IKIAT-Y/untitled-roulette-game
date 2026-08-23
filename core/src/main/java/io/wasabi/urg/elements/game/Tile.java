@@ -23,6 +23,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Align;
 
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.elements.tiles.NumberlessTile;
 import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
@@ -35,7 +36,7 @@ public class Tile extends GameObject {
     private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
 
     private static final FontManager FONT_MANAGER = FontManager.getInstance();
-    private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Placeholder");
+    private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Terminus32PX");
 
     private final World world;
 
@@ -60,6 +61,14 @@ public class Tile extends GameObject {
     private Fixture fret;
 
     private boolean selected = false;
+
+    // Used to track changes to this tile's colour or number — the two attributes
+    // {@link io.wasabi.urg.elements.betting.BettingTable}'s cached layout keys bet
+    // zones on. Incremented whenever either is changed in place (setColor/setType/
+    // setNumber), even though the Tile reference itself never changes, so staleness
+    // can be detected without needing to compare TileType references or diff every
+    // tile's live state every frame.
+    private int layoutVersion = 0;
 
     public Tile(World world, TileType type, Vector2 position, float radius, float height) {
         this.world = world;
@@ -116,6 +125,11 @@ public class Tile extends GameObject {
         fretShape.dispose();
     }
 
+    /**
+     * Updates the tile's geometry and rendering data based on its current properties.
+     * This method should be called whenever the tile's position, rotation, radius, height,
+     * or size changes to ensure that the visual representation is accurate.
+     */
     private void update() {
         float x = position.x;
         float y = position.y;
@@ -123,8 +137,8 @@ public class Tile extends GameObject {
         float r2 = radius + height + numHeight;
         float radians = degrees * MathUtils.degreesToRadians * size;
 
-        int segments = Math.max(1, (int) (3 * (float) Math.cbrt(r2)));
-        float radInc = radians / segments;
+        int segments = Math.max(1, (int) (6 * (float) Math.cbrt(r2)));
+        float radInc = radians / (segments - 1);
 
         float rot = rotation;
 
@@ -208,7 +222,9 @@ public class Tile extends GameObject {
         SPRITE_BATCH.begin();
         previousSpriteTransform.set(SPRITE_BATCH.getTransformMatrix());
         SPRITE_BATCH.setTransformMatrix(fontMatrix4);
-        FONT.draw(SPRITE_BATCH, Integer.toString(type.getNumber()), 0, 0, 16, Align.center, true);
+        if (!(type instanceof NumberlessTile)) {
+            FONT.draw(SPRITE_BATCH, Integer.toString(type.getNumber()), 0, 0, 16, Align.center, true);
+        }
         SPRITE_BATCH.setTransformMatrix(previousSpriteTransform);
         SPRITE_BATCH.end();
 
@@ -217,7 +233,6 @@ public class Tile extends GameObject {
         }
     }
 
-    // Temp selection indicator
     private void renderSelectionOutline() {
         float r1 = radius;
         float r2 = radius + height + numHeight;
@@ -279,6 +294,19 @@ public class Tile extends GameObject {
         return type.getNumber();
     }
 
+    /**
+     * Rerolls this tile's number in place (e.g. ScrambledCharm). Routed through
+     * here rather than callers reaching into {@link #getType()} directly so the
+     * change bumps {@link #layoutVersion} — a tile's number decides which grid
+     * cell/straight zone it belongs to and whether it counts as the special "0"
+     * pocket (see TableLayoutGenerator#isZeroTile), so betting layouts need to
+     * know this happened just as much as a colour change.
+     */
+    public void setNumber(int number) {
+        type.setNumber(number);
+        layoutVersion++;
+    }
+
     public boolean isSelected() {
         return selected;
     }
@@ -319,6 +347,7 @@ public class Tile extends GameObject {
     public void setType(TileType type) {
         this.type.dispose();
         this.type = type;
+        layoutVersion++;
         update();
     }
 
@@ -330,12 +359,32 @@ public class Tile extends GameObject {
         return type.getBetMultiplier();
     }
 
+    public void setFlatBonus(float flatBonus) { type.setFlatBonus(flatBonus); }
+
+    public float getFlatBonus() { return type.getFlatBonus(); }
+
     public TileType.TileColour getColor() {
         return type.getColour();
     }
 
+    /**
+     * Sets the color of the tile and increments the layout version to indicate a change.
+     * See {@link #layoutVersion}.
+     *
+     * @param color
+     */
     public void setColor(TileType.TileColour color) {
         type.setColour(color);
+        layoutVersion++;
+    }
+
+    /**
+     * See {@link #layoutVersion}. Compare this against a previously-recorded value
+     * to detect an in-place colour or number change that a reference-equality
+     * check on the tile itself (or a list of tiles) would miss.
+     */
+    public int getLayoutVersion() {
+        return layoutVersion;
     }
 
     /**

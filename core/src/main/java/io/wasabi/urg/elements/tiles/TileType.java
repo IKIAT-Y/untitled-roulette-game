@@ -30,6 +30,7 @@ public abstract class TileType implements Disposable {
     }};
 
     protected float betMultiplier = 1.0f; // multiplier for bets on this tile
+    protected float flatBonus = 0f;
 
     private int number;
     protected Tooltip tooltip = new Tooltip(0.5f, 0.5f);
@@ -57,7 +58,9 @@ public abstract class TileType implements Disposable {
         updateTooltipTitle();
     }
 
-    private void updateTooltipTitle() {
+    // Protected (not private) so subclasses whose actual on-screen look isn't
+    // driven by the colour field can override this to set a more appropriate title for the tooltip.
+    protected void updateTooltipTitle() {
         tooltip.setTitle(String.format("[#%08X]%s %d", tileColourMap.get(colour), colour.toString().toUpperCase(), number));
     }
 
@@ -66,6 +69,7 @@ public abstract class TileType implements Disposable {
     }
 
     public void drawTextures() {
+        POLY_BATCH.setColor(1, 1, 1, 1);
         POLY_BATCH.draw(region, 0, 0);
     }
 
@@ -130,4 +134,6 @@ public abstract class TileType implements Disposable {
 
     public void setBetMultiplier(float betMultiplier) { this.betMultiplier = betMultiplier; }
     public float getBetMultiplier() { return betMultiplier; }
+    public void setFlatBonus(float flatBonus) { this.flatBonus = flatBonus; }
+    public float getFlatBonus() { return flatBonus; }
 }

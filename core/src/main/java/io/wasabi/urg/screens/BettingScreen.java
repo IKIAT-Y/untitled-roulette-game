@@ -23,6 +23,7 @@ public class BettingScreen implements Screen {
     // Elements
     private BettingTable bettingTable;
     private Texture betButtonTexture;
+    private Texture backgroundImg;
     private BetScreenButton betButton;
     private float baseWindowWidth;
     private float baseWindowHeight;
@@ -37,6 +38,8 @@ public class BettingScreen implements Screen {
 
         this.bettingTable = new BettingTable();
 
+        backgroundImg = new Texture(Gdx.files.internal("ui/BettingBoard.png"));
+
         // Absolute value for now. Consider making this relative to table size and world
         // coords.
         this.bettingTable.setPosition(-640f, -48f);
@@ -47,6 +50,16 @@ public class BettingScreen implements Screen {
     @Override
     public void render(float delta) {
         ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
+
+        // Draw the background
+        spriteBatch.begin();
+        spriteBatch.draw(
+            backgroundImg,
+            -game.getWorldWidth() / 2f,
+            -game.getWorldHeight() / 2f,
+            game.getWorldWidth(),
+            game.getWorldHeight());
+        spriteBatch.end();
 
         // ShapeRenderer renders
         shapeRenderer.setColor(1f, 1f, 1f, 1f);
@@ -70,7 +83,7 @@ public class BettingScreen implements Screen {
 
         Gdx.input.setInputProcessor(dragController);
 
-        betButtonTexture = new Texture(Gdx.files.internal("buttons/TEX_BUTTON_64x32_BetDown.png"));
+        betButtonTexture = new Texture(Gdx.files.internal("buttons/ButtonBetDown.png"));
 
         float btnWidth = betButtonTexture.getWidth();
         float btnHeight = betButtonTexture.getHeight();
@@ -83,15 +96,15 @@ public class BettingScreen implements Screen {
                 betButtonTexture,
                 (game.getWorldWidth() - btnWidth) / 2f, game.getWorldHeight() - btnHeight,
                 btnWidth, btnHeight,
-                () -> {
-                    // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
-                    // sprite batch)
-                    game.setScreen(Roulette.getInstance().getGameScreen());
-                });
+                () ->
+                        // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
+                        // sprite batch)
+                        game.setScreen(Roulette.getInstance().getGameScreen()));
 
         updateBetButtonLayout();
     }
 
+    /** Updates the layout of the bet button based on the current screen size. */
     private void updateBetButtonLayout() {
         if (betButton == null || betButtonTexture == null) {
             return;
@@ -113,16 +126,19 @@ public class BettingScreen implements Screen {
 
     @Override
     public void hide() {
+        // put functionality when screen is hidden, if needed
 
     }
 
     @Override
     public void pause() {
+        // put functionality when screen is paused, if needed
 
     }
 
     @Override
     public void resume() {
+        // put functionality when screen is resumed, if needed
 
     }
 
@@ -132,5 +148,8 @@ public class BettingScreen implements Screen {
         spriteBatch.dispose();
         bettingTable.dispose();
         betButtonTexture.dispose();
+        backgroundImg.dispose();
     }
+
+    public BettingTable getBettingTable() { return bettingTable; }
 }

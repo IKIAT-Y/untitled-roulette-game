@@ -7,6 +7,8 @@ public class LuckyTalisman extends Card {
 
     public LuckyTalisman() {
         super(Rarity.UNCOMMON);
+        this.price = 10;
+        this.sellPrice = 5;
         tooltip.setTitle("Lucky Talisman");
         tooltip.setDescription("All tiles gain [RED]+0.1x [BLACK]payout every time a charm is used\nCurrently [RED]1.0x");
     }
@@ -20,7 +22,7 @@ public class LuckyTalisman extends Card {
     @Override
     public void charmConsumedEffect() {
         mult += 0.1f;
-        tooltip.setDescription(String.format("All tiles gain [RED]+0.1x [BLACK]payout every time a charm is used\nCurrently [RED]%.1fx", mult));
+        tooltip.setDescription(String.format("All tiles gain [RED]+0.1x [BLACK]payout every time a charm is used%nCurrently [RED]%.1fx", mult));
     }
 
 }

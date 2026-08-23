@@ -1,0 +1,61 @@
+package io.wasabi.urg.elements.charm;
+
+import java.util.List;
+import java.util.Random;
+
+import com.badlogic.gdx.graphics.Color;
+
+import io.wasabi.urg.Roulette;
+import io.wasabi.urg.elements.game.Tile;
+import io.wasabi.urg.elements.tiles.TileType;
+import io.wasabi.urg.managers.SoundManager;
+import io.wasabi.urg.ui.FloatingText;
+
+public class StrengthCharm extends Charm {
+
+    private static final String ERROR_SOUND = "error";
+
+    public StrengthCharm() {
+        super();
+        tooltip.setTitle("Strength Charm");
+        tooltip.setDescription("Choose up to four tiles, increase their number by 1 (max 36).");
+    }
+
+    @Override
+    public void consume() {
+
+        if (requirements()) {
+            super.consume();
+            List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
+            for (Tile tile : selectedTiles) {
+                TileType type = tile.getType();
+                type.setNumber(Math.min(type.getNumber() + 1, 36));
+            }
+            Roulette.getInstance().getRunState().clearSelectedTiles();
+            removeAndReturnToPool();
+            SoundManager.getInstance().playSound("charmConsume");
+        }
+    }
+
+    @Override
+    public boolean requirements() {
+        if (Roulette.getInstance().getGameScreen().getWheel().isSpinning()) {
+            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("You cannot use charms while the wheel is spinning!", getX(), getY(), Color.RED, 1f));
+            SoundManager.getInstance().playSound(ERROR_SOUND);
+            return false;
+        }
+
+        List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
+        if (selectedTiles.isEmpty()) {
+            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("Select at least one tile!", getX(), getY(), Color.RED, 1f));
+            SoundManager.getInstance().playSound(ERROR_SOUND);
+        } else if (selectedTiles.size() > 4) {
+            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("You can only select up to four tiles!", getX(), getY(), Color.RED, 1f));
+            SoundManager.getInstance().playSound(ERROR_SOUND);
+        } else {
+            return true;
+        }
+        return false;
+    }
+
+}

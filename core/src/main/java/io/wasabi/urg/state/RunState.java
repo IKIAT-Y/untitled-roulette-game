@@ -5,10 +5,12 @@ import java.util.List;
 
 import com.badlogic.gdx.utils.IntArray;
 
+import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.betting.Bet;
+import io.wasabi.urg.elements.betting.WinBreakdown;
 import io.wasabi.urg.elements.boss.Boss;
 import io.wasabi.urg.elements.card.Card;
-import io.wasabi.urg.elements.charm.AbstractCharm;
+import io.wasabi.urg.elements.charm.Charm;
 import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.ui.Tooltip;
 
@@ -16,10 +18,12 @@ import io.wasabi.urg.ui.Tooltip;
 public final class RunState {
     public static final int MAX_OWNED_CARDS = 5;
     public static final int MAX_OWNED_CHARMS = 2;
+    private static final String AMOUNT = "amount";
     private int chips;
     private int score;
     private int tickets;
     private boolean freeSpinRequested = false;
+    private int pendingSettlementStake = 0;
 
     private Tile lastTile = null; // The last tile the player landed on, used for certain card effects.
     private Tooltip activeTooltip = null;
@@ -27,7 +31,7 @@ public final class RunState {
     private final List<Tile> tiles = new ArrayList<>();
     private final List<Tile> selectedTiles = new ArrayList<>();
     private final List<Card> ownedCards = new ArrayList<>();
-    private final List<AbstractCharm> ownedCharms = new ArrayList<>();
+    private final List<Charm> ownedCharms = new ArrayList<>();
     private final IntArray chipHistory = new IntArray();
 
 
@@ -46,12 +50,12 @@ public final class RunState {
     }
 
     public void addChips(int amount) {
-        requireNonNegative(amount, "amount");
+        requireNonNegative(amount, AMOUNT);
         chips += amount;
     }
 
     public boolean spendChips(int amount) {
-        requireNonNegative(amount, "amount");
+        requireNonNegative(amount, AMOUNT);
         if (amount > chips) {
             return false;
         }
@@ -65,12 +69,12 @@ public final class RunState {
     }
 
     public void addTickets(int amount) {
-        requireNonNegative(amount, "amount");
+        requireNonNegative(amount, AMOUNT);
         tickets += amount;
     }
 
     public boolean spendTickets(int amount) {
-        requireNonNegative(amount, "amount");
+        requireNonNegative(amount, AMOUNT);
         if (amount > tickets) {
             return false;
         }
@@ -84,7 +88,7 @@ public final class RunState {
     }
 
     public void addScore(int amount) {
-        requireNonNegative(amount, "amount");
+        requireNonNegative(amount, AMOUNT);
         score += amount;
     }
 
@@ -189,7 +193,7 @@ public final class RunState {
         return ownedCards;
     }
 
-    public boolean addCharm(AbstractCharm charm) {
+    public boolean addCharm(Charm charm) {
         if (charm == null || ownedCharms.size() >= MAX_OWNED_CHARMS || ownsCharmType(charm)) {
             return false;
         }
@@ -197,11 +201,11 @@ public final class RunState {
         return true;
     }
 
-    public boolean ownsCharmType(AbstractCharm charm) {
+    public boolean ownsCharmType(Charm charm) {
         if (charm == null) {
             return false;
         }
-        for (AbstractCharm owned : ownedCharms) {
+        for (Charm owned : ownedCharms) {
             if (owned.getClass() == charm.getClass()) {
                 return true;
             }
@@ -209,11 +213,11 @@ public final class RunState {
         return false;
     }
 
-    public boolean canAddCharm(AbstractCharm charm) {
+    public boolean canAddCharm(Charm charm) {
         return ownedCharms.size() < MAX_OWNED_CHARMS && !ownsCharmType(charm);
     }
 
-    public void reorderCharm(AbstractCharm charm, int newIndex) {
+    public void reorderCharm(Charm charm, int newIndex) {
         if (!ownedCharms.contains(charm)) {
             return;
         }
@@ -222,7 +226,7 @@ public final class RunState {
         ownedCharms.add(newIndex, charm);
     }
 
-    public boolean removeCharm(AbstractCharm charm) {
+    public boolean removeCharm(Charm charm) {
         if (ownsCharm(charm)) {
             charm.getTooltip().hide();
             return ownedCharms.remove(charm);
@@ -230,11 +234,11 @@ public final class RunState {
         return false;
     }
 
-    public boolean ownsCharm(AbstractCharm charm) {
+    public boolean ownsCharm(Charm charm) {
         return ownedCharms.contains(charm);
     }
 
-    public List<AbstractCharm> getOwnedCharms() {
+    public List<Charm> getOwnedCharms() {
         return ownedCharms;
     }
 
@@ -247,24 +251,41 @@ public final class RunState {
         return new IntArray(chipHistory);
     }
 
+    /** Resets the run state to its initial values.
+     * @param startingChips The number of chips to start with.
+     */
     public void reset(int startingChips) {
         requireNonNegative(startingChips, "startingChips");
 
         chips = startingChips;
         score = 0;
-        tickets = 0;
+        tickets = 5;
         lastTile = null;
         clearSelectedTiles();
         activeTooltip = null;
         boss = null;
         freeSpinRequested = false;
+        pendingSettlementStake = 0;
         activeBets.clear();
+
+        for (Card card : ownedCards) {
+            Roulette.getInstance().getCardPool().returnCard(card);
+        }
+        for (Charm charm : ownedCharms) {
+            Roulette.getInstance().getCharmPool().returnCharm(charm);
+        }
+
         ownedCards.clear();
         ownedCharms.clear();
         chipHistory.clear();
         chipHistory.add(startingChips);
     }
 
+    /** Adds an item to a collection if it is not already present.
+     * @param collection The collection to add the item to.
+     * @param gameObject The item to add.
+     * @param <T> The type of the item.
+     */
     private <T> void addUnique(List<T> collection, T gameObject) {
         if (gameObject == null) {
             throw new IllegalArgumentException("gameObject cannot be null");
@@ -336,29 +357,85 @@ public final class RunState {
      * returned stake — see {@link Bet#payout}) are added back.
      */
     public int resolveActiveBets() {
+        WinBreakdown breakdown = resolveActiveBetsDetailed();
+        applyWinBreakdown(breakdown);
+        return breakdown.getFinalTotal();
+    }
+
+    public WinBreakdown resolveActiveBetsDetailed() {
         if (lastTile == null) {
-            return 0;
+            activeBets.clear();
+            return new WinBreakdown(0, 0, 0, 0, 0, 1f, 1f, 0, null);
         }
 
         int totalStaked = 0;
-        int totalPayout = 0;
-        for (Bet bet : activeBets) {
-            totalStaked += bet.getAmount();
-            totalPayout += bet.payout(lastTile);
-        }
+        int winningStake = 0;
+        int rawPayout = 0;
 
-        float payoutMultiplier = lastTile.getBetMultiplier();
+        float globalMultiplier = 1f;
+        float cardFlatBonus = 0f;
         int triggerCount = getCardEffectTriggerCount();
         for (int trigger = 0; trigger < triggerCount; trigger++) {
             for (Card card : ownedCards) {
-                payoutMultiplier *= card.getPayoutMultiplier(lastTile, totalStaked, chips);
+                globalMultiplier *= card.getPayoutMultiplier(lastTile, totalStaked, chips);
+                cardFlatBonus += card.getFlatBonus(lastTile, totalStaked, chips);
             }
         }
-        totalPayout = Math.round(totalPayout * payoutMultiplier);
 
-        chips = chips - totalStaked + totalPayout;
-        activeBets.clear();
-        return totalPayout;
+        float tileFlatBonus = 0f;
+        for (Bet bet : activeBets) {
+            totalStaked += bet.getAmount();
+            if (bet.wins(lastTile)) {
+                winningStake += bet.getAmount();
+                tileFlatBonus += lastTile.getFlatBonus();
+            }
+            rawPayout += bet.payout(lastTile, cardFlatBonus);
+        }
+
+        float tileMultiplier = lastTile.getBetMultiplier();
+
+        int finalTotal = Math.round(rawPayout * tileMultiplier * globalMultiplier);
+
+        float totalFlatBonus = tileFlatBonus + cardFlatBonus;
+
+        // Derived payout multiplier for display purposes, not used in actual payout math
+        float payoutMultiplier = (winningStake + totalFlatBonus) > 0
+            ? rawPayout / (winningStake + totalFlatBonus)
+            : 1f;
+
+        return new WinBreakdown(totalStaked, rawPayout, winningStake, payoutMultiplier, totalFlatBonus, tileMultiplier, globalMultiplier,
+            finalTotal, lastTile);
+    }
+
+    /**
+     * Actually moves chips for a breakdown previously computed by
+     * {@link #resolveActiveBetsDetailed()}. Split out so a caller driving
+     * {@code WinAnimation} can compute the breakdown immediately (to know what
+     * to reveal) while deferring the real balance change — and therefore
+     * anything reading {@link #getChips()} — until the animation's impact.
+     * Safe to call at most once per breakdown; calling it twice would deduct
+     * the stake and add the payout a second time.
+     */
+    public void applyWinBreakdown(WinBreakdown breakdown) {
+        chips = chips - breakdown.getTotalStaked() + breakdown.getFinalTotal();
+        pendingSettlementStake = 0;
+    }
+
+    /**
+     * Stake that's been resolved (win/loss decided, {@link #activeBets} already
+     * cleared) but not yet reflected in {@link #chips} because
+     * {@code WinAnimation} hasn't reached its impact. Callers that display
+     * "available" balance as chips-minus-committed-bets (e.g. QuotaTracker)
+     * should keep subtracting this too, or the stake will visibly reappear the
+     * instant the ball stops instead of when the animation lands.
+     */
+    public int getPendingSettlementStake() {
+        return pendingSettlementStake;
+    }
+
+    /** True from the moment a spin resolves until {@link #applyWinBreakdown} lands. */
+    public boolean isSettlementPending() {
+        return pendingSettlementStake > 0;
     }
 
     public void setBoss(Boss boss) {
@@ -369,7 +446,20 @@ public final class RunState {
         return boss;
     }
 
+    /**
+     * Triggers the effects of all owned cards and the boss
+     * (if present) for a given effect type.
+     *
+     * @param effectType The type of effect to trigger.
+     */
     public void triggerEffects(String effectType) {
+        int triggerCount = getCardEffectTriggerCount();
+
+        triggerCardEffects(effectType);
+        triggerBossEffects(effectType);
+    }
+
+    private void triggerCardEffects(String effectType) {
         int triggerCount = getCardEffectTriggerCount();
 
         for (int trigger = 0; trigger < triggerCount; trigger++) {
@@ -377,33 +467,18 @@ public final class RunState {
                 switch (effectType) {
                     case "roundStart":
                         card.roundStartEffect();
-                        if (boss != null) {
-                            boss.roundStartEffect();
-                        }
                         break;
                     case "beforeSpin":
                         card.beforeSpinEffect();
-                        if (boss != null) {
-                            boss.beforeSpinEffect();
-                        }
                         break;
                     case "afterSpin":
                         card.afterSpinEffect();
-                        if (boss != null) {
-                            boss.afterSpinEffect();
-                        }
                         break;
                     case "roundEnd":
                         card.roundEndEffect();
-                        if (boss != null) {
-                            boss.roundEndEffect();
-                        }
                         break;
                     case "charmConsumed":
                         card.charmConsumedEffect();
-                        if (boss != null) {
-                            boss.charmConsumedEffect();
-                        }
                         break;
                     default:
                         throw new IllegalArgumentException("Unknown effect type: " + effectType);
@@ -413,6 +488,32 @@ public final class RunState {
 
         for (Card card : ownedCards) {
             card.afterCardEffects(effectType);
+        }
+    }
+
+    private void triggerBossEffects(String effectType) {
+        if (boss == null) {
+            return;
+        }
+
+        switch (effectType) {
+            case "roundStart":
+                boss.roundStartEffect();
+                break;
+            case "beforeSpin":
+                boss.beforeSpinEffect();
+                break;
+            case "afterSpin":
+                boss.afterSpinEffect();
+                break;
+            case "roundEnd":
+                boss.roundEndEffect();
+                break;
+            case "charmConsumed":
+                boss.charmConsumedEffect();
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown effect type: " + effectType);
         }
     }
 

@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.managers.FontManager;
@@ -45,7 +44,7 @@ public class GameOver {
         this.viewport = viewport;
         Texture texture = new Texture(Gdx.files.internal("ui/CorneredPatch.png"));
         this.patch = new NinePatch(texture, 10, 10, 10, 10);
-        this.font = FontManager.getInstance().getFontByName("Placeholder");
+        this.font = FontManager.getInstance().getFontByName("Terminus32PX");
     }
 
     public void show() {
@@ -131,6 +130,7 @@ public class GameOver {
         spriteBatch.end();
     }
 
+    /** Draws a red filter over the entire screen to indicate a game over state. */
     private void drawRedFilter() {
         float pad = 200f;
         float worldWidth = viewport.getWorldWidth();

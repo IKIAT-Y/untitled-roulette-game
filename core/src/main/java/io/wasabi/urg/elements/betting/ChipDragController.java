@@ -1,11 +1,13 @@
 package io.wasabi.urg.elements.betting;
 
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 import io.wasabi.urg.elements.game.BettingTable;
+import io.wasabi.urg.managers.SoundManager;
 
 /**
  * Input handling only — no rendering, no payout math. Translates screen touches
@@ -41,12 +43,14 @@ public class ChipDragController extends InputAdapter {
         Chip trayChip = table.getTrayChipAt(point);
         if (trayChip != null) {
             activeChip = table.beginDragFromTray(trayChip.getDenomination(), point);
+            SoundManager.getInstance().playSound("chipPickup");
             return true;
         }
 
         Chip placedChip = table.getPlacedChipAt(point);
         if (placedChip != null) {
             activeChip = table.beginDragFromPlaced(placedChip);
+            SoundManager.getInstance().playSound("chipPickup");
             return activeChip != null;
         }
 
@@ -65,6 +69,16 @@ public class ChipDragController extends InputAdapter {
         return true;
     }
 
+
+    /**
+     * Handles the touch up event when the user releases a chip.
+     * If the chip is released over a valid bet zone, it places the bet; otherwise, it discards the chip.
+     * @param x The x-coordinate of the touch event.
+     * @param y The y-coordinate of the touch event.
+     * @param pointer The pointer index of the touch event.
+     * @param button The button that was pressed during the touch event.
+     * @return boolean indicating whether the event was handled.
+     */
     @Override
     public boolean touchUp(int x, int y, int pointer, int button) {
         if (activeChip == null)

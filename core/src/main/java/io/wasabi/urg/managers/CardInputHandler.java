@@ -11,7 +11,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.card.Card;
-import io.wasabi.urg.elements.charm.AbstractCharm;
+import io.wasabi.urg.elements.charm.Charm;
 import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.ui.CardLayout;
@@ -57,31 +57,46 @@ public class CardInputHandler extends InputAdapter {
     public boolean mouseMoved(int screenX, int screenY) {
         Vector2 world = screenToWorld(screenX, screenY);
 
-        List<Card> cards = new ArrayList<>();
-        cards.addAll(runState.getOwnedCards());
+        updateHoveredCards(world);
+        updateHoveredTiles(world);
+        updateHoveredCharms(world);
+
+        return false;
+    }
+
+    private void updateHoveredCards(Vector2 world) {
+        List<Card> cards = new ArrayList<>(runState.getOwnedCards());
         Shop shop = GAME.getGameScreen().getShop();
         if (shop.isVisible()) {
             cards.addAll(shop.getOffers());
         }
 
-        Card hoveredCard = null;
-        for (int i = cards.size() - 1; i >= 0; i--) {
-            Card card = cards.get(i);
-            if (card.contains(world.x, world.y)) {
-                hoveredCard = card;
-                break;
-            }
-        }
+        Card hoveredCard = findHoveredCard(cards, world);
         for (Card card : cards) {
-            if (card == hoveredCard) {
+            if (card != null && card == hoveredCard) {
                 card.getTooltip().show();
-            } else {
+            } else if (card != null) {
                 card.getTooltip().hide();
             }
         }
+    }
 
+    private Card findHoveredCard(List<Card> cards, Vector2 world) {
+        for (int i = cards.size() - 1; i >= 0; i--) {
+            Card card = cards.get(i);
+            if (card.contains(world.x, world.y)) {
+                return card;
+            }
+        }
+        return null;
+    }
+
+    private void updateHoveredTiles(Vector2 world) {
         Tile hoveredTile = null;
         for (Tile tile : runState.getTiles()) {
+            if (tile == null) {
+                continue;
+            }
             float[] verts = tile.getRegion().getVertices();
             int length = verts.length;
             // cut vertices and make anticlockwise
@@ -94,37 +109,38 @@ public class CardInputHandler extends InputAdapter {
                 break;
             }
         }
+
         for (Tile tile : runState.getTiles()) {
-            if (tile == hoveredTile) {
+            if (tile != null && tile == hoveredTile) {
                 tile.getTooltip().show();
-            } else {
+            } else if (tile != null) {
                 tile.getTooltip().hide();
             }
         }
+    }
 
-        List<AbstractCharm> charms = new ArrayList<>();
-        charms.addAll(runState.getOwnedCharms());
+    private void updateHoveredCharms(Vector2 world) {
+        List<Charm> charms = new ArrayList<>(runState.getOwnedCharms());
+        Shop shop = GAME.getGameScreen().getShop();
         if (shop.isVisible()) {
             charms.addAll(shop.getCharmOffers());
         }
-      
-        AbstractCharm hoveredCharm = null;
+
+        Charm hoveredCharm = null;
         for (int i = charms.size() - 1; i >= 0; i--) {
-            AbstractCharm charm = charms.get(i);
-            if (charm.contains(world.x, world.y)) {
+            Charm charm = charms.get(i);
+            if (charm != null && charm.contains(world.x, world.y)) {
                 hoveredCharm = charm;
                 break;
             }
         }
-        for (AbstractCharm charm : charms) {
-            if (charm == hoveredCharm) {
+        for (Charm charm : charms) {
+            if (charm != null && charm == hoveredCharm) {
                 charm.getTooltip().show();
-            } else {
+            } else if (charm != null) {
                 charm.getTooltip().hide();
             }
         }
-
-        return false;
     }
 
     @Override

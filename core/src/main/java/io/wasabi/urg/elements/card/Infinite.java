@@ -7,6 +7,8 @@ public class Infinite extends Card {
 
     public Infinite() {
         super(Rarity.RARE);
+        this.price = 8;
+        this.sellPrice = 4;
         tooltip.setTitle("Infinite");
         tooltip.setMinWidth(200f);
         tooltip.setDescription("All tiles gain [RED]+0.2x [BLACK]payout every time an 8 is scored\nCurrently [RED]1.0x");
@@ -22,7 +24,7 @@ public class Infinite extends Card {
         Tile landedTile = io.wasabi.urg.Roulette.getInstance().getRunState().getLastTile();
         if (landedTile != null && landedTile.getNumber() == 8) {
             multiplier += 0.2f;
-            tooltip.setDescription(String.format("All tiles gain [RED]+0.2x [BLACK]payout every time an 8 is scored\nCurrently [RED]%.1fx", multiplier));
+            tooltip.setDescription(String.format("All tiles gain [RED]+0.2x [BLACK]payout every time an 8 is scored%nCurrently [RED]%.1fx", multiplier));
             triggerDisplay();
         }
     }

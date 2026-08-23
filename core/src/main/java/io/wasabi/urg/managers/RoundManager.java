@@ -15,8 +15,8 @@ public class RoundManager {
     private static final int SPINS_PER_ROUND = 5;
     private static final int ROUNDS_PER_ACT = 5;
     private static final int TOTAL_ACTS = 3;
-    private static final int BASE_TICKET_REWARD = 20;
-    private static final int TICKETS_PER_UNUSED_SPIN = 2;
+    private static final int BASE_TICKET_REWARD = 4;
+    private static final int TICKETS_PER_UNUSED_SPIN = 1;
     private static final int STARTING_CHIPS = 100;
 
     private int act = 1;
@@ -51,6 +51,13 @@ public class RoundManager {
         act1Bosses.add(new Gamer());
     }
 
+    /**
+     * Selects a random boss from the pool for the given act and removes it from the pool.
+     * If there are no bosses left in the pool for that act, returns null.
+     *
+     * @param act The act for which to select a boss.
+     * @return A randomly selected boss for the given act, or null if no bosses are left.
+     */
     private Boss selectRandomBossForAct(int act) {
         List<Boss> bossPool;
         if (act == 1) {
@@ -69,6 +76,11 @@ public class RoundManager {
         }
     }
 
+    /**
+     * Builds the current round configuration based on the act and round.
+     *
+     * @return The RoundConfig for the current act and round.
+     */
     private RoundConfig buildConfig() {
         int quota = QuotaCalculator.calculate(act, round);
 
@@ -92,15 +104,22 @@ public class RoundManager {
         if (currentConfig.isBossRound()) {
             Boss boss = selectRandomBossForAct(act);
             runState.setBoss(boss);
+            System.out.println("Starting boss round against: " + (boss != null ? boss.getName() : "No Boss"));
         } else {
             runState.setBoss(null);
         }
 
         runState.setChips(STARTING_CHIPS);
         runState.triggerEffects("roundStart");
-        printQuotaStatus();
     }
 
+    /**
+     * Records the result of a spin to the game state, updating the spins
+     * remaining and triggering any effects. If the round is over
+     * (no spins remaining), it will not allow further spins.
+     *
+     * @param freeSpin Whether this spin is a free spin (does not consume a spin).
+     */
     public void recordSpin(boolean freeSpin) {
         if (gameOver || runComplete || (!freeSpin && spinsRemaining <= 0)) {
             return;
@@ -117,27 +136,22 @@ public class RoundManager {
 
         Roulette.getInstance().getRunState().triggerEffects("afterSpin");
 
-        printQuotaStatus();
-
-        // Temp Debug for checking quota and spins remaining
-        // System.out.println("Act: " + act + ", Round: " + round + ", Quota: " + currentConfig.getQuota() + ", Chips: " + runState.getChips() + ", Boss round: " + currentConfig.isBossRound());
-        // System.out.println("Spins remaining: " + spinsRemaining);
-
         if (runState.getChips() >= currentConfig.getQuota()) {
-            // System.out.println("winner");
             advance();
         } else if (spinsRemaining <= 0 || runState.getChips() == 0) {
-            // System.out.println("loser");
             gameOver();
         }
     }
 
+    /**
+     * Checks if the current round is complete based on the spins remaining and the quota.
+     * If the round is complete, it will either advance to the next round or end the run.
+     */
     public void advance() {
         runState.triggerEffects("roundEnd");
         runState.recordRoundBalance();
 
         // Reset tile multiplier for the next round
-        Roulette.getInstance().getGameScreen().getWheel().resetTileMultipliers();
         if (round == ROUNDS_PER_ACT) {
             act++;
             round = 1;
@@ -156,31 +170,15 @@ public class RoundManager {
 
     public void gameOver() {
         gameOver = true;
-        // System.out.println("Game over: quota not reached.");
         if (Roulette.getInstance().getGameScreen() != null) {
             Roulette.getInstance().getGameScreen().showGameOver();
         }
     }
-    // Temporary fixed numbers we will have to change depending on how much we are planning to make the upgrades.
+
     public void awardTickets() {
         int ticketsAwarded = BASE_TICKET_REWARD
             + (spinsRemaining * TICKETS_PER_UNUSED_SPIN);
         runState.addTickets(ticketsAwarded);
-        // System.out.println(
-        //     "Quota complete: awarded " + ticketsAwarded
-        //         + " tickets. Total tickets: " + runState.getTickets()
-        // );
-    }
-
-// temporary way to check whether the quota has been reached or not, will be replaced with a proper UI later
-    private void printQuotaStatus() {
-        // System.out.println(
-        //     "Act " + act
-        //         + "\nRound " + round
-        //         + "\nBoss round: " + currentConfig.isBossRound()
-        //         + "\nQuota: " + runState.getChips() + " / " + currentConfig.getQuota()
-        //         + "\nTickets: " + runState.getTickets()
-        // );
     }
 
     public RoundConfig getCurrentConfig() { return currentConfig; }

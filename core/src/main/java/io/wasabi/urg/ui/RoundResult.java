@@ -115,7 +115,7 @@ public class RoundResult {
         spriteBatch.begin();
         spriteBatch.setTransformMatrix(new com.badlogic.gdx.math.Matrix4().setToTranslation(0, 0, 0));
 
-        BitmapFont font = FontManager.getInstance().getFontByName("Placeholder");
+        BitmapFont font = FontManager.getInstance().getFontByName("Terminus32PX");
 
         font.draw(spriteBatch, "ROUND COMPLETE", left + 250f, bottom + HEIGHT - 30f);
 

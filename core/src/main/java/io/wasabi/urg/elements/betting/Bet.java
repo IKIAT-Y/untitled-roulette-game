@@ -31,12 +31,13 @@ public class Bet {
      * return"
      * multiplier convention already used in {@link BetType} (e.g. STRAIGHT = 36f,
      * not 35f).
+     * @param winningTile The tile that won the round.
      */
-    public int payout(Tile winningTile) {
+    public int payout(Tile winningTile, float cardFlatBonus) {
         if (!wins(winningTile)) {
             return 0;
         }
-        return Math.round(amount * zone.getType().payoutMultiplier);
+        return Math.round((amount + winningTile.getFlatBonus() + cardFlatBonus) * zone.getType().payoutMultiplier);
     }
 
     public BetZone getZone() {

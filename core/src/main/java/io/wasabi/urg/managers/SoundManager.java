@@ -24,6 +24,7 @@ public final class SoundManager implements Disposable {
     }
 
     public void initialize() {
+        // Loop every file in the assets/sfx and assets/music directories and load them into the respective maps
         loadSound("spin1", "sfx/spin1.wav");
         loadSound("bounce1", "sfx/bounce1.wav");
         loadSound("bounce2", "sfx/bounce2.wav");
@@ -35,6 +36,19 @@ public final class SoundManager implements Disposable {
         loadSound("tileSelect", "sfx/tileSelect.wav");
         loadSound("tileDeselect", "sfx/tileDeselect.wav");
         loadSound("cardTrigger", "sfx/cardTrigger.wav");
+        loadSound("score1", "sfx/score1.wav");
+        loadSound("score2", "sfx/score2.wav");
+        loadSound("score3", "sfx/score3.wav");
+        loadSound("score4", "sfx/score4.wav");
+        loadSound("winBet", "sfx/winBet.wav");
+        loadSound("loseBet", "sfx/loseBet.wav");
+        loadSound("buy", "sfx/buy.wav");
+        loadSound("sell", "sfx/sell.wav");
+        loadSound("chipPickup", "sfx/chipPickup.wav");
+        loadSound("chipPlace", "sfx/chipPlace.wav");
+
+
+        loadMusic("bgMusic", "music/bgMusic.wav");
     }
 
     // ---- Loading ----

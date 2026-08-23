@@ -46,6 +46,7 @@ public class BettingTableLayout {
      * zero-type tiles,
      * which don't live in the main grid (their bounds are only encoded in their
      * BetZone).
+     * @param tile The tile to get the bounds for.
      */
     public Rectangle getTileBounds(Tile tile) {
         GridPoint2 p = gridPositions.get(tile);
@@ -70,6 +71,11 @@ public class BettingTableLayout {
         return betZones;
     }
 
+    /**
+     * Gets all bet zones of a given type. Useful for finding all the straight bet zones, for example.
+     * @param type
+     * @return A list of all bet zones of the given type. Empty if none exist.
+     */
     public List<BetZone> getZonesOfType(BetType type) {
         List<BetZone> result = new ArrayList<>();
         for (BetZone zone : betZones) {

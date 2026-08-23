@@ -27,7 +27,7 @@ public class RoundInfoPanel {
     private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
 
     private static final Texture TEXTURE = new Texture(Gdx.files.internal("ui/CorneredPatch.png"));
-    private static final Texture TICKET_TEXTURE = new Texture(Gdx.files.internal("ticket.png"));
+    private static final Texture TICKET_TEXTURE = new Texture(Gdx.files.internal("ui/GameTicket.png"));
 
     // Colors
     private static final Color COL_SHADOW    = new Color(0.10f, 0.10f, 0.13f, 1f);
@@ -43,13 +43,14 @@ public class RoundInfoPanel {
 
     private final NinePatch patch;
 
-    private final BitmapFont fontTitle = FontManager.getInstance().getFontByName("Placeholder");
-    private final BitmapFont fontBody  = FontManager.getInstance().getFontByName("Placeholder");
+    private final BitmapFont fontTitle = FontManager.getInstance().getFontByName("Terminus32PX");
+    private final BitmapFont fontBody  = FontManager.getInstance().getFontByName("Terminus32PX");
 
     private final GlyphLayout layout = new GlyphLayout();
 
     // Layout
-    private float x, y;               // top-left anchor of the whole panel
+    private float x;
+    private float y;
     private float width = 240f;
     private float padding = 2.5f;     // outline thickness
     private float sectionGap = 12f;   // gap between stacked boxes
@@ -127,9 +128,11 @@ public class RoundInfoPanel {
         Boss boss = this.runState.getBoss();
         RoundConfig config = this.roundManager.getCurrentConfig();
 
+        System.out.println("Updating round type: act=" + this.roundManager.getAct() + ", round=" + this.roundManager.getRound() + ", isBossRound=" + config.isBossRound());
         if (config.isBossRound() && boss != null) {
             setRoundType(boss.getName());
             setBossInfo(boss.getPhrase(), boss.getDescription());
+            System.out.println("Boss round detected: " + boss.getName() + " - " + boss.getPhrase());
         } else {
             setRoundType("Normal Round");
             setRoundInfo("A normal round of roulette.", "Reach the quota before you run out of spins.");
@@ -191,6 +194,11 @@ public class RoundInfoPanel {
         SPRITE_BATCH.end();
     }
 
+    /** Draws the background panel behind all the content boxes.
+     *
+     * @param contentTopY The y-coordinate of the top of the content area.
+     * @param contentHeight The total height of the content area.
+     */
     private void drawBackingPanel(float contentTopY, float contentHeight) {
         float backingWidth = width + backingPadding * 2 + 500f;
         float backingHeight = contentHeight + backingPadding * 2 + 1000f;
@@ -208,6 +216,13 @@ public class RoundInfoPanel {
         patch.draw(SPRITE_BATCH, backingX + padding, backingBoxY + padding, backingWidth - padding * 2, backingHeight - padding * 2);
     }
 
+    /** Draws a rectangular box with a shadow, outline, and fill color.
+     *
+     * @param topY The y-coordinate of the top of the box.
+     * @param boxHeight The height of the box.
+     * @param fill The color to fill the box with.
+     * @return The y-coordinate of the bottom of the box.
+     */
     private float drawBox(float topY, float boxHeight, Color fill) {
         float boxY = topY - boxHeight;
 
@@ -223,6 +238,12 @@ public class RoundInfoPanel {
         return boxY;
     }
 
+    /** Draws the banner at the top of the panel,
+     *  indicating the round type (normal or boss).
+     *
+     * @param topY The y-coordinate of the top of the banner.
+     * @return The y-coordinate of the bottom of the banner.
+     */
     private float drawBanner(float topY) {
         Color bannerColor = bossRound ? COL_BOSS : COL_NORMAL;
 
@@ -237,6 +258,17 @@ public class RoundInfoPanel {
         return boxY;
     }
 
+    /** Draws a fixed-size text box with a shadow, outline, and background color.
+     *
+     * @param topY The y-coordinate of the top of the box.
+     * @param boxHeight The height of the box.
+     * @param text The text to display inside the box.
+     * @param font The font to use for rendering the text.
+     * @param fontScale The scale factor for the font size.
+     * @param textColor The color of the text.
+     * @param bg The background color of the box.
+     * @return The y-coordinate of the bottom of the box.
+     */
     private float drawFixedTextBox(float topY, float boxHeight, String text, BitmapFont font, float fontScale, Color textColor, Color bg) {
         float textWidth = width - innerPadX * 2;
         float boxY = drawBox(topY, boxHeight, bg);
@@ -254,6 +286,12 @@ public class RoundInfoPanel {
         return boxY;
     }
 
+    /** Draws a row of two stat boxes, one for the bet amount
+     * and one for the remaining spins.
+     *
+     * @param topY The y-coordinate of the top of the row.
+     * @return The y-coordinate of the bottom of the row.
+     */
     private float drawStatRow(float topY) {
         float h = fontTitle.getLineHeight() + fontBody.getLineHeight() + innerPadY * 3;
         float gap = 6f;
@@ -282,6 +320,16 @@ public class RoundInfoPanel {
         return boxY;
     }
 
+    /** Draws the label and value for a stat box.
+     *
+     * @param boxX The x-coordinate of the left side of the box.
+     * @param boxWidth The width of the box.
+     * @param boxY The y-coordinate of the bottom of the box.
+     * @param boxH The height of the box.
+     * @param label The label text to display (e.g., "Bet Amount").
+     * @param value The value text to display (e.g., "$100").
+     * @param valueColor The color to use for the value text.
+     */
     private void drawStatText(float boxX, float boxWidth, float boxY, float boxH, String label, String value, Color valueColor) {
         float titleH = fontTitle.getLineHeight();
 
@@ -295,6 +343,11 @@ public class RoundInfoPanel {
         fontTitle.getData().setScale(1f);
     }
 
+    /** Draws the money box, which displays the player's current ticket count.
+     *
+     * @param topY The y-coordinate of the top of the money box.
+     * @return The y-coordinate of the bottom of the money box.
+     */
     private float drawMoneyBox(float topY) {
         float lineH = fontTitle.getLineHeight();
         float h = lineH + innerPadY * 2;
@@ -318,6 +371,12 @@ public class RoundInfoPanel {
         return boxY;
     }
 
+    /** Draws a row of two boxes, one for the current act
+     * and one for the current round.
+     *
+     * @param topY The y-coordinate of the top of the row.
+     * @return The y-coordinate of the bottom of the row.
+     */
     private void drawActRoundRow(float topY) {
         float h = fontTitle.getLineHeight() + fontBody.getLineHeight() + innerPadY * 3;
         float gap = 6f;

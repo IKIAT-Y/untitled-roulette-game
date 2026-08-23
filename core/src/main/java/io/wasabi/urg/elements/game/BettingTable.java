@@ -29,6 +29,7 @@ import io.wasabi.urg.elements.betting.PocketColor;
 import io.wasabi.urg.elements.betting.TableLayoutGenerator;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
+import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.state.RunState;
 
 public class BettingTable extends GameObject {
@@ -36,7 +37,7 @@ public class BettingTable extends GameObject {
     private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
     private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
     private static final FontManager FONT_MANAGER = FontManager.getInstance();
-    private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Placeholder");
+    private static final BitmapFont FONT = FONT_MANAGER.getFontByName("Terminus32PX");
 
     private static final float CHIP_RADIUS = 32f;
     private static final float CHIP_STACK_OFFSET = 10f;
@@ -61,6 +62,12 @@ public class BettingTable extends GameObject {
 
     private BettingTableLayout layout;
     private List<Tile> lastKnownTiles;
+
+    // Snapshot of Tile#getLayoutVersion() as of the last rebuild, keyed by tile
+    // identity. tiles.equals(lastKnownTiles) only catches tiles being added/
+    // removed/reordered, but not in-place changes to a tile's colour or number.
+    // This map lets us detect those changes without needing to compare every tile's live state every frame.
+    private Map<Tile, Integer> lastKnownLayoutVersions = new HashMap<>();
 
     // Backed by RunState, not owned here — see the comment on RunState.activeBets.
     // This
@@ -125,6 +132,10 @@ public class BettingTable extends GameObject {
     public void rebuildLayout() {
         this.layout = generator.generate(tiles, posX, posY);
         this.lastKnownTiles = new ArrayList<>(tiles);
+        this.lastKnownLayoutVersions = new HashMap<>();
+        for (Tile tile : tiles) {
+            lastKnownLayoutVersions.put(tile, tile.getLayoutVersion());
+        }
         invalidateOrphanedBets();
         rebuildTray();
     }
@@ -150,6 +161,7 @@ public class BettingTable extends GameObject {
      * TableLayoutGenerator) list more than one covered tile for that single
      * number — losing one duplicate shouldn't drop the bet as long as another tile
      * with that number is still on the wheel.
+     * @param zone The bet zone to check for orphaned status.
      */
     private boolean isOrphaned(BetZone zone) {
         Map<Integer, Boolean> numberSurvives = new HashMap<>();
@@ -180,9 +192,30 @@ public class BettingTable extends GameObject {
         // Cheap change-detection placeholder until the roguelike layer has a proper
         // "pockets changed" event to push. Fine at the tile counts this game deals
         // with.
-        if (!tiles.equals(lastKnownTiles)) {
+        if (layoutIsStale()) {
             rebuildLayout();
         }
+    }
+
+    /**
+     * True if the tile list has been structurally changed (add/remove/reorder) or
+     * any surviving tile's colour or number has changed since the layout was last
+     * built — any of those means the zone membership baked into {@link #layout}
+     * (which straight zone/number a tile occupies, whether it's the special "0"
+     * pocket, which RED/BLACK/ODD/EVEN/etc. bucket it falls in) no longer matches
+     * reality. See {@link #lastKnownLayoutVersions}.
+     */
+    private boolean layoutIsStale() {
+        if (!tiles.equals(lastKnownTiles)) {
+            return true;
+        }
+        for (Tile tile : tiles) {
+            Integer knownVersion = lastKnownLayoutVersions.get(tile);
+            if (knownVersion == null || knownVersion != tile.getLayoutVersion()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Chip getTrayChipAt(Vector2 point) {
@@ -214,7 +247,9 @@ public class BettingTable extends GameObject {
         return nearest;
     }
 
-    /** Spawns a fresh chip for dragging — the tray itself is never depleted. */
+    /** Spawns a fresh chip for dragging — the tray itself is never depleted.
+     * @param denomination The denomination of the chip to spawn.
+    */
     public Chip beginDragFromTray(ChipDenomination denomination, Vector2 point) {
         Chip chip = new Chip(denomination, point.x, point.y, CHIP_RADIUS);
         chip.setDragging(true);
@@ -227,6 +262,7 @@ public class BettingTable extends GameObject {
      * deducted chips in the first place, see {@link #placeBet}. If the player drops
      * it back on a zone it's re-tracked there; if they drop it off the table it's
      * simply gone from {@link #activeBets}.
+     * @param chip The chip to pick up.
      */
     public Chip beginDragFromPlaced(Chip chip) {
         Bet bet = chip.getBet();
@@ -251,6 +287,8 @@ public class BettingTable extends GameObject {
      * — placing a bet here only ever reserves against the player's real balance
      * minus what's already reserved by other pending bets, it never mutates
      * {@link RunState#getChips()} itself.
+     * @param zone The bet zone to place the bet on.
+     * @param chip The chip representing the bet's denomination and stake.
      */
     public void placeBet(BetZone zone, Chip chip) {
         int balance = runState.getChips();
@@ -268,6 +306,8 @@ public class BettingTable extends GameObject {
         Bet bet = new Bet(zone, amount);
         chip.setBet(bet);
         chip.setDragging(false);
+
+        SoundManager.getInstance().playSound("chipPlace");
 
         int stackIndex = countChipsOnZone(zone);
         Vector2 anchor = zone.getChipAnchor();
@@ -295,6 +335,7 @@ public class BettingTable extends GameObject {
      * chips picked
      * up from an existing bet were already refunded in
      * {@link #beginDragFromPlaced}.
+     * @param chip The chip to discard.
      */
     public void discardChip(Chip chip) {
         chip.setDragging(false);
@@ -416,6 +457,7 @@ public class BettingTable extends GameObject {
      * when its number is duplicated. Generic on purpose: whatever texture a tile
      * reports (see {@link Tile#getTexture()}) is what gets drawn, so a new tile
      * type never needs a new branch here to render correctly on the table.
+     * @param straightZones The list of straight zones to draw textures for.
      */
     private void drawStraightZoneTextures(List<BetZone> straightZones) {
         SPRITE_BATCH.begin();
@@ -445,6 +487,7 @@ public class BettingTable extends GameObject {
      * sharing this zone stay independently betable via the RED/BLACK outside
      * zones (see TableLayoutGenerator#buildOutsideCategoryZones) regardless of
      * which one's texture wins here.
+     * @param zone The straight bet zone to pick a texture for.
      */
     private Texture pickStraightZoneTexture(BetZone zone) {
         List<Tile> covered = zone.getCoveredTiles();
@@ -469,6 +512,9 @@ public class BettingTable extends GameObject {
                 bestRepresentative = tile;
             }
         }
+        if (bestRepresentative == null) {
+            throw new IllegalStateException("A straight betting zone must cover at least one tile");
+        }
         return bestRepresentative.getTexture();
     }
 
@@ -479,6 +525,9 @@ public class BettingTable extends GameObject {
      * Every tweak made here is saved beforehand and restored afterward so it can't
      * leak into whatever draws with FONT next. All three groups share one
      * SpriteBatch begin/end pair for efficiency, since they all draw with the same font and color.
+     * @param straightZones The list of straight zones to label.
+     * @param outsideZones The list of outside-category zones to label.
+     * @param dozenZones The list of "thirds" zones to label.
      */
     private void drawZoneLabels(List<BetZone> straightZones, List<BetZone> outsideZones,
             List<BetZone> dozenZones) {
@@ -533,6 +582,7 @@ public class BettingTable extends GameObject {
      * they cover (derived from the zone's own covered tiles) rather than a
      * hardcoded "1-18"/"19-36", since that range is rank-based and shifts as the
      * roguelike layer changes what numbers exist — see TableLayoutGenerator.
+     * @param zone The outside-category bet zone to get a label for.
      */
     private String outsideLabelFor(BetZone zone) {
         switch (zone.getType()) {
@@ -589,6 +639,7 @@ public class BettingTable extends GameObject {
     /**
      * Returns the color to fill an outside-category zone with. RED/BLACK are
      * colored, everything else is dark green.
+     * @param type The outside-category bet type to get a color for.
      */
     private Color colorForOutsideType(BetType type) {
         switch (type) {
@@ -604,19 +655,19 @@ public class BettingTable extends GameObject {
     private Texture textureFor(ChipDenomination denomination) {
         switch (denomination) {
             case ONE:
-                return new Texture(Gdx.files.internal("chips/TEX_Chip_64x64_1White.png"));
+                return new Texture(Gdx.files.internal("chips/ChipWhite.png"));
             case FIVE:
-                return new Texture(Gdx.files.internal("chips/TEX_Chip_64x64_5Red.png"));
+                return new Texture(Gdx.files.internal("chips/ChipRed.png"));
             case TEN:
-                return new Texture(Gdx.files.internal("chips/TEX_Chip_64x64_10Green.png"));
+                return new Texture(Gdx.files.internal("chips/ChipGreen.png"));
             case TWENTY_FIVE:
-                return new Texture(Gdx.files.internal("chips/TEX_Chip_64x64_25Blue.png"));
+                return new Texture(Gdx.files.internal("chips/ChipBlue.png"));
             case FIFTY:
-                return new Texture(Gdx.files.internal("chips/TEX_Chip_64x64_50Black.png"));
+                return new Texture(Gdx.files.internal("chips/ChipBlack.png"));
             case HUNDRED:
-                return new Texture(Gdx.files.internal("chips/TEX_Chip_64x64_100Purple.png"));
+                return new Texture(Gdx.files.internal("chips/ChipPurple.png"));
             default:
-                return new Texture(Gdx.files.internal("chips/TEX_Chip_64x64_Default.png"));
+                return new Texture(Gdx.files.internal("chips/ChipDefault.png"));
         }
     }
 
