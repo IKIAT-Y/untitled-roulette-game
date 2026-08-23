@@ -68,12 +68,6 @@ public class Roulette extends Game {
         int STARTING_MONEY = 100;
         runState.reset(STARTING_MONEY);
 
-        runState.addCard(cardPool.getRandomCard());
-        runState.addCard(cardPool.getRandomCard());
-        runState.addCard(cardPool.getRandomCard());
-        runState.addCard(cardPool.getRandomCard());
-        runState.addCard(cardPool.getRandomCard());
-
         this.gameScreen = new GameScreen(this);
         this.bettingScreen = new BettingScreen(this);
 
