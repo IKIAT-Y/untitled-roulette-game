@@ -83,7 +83,7 @@ public class BettingScreen implements Screen {
 
         Gdx.input.setInputProcessor(dragController);
 
-        betButtonTexture = new Texture(Gdx.files.internal("buttons/TEX_Button_64x32_BetDown.png"));
+        betButtonTexture = new Texture(Gdx.files.internal("buttons/ButtonBetDown.png"));
 
         float btnWidth = betButtonTexture.getWidth();
         float btnHeight = betButtonTexture.getHeight();
@@ -103,7 +103,7 @@ public class BettingScreen implements Screen {
 
         updateBetButtonLayout();
     }
-    
+
     /** Updates the layout of the bet button based on the current screen size. */
     private void updateBetButtonLayout() {
         if (betButton == null || betButtonTexture == null) {

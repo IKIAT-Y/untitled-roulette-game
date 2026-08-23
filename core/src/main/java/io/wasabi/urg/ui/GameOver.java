@@ -44,7 +44,7 @@ public class GameOver {
         this.viewport = viewport;
         Texture texture = new Texture(Gdx.files.internal("ui/CorneredPatch.png"));
         this.patch = new NinePatch(texture, 10, 10, 10, 10);
-        this.font = FontManager.getInstance().getFontByName("Placeholder");
+        this.font = FontManager.getInstance().getFontByName("Terminus32PX");
     }
 
     public void show() {

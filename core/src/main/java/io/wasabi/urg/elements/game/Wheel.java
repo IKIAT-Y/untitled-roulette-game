@@ -239,7 +239,7 @@ public class Wheel {
 
         spinButton.setPosition(position);
 
-        spinButton.draw(spinButtonState, SHAPE_RENDERER, SPRITE_BATCH, FontManager.getInstance().getFontByName("Placeholder"));
+        spinButton.draw(spinButtonState, SHAPE_RENDERER, SPRITE_BATCH, FontManager.getInstance().getFontByName("Terminus32PX"));
 
         if (showConsumeZone) {
             SHAPE_RENDERER.begin(ShapeType.Filled);

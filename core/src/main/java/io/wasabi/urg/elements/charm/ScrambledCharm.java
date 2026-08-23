@@ -11,7 +11,7 @@ import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.FloatingText;
 
-public class ScrambledCharm extends AbstractCharm {
+public class ScrambledCharm extends Charm {
 
     private static final String ERROR_SOUND = "error";
     private final Random random = new Random();
