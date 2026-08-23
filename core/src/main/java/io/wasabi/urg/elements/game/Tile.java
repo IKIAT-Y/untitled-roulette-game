@@ -128,13 +128,13 @@ public class Tile extends GameObject {
         float r2 = radius + height + numHeight;
         float radians = degrees * MathUtils.degreesToRadians * size;
 
-        int segments = Math.max(1, (int) (3 * (float) Math.cbrt(r2)));
-        float radInc = radians / segments;
+        int segments = Math.max(1, (int) (6 * (float) Math.cbrt(r2)));
+        float radInc = radians / (segments - 1);
 
         float rot = rotation;
 
         float[] vertices = new float[segments * 4];
-        short[] tris = new short[segments * 11];
+        short[] tris = new short[segments * 12];
 
         Vector2 fretPos = new Vector2(
                 x + (r1 + height / 2) * MathUtils.cos(rot),
@@ -163,7 +163,7 @@ public class Tile extends GameObject {
             vertices[v + 2] = x + r2 * MathUtils.cos(rot);
             vertices[v + 3] = y + r2 * MathUtils.sin(rot);
 
-            if (i < segments - 1) {
+            if (i < segments) {
                 tris[t] = (short) ind;
                 tris[t + 1] = (short) (ind + 2);
                 tris[t + 2] = (short) (ind + 3);
