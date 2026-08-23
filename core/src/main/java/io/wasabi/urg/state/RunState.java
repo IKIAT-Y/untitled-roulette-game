@@ -371,7 +371,6 @@ public final class RunState {
         int totalStaked = 0;
         int winningStake = 0;
         int rawPayout = 0;
-        float payoutMultiplier = 1f;
 
         float globalMultiplier = 1f;
         float cardFlatBonus = 0f;
@@ -389,7 +388,6 @@ public final class RunState {
             if (bet.wins(lastTile)) {
                 winningStake += bet.getAmount();
                 tileFlatBonus += lastTile.getFlatBonus();
-                payoutMultiplier *= bet.getZone().getType().payoutMultiplier;
             }
             rawPayout += bet.payout(lastTile, cardFlatBonus);
         }
@@ -399,6 +397,11 @@ public final class RunState {
         int finalTotal = Math.round(rawPayout * tileMultiplier * globalMultiplier);
 
         float totalFlatBonus = tileFlatBonus + cardFlatBonus;
+
+        // Derived payout multiplier for display purposes, not used in actual payout math
+        float payoutMultiplier = (winningStake + totalFlatBonus) > 0
+            ? rawPayout / (winningStake + totalFlatBonus)
+            : 1f;
 
         return new WinBreakdown(totalStaked, rawPayout, winningStake, payoutMultiplier, totalFlatBonus, tileMultiplier, globalMultiplier,
             finalTotal, lastTile);
