@@ -70,6 +70,6 @@ public final class WinBreakdown {
 
     /** Nothing was won (no bets, or nothing covered the winning tile). */
     public boolean isEmpty() {
-        return rawPayout <= 0 && flatBonus <= 0;
+        return rawPayout <= 0;
     }
 }
