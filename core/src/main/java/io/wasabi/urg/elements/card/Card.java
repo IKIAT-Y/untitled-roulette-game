@@ -76,6 +76,7 @@ public abstract class Card extends GameObject {
     public void roundEndEffect() {}
     public void charmConsumedEffect() {}
     public float getPayoutMultiplier(Tile winningTile, int totalStaked, int chipBalance) { return 1f; }
+    public float getFlatBonus(Tile winningTile, int totalStaked, int chipBalance) { return 0f; }
     public int getAdditionalEffectTriggers() { return 0; }
     public int getEffectTriggerMultiplier() { return 1; }
     public void afterCardEffects(String effectType) {}

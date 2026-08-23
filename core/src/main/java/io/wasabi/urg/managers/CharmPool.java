@@ -5,16 +5,19 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Supplier;
 
-import io.wasabi.urg.elements.charm.Charm;
-import io.wasabi.urg.elements.charm.BlackCharm;
-import io.wasabi.urg.elements.charm.RedCharm;
-import io.wasabi.urg.elements.charm.ScrambledCharm;
+import io.wasabi.urg.elements.charm.*;
 
 public class CharmPool {
     private static final List<Supplier<Charm>> CHARM_SUPPLIERS = List.of(
         BlackCharm::new,
+        EraserCharm::new,
+        GoldCharm::new,
+        MetallicCharm::new,
+        MirrorCharm::new,
         RedCharm::new,
-        ScrambledCharm::new
+        ScrambledCharm::new,
+        StrengthCharm::new,
+        WeakeningCharm::new
     );
 
     private final Random random = new Random();

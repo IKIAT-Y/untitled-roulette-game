@@ -371,34 +371,36 @@ public final class RunState {
         int totalStaked = 0;
         int winningStake = 0;
         int rawPayout = 0;
-        for (Bet bet : activeBets) {
-            totalStaked += bet.getAmount();
-            if (bet.wins(lastTile)) {
-                winningStake += bet.getAmount();
-            }
-            rawPayout += bet.payout(lastTile);
-        }
-
-        float payoutMultiplier = winningStake > 0 ? (float) rawPayout / winningStake : 1f;
-
-        // Flat per-tile increases aren't implemented yet — reserved slot so the
-        // animation and payout math already know how to include them once they
-        // exist, without another refactor.
-        int flatBonus = 0;
-
-        float tileMultiplier = lastTile.getBetMultiplier();
+        float payoutMultiplier = 1f;
 
         float globalMultiplier = 1f;
+        float cardFlatBonus = 0f;
         int triggerCount = getCardEffectTriggerCount();
         for (int trigger = 0; trigger < triggerCount; trigger++) {
             for (Card card : ownedCards) {
                 globalMultiplier *= card.getPayoutMultiplier(lastTile, totalStaked, chips);
+                cardFlatBonus += card.getFlatBonus(lastTile, totalStaked, chips);
             }
         }
 
-        int finalTotal = Math.round((rawPayout + flatBonus) * tileMultiplier * globalMultiplier);
+        float tileFlatBonus = 0f;
+        for (Bet bet : activeBets) {
+            totalStaked += bet.getAmount();
+            if (bet.wins(lastTile)) {
+                winningStake += bet.getAmount();
+                tileFlatBonus += lastTile.getFlatBonus();
+                payoutMultiplier *= bet.getZone().getType().payoutMultiplier;
+            }
+            rawPayout += bet.payout(lastTile, cardFlatBonus);
+        }
 
-        return new WinBreakdown(totalStaked, rawPayout, winningStake, payoutMultiplier, flatBonus, tileMultiplier, globalMultiplier,
+        float tileMultiplier = lastTile.getBetMultiplier();
+
+        int finalTotal = Math.round(rawPayout * tileMultiplier * globalMultiplier);
+
+        float totalFlatBonus = tileFlatBonus + cardFlatBonus;
+
+        return new WinBreakdown(totalStaked, rawPayout, winningStake, payoutMultiplier, totalFlatBonus, tileMultiplier, globalMultiplier,
             finalTotal, lastTile);
     }
 
