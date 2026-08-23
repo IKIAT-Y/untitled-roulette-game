@@ -101,7 +101,7 @@ public class Shop extends InputAdapter {
     public void show() {
         returnOffersToPool();
         returnCharmOffersToPool();
-        drawOffers();
+        drawCardOffers();
         drawCharmOffers();
         visible = true;
         continueRequested = false;
@@ -137,7 +137,14 @@ public class Shop extends InputAdapter {
 
         spriteBatch.begin();
         spriteBatch.setTransformMatrix(new com.badlogic.gdx.math.Matrix4().setToTranslation(0, 0, 0));
+        renderShopBackground(left);
+        renderShopControls();
+        renderShopText(left);
+        renderOffers();
+        spriteBatch.end();
+    }
 
+    private void renderShopBackground(float left) {
         // white outline
         spriteBatch.setColor(1, 1, 1, 1);
         patch.draw(spriteBatch, left - 4f, CENTER_Y, WIDTH + 8, HEIGHT);
@@ -145,68 +152,58 @@ public class Shop extends InputAdapter {
         // black inner
         spriteBatch.setColor(0.10f, 0.10f, 0.13f, 1f);
         patch.draw(spriteBatch, left, CENTER_Y + 2.5f, WIDTH, HEIGHT - 5);
+    }
 
-        // buy box
+    private void renderShopControls() {
         float boxPadding = 3f;
+        renderBox(buyBox, boxPadding, (draggedCard != null || draggedCharm != null)
+            ? buyButtonHoverColor : buyButtonColor);
+        renderBox(sellBox, boxPadding, draggingInventory ? sellButtonHoverColor : sellButtonColor);
+        renderBox(continueButton, boxPadding, getButtonColor(continueButtonDown, continueButtonHover,
+            continueButtonDownColor, continueButtonHoverColor, continueButtonColor));
+        renderBox(rerollButton, boxPadding, getButtonColor(rerollButtonDown, rerollButtonHover,
+            rerollButtonDownColor, rerollButtonHoverColor, rerollButtonColor));
+    }
+
+    private void renderBox(Rectangle box, float padding, Color color) {
         spriteBatch.setColor(1, 1, 1, 1);
-        patch.draw(spriteBatch, buyBox.x - boxPadding/2, buyBox.y - boxPadding/2, buyBox.width + boxPadding, buyBox.height + boxPadding);
-        spriteBatch.setColor((draggedCard != null || draggedCharm != null) ? buyButtonHoverColor : buyButtonColor);
-        patch.draw(spriteBatch, buyBox.x, buyBox.y, buyBox.width, buyBox.height);
+        patch.draw(spriteBatch, box.x - padding / 2, box.y - padding / 2,
+            box.width + padding, box.height + padding);
+        spriteBatch.setColor(color);
+        patch.draw(spriteBatch, box.x, box.y, box.width, box.height);
+    }
 
-        // sell box
+    private Color getButtonColor(boolean down, boolean hover, Color downColor,
+                                 Color hoverColor, Color normalColor) {
+        if (down && hover) return downColor;
+        return hover ? hoverColor : normalColor;
+    }
+
+    private void renderShopText(float left) {
         spriteBatch.setColor(1, 1, 1, 1);
-        patch.draw(spriteBatch, sellBox.x - boxPadding / 2, sellBox.y - boxPadding / 2, sellBox.width + boxPadding, sellBox.height + boxPadding);
-        spriteBatch.setColor(draggingInventory ? sellButtonHoverColor : sellButtonColor);
-        patch.draw(spriteBatch, sellBox.x, sellBox.y, sellBox.width, sellBox.height);
-
-        // continue
-        spriteBatch.setColor(1, 1, 1, 1);
-        patch.draw(spriteBatch, continueButton.x - boxPadding / 2, continueButton.y - boxPadding / 2, continueButton.width + boxPadding, continueButton.height + boxPadding);
-        if (continueButtonDown && continueButtonHover) {
-            spriteBatch.setColor(continueButtonDownColor);
-        } else spriteBatch.setColor(continueButtonHover ? continueButtonHoverColor : continueButtonColor);
-        patch.draw(spriteBatch, continueButton.x, continueButton.y, continueButton.width, continueButton.height);
-
-        // REROLL
-        spriteBatch.setColor(1, 1, 1, 1);
-        patch.draw(spriteBatch, rerollButton.x - boxPadding / 2, rerollButton.y - boxPadding / 2, rerollButton.width + boxPadding, rerollButton.height + boxPadding);
-        if (rerollButtonDown && rerollButtonHover) {
-            spriteBatch.setColor(rerollButtonDownColor);
-        } else spriteBatch.setColor(rerollButtonHover ? rerollButtonHoverColor : rerollButtonColor);
-
-        patch.draw(spriteBatch, rerollButton.x, rerollButton.y, rerollButton.width, rerollButton.height);
-
-        spriteBatch.setColor(1, 1, 1, 1);
-
         FONT_64PX.draw(spriteBatch, "SHOP", left + 30f, HEIGHT / 2 - 30f);
 
         GlyphLayout layout = new GlyphLayout();
-        layout.setText(FONT, "BUY", Color.WHITE, buyBox.width, Align.center, false);
-        FONT.draw(spriteBatch, "BUY", buyBox.x, buyBox.y + buyBox.height / 2f + layout.height / 2f, buyBox.width, Align.center, false);
+        drawCenteredText(layout, "BUY", buyBox);
+        String sellText = currentSellPrice > 0 ? "SELL - $" + currentSellPrice : "SELL";
+        drawCenteredText(layout, sellText, sellBox);
+        drawCenteredText(layout, "REROLL - " + REROLL_PRICE, rerollButton);
+        drawCenteredText(layout, "CONTINUE", continueButton);
+    }
 
-        String sellText = "SELL";
-        if (currentSellPrice > 0) {
-            sellText = "SELL - $" + currentSellPrice;
-        }
-        layout.setText(FONT, sellText, Color.WHITE, buyBox.width, Align.center, false);
-        FONT.draw(spriteBatch, sellText, sellBox.x, sellBox.y + sellBox.height / 2f + layout.height / 2f, sellBox.width, Align.center, false);
+    private void drawCenteredText(GlyphLayout layout, String text, Rectangle box) {
+        layout.setText(FONT, text, Color.WHITE, box.width, Align.center, false);
+        FONT.draw(spriteBatch, text, box.x, box.y + box.height / 2f + layout.height / 2f,
+            box.width, Align.center, false);
+    }
 
-        String rerollText = "REROLL - " + REROLL_PRICE;
-        layout.setText(FONT, rerollText, Color.WHITE, rerollButton.width, Align.center, false);
-        FONT.draw(spriteBatch, rerollText, rerollButton.x, rerollButton.y + rerollButton.height / 2f + layout.height / 2f, rerollButton.width, Align.center, false);
-
-        layout.setText(FONT, "CONTINUE", Color.WHITE, continueButton.width, Align.center, false);
-        FONT.draw(spriteBatch, "CONTINUE", continueButton.x, continueButton.y + continueButton.height / 2f + layout.height / 2f, continueButton.width, Align.center, false);
-
+    private void renderOffers() {
         for (Card card : offers) {
-            if (card == draggedCard) continue;
-            renderCard(card);
+            if (card != draggedCard) renderCard(card);
         }
         for (AbstractCharm charm : charmOffers) {
-            if (charm == draggedCharm) continue;
-            renderCharm(charm);
+            if (charm != draggedCharm) renderCharm(charm);
         }
-        spriteBatch.end();
     }
 
     public void renderCard(Card card) {
@@ -427,7 +424,7 @@ public class Shop extends InputAdapter {
 
         List<Card> previousOffers = new ArrayList<>(offers);
         offers.clear();
-        drawOffers();
+        drawCardOffers();
         for (Card card : previousOffers) {
             Roulette.getInstance().getCardPool().returnCard(card);
         }
@@ -440,16 +437,16 @@ public class Shop extends InputAdapter {
         }
     }
 
-    private void drawOffers() {
+    private void drawCardOffers() {
         int attempts = 0;
         while (offers.size() < OFFER_COUNT && attempts++ < 30) {
             Card card = Roulette.getInstance().getCardPool().getRandomCard();
             if (card == null) break;
             if (runState.ownsCardType(card)) {
                 Roulette.getInstance().getCardPool().returnCard(card);
-                continue;
+            } else {
+                offers.add(card);
             }
-            offers.add(card);
         }
     }
 
@@ -460,9 +457,9 @@ public class Shop extends InputAdapter {
             if (charm == null) break;
             if (runState.ownsCharmType(charm) || offersContainType(charmOffers, charm)) {
                 Roulette.getInstance().getCharmPool().returnCharm(charm);
-                continue;
+            } else {
+                charmOffers.add(charm);
             }
-            charmOffers.add(charm);
         }
     }
 

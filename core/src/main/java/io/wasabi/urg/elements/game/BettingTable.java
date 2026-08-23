@@ -469,6 +469,9 @@ public class BettingTable extends GameObject {
                 bestRepresentative = tile;
             }
         }
+        if (bestRepresentative == null) {
+            throw new IllegalStateException("A straight betting zone must cover at least one tile");
+        }
         return bestRepresentative.getTexture();
     }
 

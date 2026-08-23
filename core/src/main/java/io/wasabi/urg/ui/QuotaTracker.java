@@ -15,7 +15,7 @@ import io.wasabi.urg.util.tweens.Tween;
 
 /** Displays the current round quota and animates the vertical quota progress bar. */
 public final class QuotaTracker {
-    private static float BAR_X = 22f;
+    
     private static final float BAR_Y = 62f;
     private static final float BAR_WIDTH = 40f;
     private static final float BAR_HEIGHT_PADDING = 124f;
@@ -42,8 +42,8 @@ public final class QuotaTracker {
     private final Matrix4 previousSpriteTransform = new Matrix4();
     private final Matrix4 identityTransform = new Matrix4().idt();
 
+    private float barX = 22f;
     private float displayedProgress;
-    private float targetProgress;
     private int lastQuota = -1;
     private boolean spinStarted = false;
 
@@ -66,7 +66,7 @@ public final class QuotaTracker {
         spinStarted = false;
     }
 
-        targetProgress = quota <= 0
+        float targetProgress = quota <= 0
                 ? 0f
                 : MathUtils.clamp((float) chips / quota, 0f, 1f);
 
@@ -87,7 +87,7 @@ public final class QuotaTracker {
         }
 
         if (tween != null && !tween.isComplete()) {
-            BAR_X = tween.update(delta);
+            barX = tween.update(delta);
         }
     }
 
@@ -140,12 +140,12 @@ public final class QuotaTracker {
 
         // Background keeps the bar visible while it is filling.
         shapeRenderer.setColor(0.18f, 0.18f, 0.18f, 1f);
-        shapeRenderer.rect(BAR_X, BAR_Y, BAR_WIDTH, barHeight);
+        shapeRenderer.rect(barX, BAR_Y, BAR_WIDTH, barHeight);
 
         // Blue fill grows from the bottom towards the quota.
         shapeRenderer.setColor(0.20f, 0.60f, 0.85f, 1f);
         shapeRenderer.rect(
-                BAR_X + BAR_BORDER,
+                barX + BAR_BORDER,
                 BAR_Y + BAR_BORDER,
                 BAR_WIDTH - BAR_BORDER * 2f,
                 Math.max(0f, fillHeight - BAR_BORDER * 2f));
@@ -160,7 +160,7 @@ public final class QuotaTracker {
         int percentage = quota <= 0 ? 0 : Math.round((float) chips / quota * 100f);
 
         // Keep the text beside the bar rather than over it.
-        float textX = BAR_X + BAR_WIDTH + TEXT_X_OFFSET;
+        float textX = barX + BAR_WIDTH + TEXT_X_OFFSET;
         float textY = screenHeight - TEXT_TOP_PADDING;
 
         BitmapFont font = FontManager.getInstance().getFontByName("Placeholder");
@@ -190,6 +190,6 @@ public final class QuotaTracker {
         font.setColor(1f, 1f, 1f, 1f);
     }
 
-    public void hide() { tween = new Tween(1f, BAR_X, OFFSCREEN_X, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN); }
-    public void show() { tween = new Tween(0.7f, BAR_X, 22f, Tween.TweenStyle.CIRCULAR, Tween.TweenDirection.OUT); }
+    public void hide() { tween = new Tween(1f, barX, OFFSCREEN_X, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN); }
+    public void show() { tween = new Tween(0.7f, barX, 22f, Tween.TweenStyle.CIRCULAR, Tween.TweenDirection.OUT); }
 }

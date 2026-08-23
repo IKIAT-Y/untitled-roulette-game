@@ -16,6 +16,7 @@ import io.wasabi.urg.ui.Tooltip;
 public final class RunState {
     public static final int MAX_OWNED_CARDS = 5;
     public static final int MAX_OWNED_CHARMS = 2;
+    private static final String AMOUNT = "amount";
     private int chips;
     private int score;
     private int tickets;
@@ -46,12 +47,12 @@ public final class RunState {
     }
 
     public void addChips(int amount) {
-        requireNonNegative(amount, "amount");
+        requireNonNegative(amount, AMOUNT);
         chips += amount;
     }
 
     public boolean spendChips(int amount) {
-        requireNonNegative(amount, "amount");
+        requireNonNegative(amount, AMOUNT);
         if (amount > chips) {
             return false;
         }
@@ -65,12 +66,12 @@ public final class RunState {
     }
 
     public void addTickets(int amount) {
-        requireNonNegative(amount, "amount");
+        requireNonNegative(amount, AMOUNT);
         tickets += amount;
     }
 
     public boolean spendTickets(int amount) {
-        requireNonNegative(amount, "amount");
+        requireNonNegative(amount, AMOUNT);
         if (amount > tickets) {
             return false;
         }
@@ -84,7 +85,7 @@ public final class RunState {
     }
 
     public void addScore(int amount) {
-        requireNonNegative(amount, "amount");
+        requireNonNegative(amount, AMOUNT);
         score += amount;
     }
 

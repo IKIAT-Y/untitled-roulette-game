@@ -83,11 +83,10 @@ public class BettingScreen implements Screen {
                 betButtonTexture,
                 (game.getWorldWidth() - btnWidth) / 2f, game.getWorldHeight() - btnHeight,
                 btnWidth, btnHeight,
-                () -> {
-                    // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
-                    // sprite batch)
-                    game.setScreen(Roulette.getInstance().getGameScreen());
-                });
+                () ->
+                        // DO NOT CALL this.dispose() HERE, SOME ASSETS ARE STILL IN USE (e.g., the
+                        // sprite batch)
+                        game.setScreen(Roulette.getInstance().getGameScreen()));
 
         updateBetButtonLayout();
     }
@@ -113,16 +112,19 @@ public class BettingScreen implements Screen {
 
     @Override
     public void hide() {
+        // put functionality when screen is hidden, if needed
 
     }
 
     @Override
     public void pause() {
+        // put functionality when screen is paused, if needed
 
     }
 
     @Override
     public void resume() {
+        // put functionality when screen is resumed, if needed
 
     }
 
