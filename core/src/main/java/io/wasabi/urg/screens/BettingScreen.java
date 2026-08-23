@@ -38,7 +38,7 @@ public class BettingScreen implements Screen {
 
         this.bettingTable = new BettingTable();
 
-        backgroundImg = new Texture(Gdx.files.internal("ui/board.png"));
+        backgroundImg = new Texture(Gdx.files.internal("ui/BettingBoard.png"));
 
         // Absolute value for now. Consider making this relative to table size and world
         // coords.
