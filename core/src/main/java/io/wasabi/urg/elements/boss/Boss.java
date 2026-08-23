@@ -10,12 +10,21 @@ public class Boss {
         this.phrase = phrase;
         this.description = description;
     }
-
-    public void roundStartEffect() {}
-    public void beforeSpinEffect() {}
-    public void afterSpinEffect() {}
-    public void roundEndEffect() {}
-    public void charmConsumedEffect() {}
+    public void roundStartEffect() {
+        // Override roundStartEffect in subclasses to implement specific boss effects
+    }
+    public void beforeSpinEffect() {
+        // Override beforeSpinEffect in subclasses to implement specific boss effects
+    }
+    public void afterSpinEffect() {
+        // Override afterSpinEffect in subclasses to implement specific boss effects
+    }
+    public void roundEndEffect() {
+        // Override roundEndEffect in subclasses to implement specific boss effects
+    }
+    public void charmConsumedEffect() {
+        // Override charmConsumedEffect in subclasses to implement specific boss effects
+    }
 
     public String getName() {
         return name;

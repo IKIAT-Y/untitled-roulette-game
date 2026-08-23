@@ -1,19 +1,18 @@
 package io.wasabi.urg.elements.boss;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
+
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.game.Tile;
-import io.wasabi.urg.elements.tiles.DefaultTile;
-import io.wasabi.urg.elements.tiles.GoldTile;
 import io.wasabi.urg.elements.tiles.NullTile;
 import io.wasabi.urg.elements.tiles.TileType;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class Gamer extends Boss {
+
+    private final Random random = new Random();
 
     public Gamer() {
         super("The Gamer", "He is a gamer.", "Add 5 null tiles to the table, these tiles give no payout.");
@@ -22,7 +21,6 @@ public class Gamer extends Boss {
     @Override
     public void roundStartEffect() {
         List<Tile> tiles = Roulette.getInstance().getRunState().getTiles();
-        Random random = new Random();
         for (int i = 0; i < 5; i++) {
             TileType type = new NullTile();
 
