@@ -146,10 +146,9 @@ public class WinAnimation {
 
     /**
      * Lays out every "add/multiply this, here's the new running total" step
-     * in reveal order. Flat bonus is skipped entirely while it's always 0
-     * (see {@link WinBreakdown}) rather than showing a "+0" that means
-     * nothing yet — once flat tile bonuses exist this only needs a nonzero
-     * value from {@code RunState}, nothing here changes.
+     * in reveal order. The flat bonus step is skipped entirely when there's
+     * no flat bonus to show (e.g. the winning tile doesn't grant one) rather
+     * than showing a "+0" that means nothing.
      */
     private void buildSteps() {
         steps.clear();
@@ -157,8 +156,10 @@ public class WinAnimation {
 
         SoundManager.getInstance().playSound("tileSelect");
 
-        running += breakdown.getFlatBonus();
-        steps.add(new Step("+" + breakdown.getFlatBonus(), FLAT_COLOR, running));
+        if (breakdown.getFlatBonus() > 0) {
+            running += breakdown.getFlatBonus();
+            steps.add(new Step("+" + trimTrailingZero(breakdown.getFlatBonus()), FLAT_COLOR, running));
+        }
 
         running *= breakdown.getPayoutMultiplier();
         steps.add(new Step("x" + trimTrailingZero(breakdown.getPayoutMultiplier()), PAYOUT_MULT_COLOR, running));

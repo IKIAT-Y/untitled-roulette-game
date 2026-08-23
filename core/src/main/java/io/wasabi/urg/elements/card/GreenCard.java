@@ -1,5 +1,6 @@
 package io.wasabi.urg.elements.card;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.wasabi.urg.Roulette;
@@ -16,13 +17,10 @@ public class GreenCard extends Card {
     }
 
     @Override
-    public void roundStartEffect() {
-        triggerDisplay();
-        List<Tile> tiles = Roulette.getInstance().getGameScreen().getWheel().getTiles();
-        for (Tile tile : tiles) {
-            if (tile.getType().isGreen()) {
-                tile.setBetMultiplier(tile.getBetMultiplier() * 3f);
-            }
+    public float getPayoutMultiplier(Tile winningTile, int totalStaked, int chipBalance) {
+        if (winningTile.getType().isGreen()) {
+            return 3f;
         }
+        return 1f;
     }
 }

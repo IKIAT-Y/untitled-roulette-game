@@ -7,34 +7,29 @@ import com.badlogic.gdx.graphics.Color;
 
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.game.Tile;
+import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.FloatingText;
 
-public class ScrambledCharm extends Charm {
+public class StrengthCharm extends Charm {
 
     private static final String ERROR_SOUND = "error";
-    private final Random random = new Random();
 
-    public ScrambledCharm() {
+    public StrengthCharm() {
         super();
-        tooltip.setTitle("Scrambled Charm");
-        tooltip.setDescription("Choose up to four tiles, randomise their number between 0 and 36.");
+        tooltip.setTitle("Strength Charm");
+        tooltip.setDescription("Choose up to four tiles, increase their number by 1 (max 36).");
     }
 
     @Override
     public void consume() {
-        
+
         if (requirements()) {
             super.consume();
             List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
             for (Tile tile : selectedTiles) {
-                int randomNumber = random.nextInt(37); // Generates a random number between 0 and 36
-                // Routed through Tile#setNumber (not tile.getType().setNumber(...)
-                // directly) so the change bumps Tile's layout version — otherwise
-                // BettingTable never notices a reroll changed which grid cell/zero
-                // pocket this tile belongs to and keeps rendering/paying out a stale
-                // layout. See Tile#setNumber.
-                tile.setNumber(randomNumber);
+                TileType type = tile.getType();
+                type.setNumber(Math.min(type.getNumber() + 1, 36));
             }
             Roulette.getInstance().getRunState().clearSelectedTiles();
             removeAndReturnToPool();

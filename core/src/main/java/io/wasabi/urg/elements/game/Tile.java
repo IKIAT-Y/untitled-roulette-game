@@ -23,6 +23,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Align;
 
 import io.wasabi.urg.elements.GameObject;
+import io.wasabi.urg.elements.tiles.NumberlessTile;
 import io.wasabi.urg.elements.tiles.TileType;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
@@ -136,13 +137,13 @@ public class Tile extends GameObject {
         float r2 = radius + height + numHeight;
         float radians = degrees * MathUtils.degreesToRadians * size;
 
-        int segments = Math.max(1, (int) (3 * (float) Math.cbrt(r2)));
-        float radInc = radians / segments;
+        int segments = Math.max(1, (int) (6 * (float) Math.cbrt(r2)));
+        float radInc = radians / (segments - 1);
 
         float rot = rotation;
 
         float[] vertices = new float[segments * 4];
-        short[] tris = new short[segments * 11];
+        short[] tris = new short[segments * 12];
 
         Vector2 fretPos = new Vector2(
                 x + (r1 + height / 2) * MathUtils.cos(rot),
@@ -171,7 +172,7 @@ public class Tile extends GameObject {
             vertices[v + 2] = x + r2 * MathUtils.cos(rot);
             vertices[v + 3] = y + r2 * MathUtils.sin(rot);
 
-            if (i < segments - 1) {
+            if (i < segments) {
                 tris[t] = (short) ind;
                 tris[t + 1] = (short) (ind + 2);
                 tris[t + 2] = (short) (ind + 3);
@@ -221,7 +222,9 @@ public class Tile extends GameObject {
         SPRITE_BATCH.begin();
         previousSpriteTransform.set(SPRITE_BATCH.getTransformMatrix());
         SPRITE_BATCH.setTransformMatrix(fontMatrix4);
-        FONT.draw(SPRITE_BATCH, Integer.toString(type.getNumber()), 0, 0, 16, Align.center, true);
+        if (!(type instanceof NumberlessTile)) {
+            FONT.draw(SPRITE_BATCH, Integer.toString(type.getNumber()), 0, 0, 16, Align.center, true);
+        }
         SPRITE_BATCH.setTransformMatrix(previousSpriteTransform);
         SPRITE_BATCH.end();
 
@@ -355,6 +358,10 @@ public class Tile extends GameObject {
     public float getBetMultiplier() {
         return type.getBetMultiplier();
     }
+
+    public void setFlatBonus(float flatBonus) { type.setFlatBonus(flatBonus); }
+
+    public float getFlatBonus() { return type.getFlatBonus(); }
 
     public TileType.TileColour getColor() {
         return type.getColour();
