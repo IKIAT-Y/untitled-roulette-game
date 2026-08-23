@@ -62,6 +62,12 @@ public class BettingTable extends GameObject {
 
     private BettingTableLayout layout;
     private List<Tile> lastKnownTiles;
+    // Snapshot of Tile#getColorVersion() as of the last rebuild, keyed by tile
+    // identity. tiles.equals(lastKnownTiles) only catches tiles being added/
+    // removed/reordered — an existing tile's colour changing in place (e.g. a
+    // charm recolouring it) leaves the same Tile references in the same order, so
+    // that check alone would never notice the RED/BLACK zones have gone stale.
+    private Map<Tile, Integer> lastKnownColorVersions = new HashMap<>();
 
     // Backed by RunState, not owned here — see the comment on RunState.activeBets.
     // This
@@ -126,6 +132,10 @@ public class BettingTable extends GameObject {
     public void rebuildLayout() {
         this.layout = generator.generate(tiles, posX, posY);
         this.lastKnownTiles = new ArrayList<>(tiles);
+        this.lastKnownColorVersions = new HashMap<>();
+        for (Tile tile : tiles) {
+            lastKnownColorVersions.put(tile, tile.getColorVersion());
+        }
         invalidateOrphanedBets();
         rebuildTray();
     }
@@ -182,9 +192,28 @@ public class BettingTable extends GameObject {
         // Cheap change-detection placeholder until the roguelike layer has a proper
         // "pockets changed" event to push. Fine at the tile counts this game deals
         // with.
-        if (!tiles.equals(lastKnownTiles)) {
+        if (layoutIsStale()) {
             rebuildLayout();
         }
+    }
+
+    /**
+     * True if the tile list has been structurally changed (add/remove/reorder) or
+     * any surviving tile's colour has changed since the layout was last built —
+     * either case means the RED/BLACK/straight-zone membership baked into
+     * {@link #layout} no longer matches reality. See {@link #lastKnownColorVersions}.
+     */
+    private boolean layoutIsStale() {
+        if (!tiles.equals(lastKnownTiles)) {
+            return true;
+        }
+        for (Tile tile : tiles) {
+            Integer knownVersion = lastKnownColorVersions.get(tile);
+            if (knownVersion == null || knownVersion != tile.getColorVersion()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Chip getTrayChipAt(Vector2 point) {

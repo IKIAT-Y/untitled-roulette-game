@@ -61,6 +61,10 @@ public class Tile extends GameObject {
 
     private boolean selected = false;
 
+    // Used to track changes in the tile's color. Incremented whenever the color is changed.
+    // This way we can detect in-place color changes without needing to compare TileType references.
+    private int colorVersion = 0;
+
     public Tile(World world, TileType type, Vector2 position, float radius, float height) {
         this.world = world;
 
@@ -323,6 +327,7 @@ public class Tile extends GameObject {
     public void setType(TileType type) {
         this.type.dispose();
         this.type = type;
+        colorVersion++;
         update();
     }
 
@@ -338,8 +343,24 @@ public class Tile extends GameObject {
         return type.getColour();
     }
 
+    /**
+     * Sets the color of the tile and increments the color version to indicate a change.
+     * See {@link #colorVersion}.
+     * 
+     * @param color
+     */
     public void setColor(TileType.TileColour color) {
         type.setColour(color);
+        colorVersion++;
+    }
+
+    /**
+     * See {@link #colorVersion}. Compare this against a previously-recorded value
+     * to detect an in-place colour change that a reference-equality check on the
+     * tile itself (or a list of tiles) would miss.
+     */
+    public int getColorVersion() {
+        return colorVersion;
     }
 
     /**
