@@ -75,7 +75,7 @@ public class WinAnimation {
     private static final Color TILE_MULT_COLOR = new Color(0.95f, 0.55f, 0.10f, 1f);
     private static final Color GLOBAL_MULT_COLOR = new Color(0.85f, 0.15f, 0.15f, 1f);
 
-    private final BitmapFont font = FontManager.getInstance().getFontByName("Placeholder");
+    private final BitmapFont font = FontManager.getInstance().getFontByName("Terminus32PX");
     private final SpriteBatch spriteBatch = RendererManager.getInstance().getSpriteBatch();
     private final ShapeRenderer shapeRenderer = RendererManager.getInstance().getShapeRenderer();
     private final GlyphLayout glyphLayout = new GlyphLayout();

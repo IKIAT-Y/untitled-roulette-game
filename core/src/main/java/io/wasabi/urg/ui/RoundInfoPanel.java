@@ -27,7 +27,7 @@ public class RoundInfoPanel {
     private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
 
     private static final Texture TEXTURE = new Texture(Gdx.files.internal("ui/CorneredPatch.png"));
-    private static final Texture TICKET_TEXTURE = new Texture(Gdx.files.internal("ticket.png"));
+    private static final Texture TICKET_TEXTURE = new Texture(Gdx.files.internal("ui/GameTicket.png"));
 
     // Colors
     private static final Color COL_SHADOW    = new Color(0.10f, 0.10f, 0.13f, 1f);
@@ -43,8 +43,8 @@ public class RoundInfoPanel {
 
     private final NinePatch patch;
 
-    private final BitmapFont fontTitle = FontManager.getInstance().getFontByName("Placeholder");
-    private final BitmapFont fontBody  = FontManager.getInstance().getFontByName("Placeholder");
+    private final BitmapFont fontTitle = FontManager.getInstance().getFontByName("Terminus32PX");
+    private final BitmapFont fontBody  = FontManager.getInstance().getFontByName("Terminus32PX");
 
     private final GlyphLayout layout = new GlyphLayout();
 

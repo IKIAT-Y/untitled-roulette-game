@@ -42,7 +42,7 @@ public class Shop extends InputAdapter {
     // Shop appearance settings — adjust these to resize the price text/button.
     private static final float PRICE_FONT_SCALE = 0.6f;
 
-    private static final BitmapFont FONT = FontManager.getInstance().getFontByName("Placeholder");
+    private static final BitmapFont FONT = FontManager.getInstance().getFontByName("Terminus32PX");
     private static final BitmapFont FONT_64PX = FontManager.getInstance().getFontByName("Terminus64PXBold");
 
     private static final Texture PATCH_TEXTURE = new Texture(Gdx.files.internal("ui/CorneredPatch.png"));

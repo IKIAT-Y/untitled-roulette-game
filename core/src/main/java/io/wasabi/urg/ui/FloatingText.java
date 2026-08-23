@@ -66,7 +66,7 @@ public class FloatingText extends GameObject {
 
         float alpha = progress < FADE_START ? 1f : 1f - (progress - FADE_START) / (1f - FADE_START);
 
-        BitmapFont font = FontManager.getInstance().getFontByName("Placeholder");
+        BitmapFont font = FontManager.getInstance().getFontByName("Terminus32PX");
         font.getData().setScale(size);
         GlyphLayout layout = new GlyphLayout(font, text);
 
