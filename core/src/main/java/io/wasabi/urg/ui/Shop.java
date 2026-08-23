@@ -41,7 +41,7 @@ public class Shop extends InputAdapter {
     // Shop appearance settings — adjust these to resize the price text/button.
     private static final float PRICE_FONT_SCALE = 0.6f;
 
-    private static final BitmapFont FONT = FontManager.getInstance().getFontByName("Placeholder");
+    private static final BitmapFont FONT = FontManager.getInstance().getFontByName("Terminus32PX");
     private static final BitmapFont FONT_64PX = FontManager.getInstance().getFontByName("Terminus64PXBold");
 
     private static final Texture PATCH_TEXTURE = new Texture(Gdx.files.internal("ui/CorneredPatch.png"));
@@ -164,7 +164,7 @@ public class Shop extends InputAdapter {
         renderBox(rerollButton, boxPadding, getButtonColor(rerollButtonDown, rerollButtonHover,
             rerollButtonDownColor, rerollButtonHoverColor, rerollButtonColor));
     }
-    
+
     private void renderBox(Rectangle box, float padding, Color color) {
         spriteBatch.setColor(1, 1, 1, 1);
         patch.draw(spriteBatch, box.x - padding / 2, box.y - padding / 2,
@@ -179,7 +179,7 @@ public class Shop extends InputAdapter {
         return hover ? hoverColor : normalColor;
     }
 
-    /** Renders the text labels for the shop controls, 
+    /** Renders the text labels for the shop controls,
      * including "SHOP", "BUY", "SELL", "REROLL", and "CONTINUE".
      * @param left The x-coordinate of the left side of the shop panel, used to position the text.
      */
@@ -341,7 +341,7 @@ public class Shop extends InputAdapter {
         return false;
     }
 
-    /** Called when the user starts dragging a card. 
+    /** Called when the user starts dragging a card.
      * Sets the draggedCard field and calculates the drag offset.
      * @param card The card to drag.
      * @param offer Whether the card is being dragged from the offer list.
@@ -354,7 +354,7 @@ public class Shop extends InputAdapter {
         dragOffset.set(world.x - card.getX(), world.y - card.getY());
     }
 
-    /** Called when the user starts dragging a charm. 
+    /** Called when the user starts dragging a charm.
      * Sets the draggedCharm field and calculates the drag offset.
      * @param charm The charm to drag.
      * @param offer Whether the charm is being dragged from the offer list.
@@ -367,7 +367,7 @@ public class Shop extends InputAdapter {
         dragOffset.set(world.x - charm.getX(), world.y - charm.getY());
     }
 
-    /** Called when the user starts dragging an item from the inventory. 
+    /** Called when the user starts dragging an item from the inventory.
      * Sets the draggingInventory field and calculates the current sell price.
      * @param price The price at which the item is being sold.
      */
@@ -384,7 +384,7 @@ public class Shop extends InputAdapter {
         currentSellPrice = 0;
         finishCardDrag(world);
     }
-    
+
     public void finishInventoryCharmDrag(int x, int y, Charm charm) {
         Vector2 world = screenToWorld(x, y);
         draggedCharm = charm;
@@ -516,8 +516,8 @@ public class Shop extends InputAdapter {
         charmOffers.clear();
     }
 
-    /** Lays out the positions of the shop controls 
-     * (buy/sell boxes, reroll button, continue button) 
+    /** Lays out the positions of the shop controls
+     * (buy/sell boxes, reroll button, continue button)
      * based on the bottom and left coordinates of the shop panel.
      *
      * @param bottom The y-coordinate of the bottom of the shop panel.

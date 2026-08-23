@@ -169,7 +169,7 @@ public class GameScreen implements Screen {
     }
 
     /**
-     * Updates the game state to the result screen 
+     * Updates the game state to the result screen
      * after a round is completed, showing the results and rewards.
      * @param chips The number of chips the player has at the end of the round.
      * @param quota The quota that was set for the round.
@@ -268,7 +268,7 @@ public class GameScreen implements Screen {
         shop.render();
 
         handleUIInput();
-        
+
         handleTileSelectionInput();
         handleWheelRotationInput();
 
@@ -304,7 +304,7 @@ public class GameScreen implements Screen {
         gameOver.update(delta);
         gameOver.render();
     }
-    
+
     /**
      * Determines the current state of the spin button based on the game state and wheel status.
      *
@@ -377,7 +377,7 @@ public class GameScreen implements Screen {
     public void show() {
         Gdx.input.setInputProcessor(inputMultiplexer);
 
-        betButtonTexture = new Texture(Gdx.files.internal("buttons/TEX_Button_64x32_BetUp.png"));
+        betButtonTexture = new Texture(Gdx.files.internal("buttons/ButtonBetUp.png"));
 
         float btnWidth = betButtonTexture.getWidth();
         float btnHeight = betButtonTexture.getHeight();
@@ -522,7 +522,7 @@ public class GameScreen implements Screen {
         spriteBatch.setProjectionMatrix(screenProjection);
         spriteBatch.setTransformMatrix(new Matrix4().idt());
         spriteBatch.begin();
-        //FontManager.getInstance().getFontByName("Placeholder")
+        //FontManager.getInstance().getFontByName("Terminus32PX")
         //        .draw(spriteBatch, "DEBUG WIN", buttonX + 42f, buttonY + 35f);
         spriteBatch.end();
 
@@ -552,7 +552,7 @@ public class GameScreen implements Screen {
     }
 
     @Override
-    public void resume() { 
+    public void resume() {
         // put functionality when screen is resumed, if needed
     }
 

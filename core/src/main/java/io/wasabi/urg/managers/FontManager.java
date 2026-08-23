@@ -22,7 +22,7 @@ public class FontManager {
     private Map<String, BitmapFont> fonts = new HashMap<>();
 
     private FontManager() {
-        fontPaths.put("Placeholder", "fonts/placeholder.fnt");
+        fontPaths.put("Terminus32PX", "fonts/terminus32px.fnt");
         fontPaths.put("Terminus64PXBold", "fonts/terminus64pxBold.fnt");
         fontPaths.put("Terminus16PXBold", "fonts/terminus16pxBold.fnt");
         fontPaths.put("Terminus12PXBold", "fonts/terminus12pxBold.fnt");

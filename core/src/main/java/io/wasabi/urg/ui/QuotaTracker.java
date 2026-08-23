@@ -15,7 +15,7 @@ import io.wasabi.urg.util.tweens.Tween;
 
 /** Displays the current round quota and animates the vertical quota progress bar. */
 public final class QuotaTracker {
-    
+
     private static final float BAR_Y = 62f;
     private static final float BAR_WIDTH = 40f;
     private static final float BAR_HEIGHT_PADDING = 124f;
@@ -56,8 +56,8 @@ public final class QuotaTracker {
         this.roundManager = roundManager;
     }
 
-    /** Advances the bar towards the player's current quota progress. 
-    * @param delta The time elapsed since the last update, in seconds. 
+    /** Advances the bar towards the player's current quota progress.
+    * @param delta The time elapsed since the last update, in seconds.
     */
     public void update(float delta) {
 
@@ -158,7 +158,7 @@ public final class QuotaTracker {
         shapeRenderer.end();
     }
 
-    /** Renders the quota text beside the progress bar, 
+    /** Renders the quota text beside the progress bar,
      * showing the current chips, target quota, and percentage achieved.
      * @param screenWidth The width of the game screen, used to position the text.
      * @param screenHeight The height of the game screen, used to position the text.
@@ -173,7 +173,7 @@ public final class QuotaTracker {
         float textX = barX + BAR_WIDTH + TEXT_X_OFFSET;
         float textY = screenHeight - TEXT_TOP_PADDING;
 
-        BitmapFont font = FontManager.getInstance().getFontByName("Placeholder");
+        BitmapFont font = FontManager.getInstance().getFontByName("Terminus32PX");
 
         float oldScaleX = font.getData().scaleX;
         float oldScaleY = font.getData().scaleY;
